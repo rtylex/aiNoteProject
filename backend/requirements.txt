@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+alembic
+pydantic
+pydantic-settings
+google-generativeai
+supabase
+langchain
+pypdf
+python-multipart
+pgvector
+PyJWT
+

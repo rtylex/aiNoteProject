@@ -1,0 +1,87 @@
+# ========================
+# Environment & Secrets
+# ========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# ========================
+# Python / Backend
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ========================
+# Node.js / Frontend
+# ========================
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ========================
+# IDE & Editor
+# ========================
+# .vscode/  # Kept for shared settings
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ========================
+# Debug & Test Files
+# ========================
+debug_*.py
+test_*.py
+*.log
+migration_output.txt
+
+# ========================
+# Temporary & Build
+# ========================
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/
+
+# ========================
+# Database Scripts (optional - remove if needed)
+# ========================
+check_db.py
+drop_tables.py
+fix_db_enum.py
+manual_fix.py
+list_user_docs.py
+
+# ========================
+# Project Specific
+# ========================
+.claude/
+ekranTasma.png

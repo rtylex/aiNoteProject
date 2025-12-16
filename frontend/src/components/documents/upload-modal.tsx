@@ -220,64 +220,39 @@ export function UploadModal() {
     const getTotalSteps = () => visibility === 'private' ? 2 : 4
 
     const renderStepIndicator = () => {
-        if (visibility === 'private' && step !== 'file' && step !== 'visibility') {
-            // For private, only show 2 steps
+        const currentStep = step as string // Avoid TypeScript narrowing issues
+
+        // For private visibility, show only 2 steps
+        if (visibility === 'private') {
             return (
                 <div className="flex items-center justify-center gap-2 mb-6">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'file' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'file' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
                         1
                     </div>
                     <div className="w-6 h-0.5 bg-indigo-100" />
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'visibility' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'visibility' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
                         2
                     </div>
                 </div>
             )
         }
 
-        // Default 2 steps for initial flow (file -> visibility)
-        if (step === 'file' || step === 'visibility') {
-            return (
-                <div className="flex items-center justify-center gap-2 mb-6">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'file' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
-                        1
-                    </div>
-                    <div className="w-6 h-0.5 bg-indigo-100" />
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'visibility' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
-                        2
-                    </div>
-                    {visibility === 'public' && (
-                        <>
-                            <div className="w-6 h-0.5 bg-indigo-100" />
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'type' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
-                                3
-                            </div>
-                            <div className="w-6 h-0.5 bg-indigo-100" />
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'metadata' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
-                                4
-                            </div>
-                        </>
-                    )}
-                </div>
-            )
-        }
-
-        // Full 4 steps for public flow
+        // For public visibility, show all 4 steps
         return (
             <div className="flex items-center justify-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-indigo-100 text-indigo-600">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'file' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
                     1
                 </div>
                 <div className="w-6 h-0.5 bg-indigo-100" />
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-indigo-100 text-indigo-600">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'visibility' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
                     2
                 </div>
                 <div className="w-6 h-0.5 bg-indigo-100" />
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'type' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'type' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
                     3
                 </div>
                 <div className="w-6 h-0.5 bg-indigo-100" />
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'metadata' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'metadata' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
                     4
                 </div>
             </div>

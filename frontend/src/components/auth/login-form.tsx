@@ -79,14 +79,13 @@ export default function LoginForm() {
 
         if (error) {
             setError(error.message)
+            setLoading(false)
         } else {
-            setSuccess('Onay bağlantısı e-posta adresinize gönderildi.')
-            // Clear form
-            setFullName('')
-            setPassword('')
-            setConfirmPassword('')
+            // Kayıt başarılı, direkt dashboard'a yönlendir
+            setSuccess('Kayıt başarılı! Yönlendiriliyorsunuz...')
+            router.push('/dashboard')
+            router.refresh()
         }
-        setLoading(false)
     }
 
     return (

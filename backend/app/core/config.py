@@ -1,10 +1,19 @@
 from pydantic_settings import BaseSettings
+from typing import List
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "AI Note Project"
-    PROJECT_VERSION: str = "0.1.0"
+    PROJECT_NAME: str = "YirikAI"
+    PROJECT_VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
+    # Server settings
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+    
+    # CORS - Frontend URLs that can access the API
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://232.32.32:3000"
+    
+    # Database & Services
     SUPABASE_URL: str
     SUPABASE_KEY: str
     GEMINI_API_KEY: str

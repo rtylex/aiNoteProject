@@ -11,4 +11,7 @@ pypdf
 python-multipart
 pgvector
 PyJWT
-
+psycopg2-binary
+Pillow
+gunicorn
+python-dotenv

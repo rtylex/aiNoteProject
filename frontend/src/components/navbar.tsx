@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { BookOpen, LogOut, Library, Shield, Menu, X, Home, FolderOpen, Users } from 'lucide-react'
@@ -80,13 +81,15 @@ export function Navbar() {
         <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
             <div className="container mx-auto px-4 h-16 flex justify-between items-center">
                 {/* Logo - Sol */}
-                <Link href="/" className="flex items-center gap-3 group">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
-                        <BookOpen className="h-5 w-5 text-white" />
-                    </div>
-                    <span className="text-lg font-semibold text-gray-900">
-                        YirikAI
-                    </span>
+                <Link href="/" className="flex items-center group">
+                    <Image
+                        src="/YIRIKAI.png"
+                        alt="YirikAI Logo"
+                        width={160}
+                        height={50}
+                        className="group-hover:scale-105 transition-transform object-contain"
+                        priority
+                    />
                 </Link>
 
                 {/* Orta Menü - Pill şeklinde (Desktop) */}

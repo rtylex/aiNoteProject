@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { BookOpen, LogOut, Library, Shield, Settings } from 'lucide-react'
+import { BookOpen, LogOut, Library, Shield, Menu, X, Home, FolderOpen, Users } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import {
@@ -24,6 +24,7 @@ export function Navbar() {
     const router = useRouter()
     const pathname = usePathname()
     const [isAdmin, setIsAdmin] = useState(false)
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
     // Aktif link stilini belirle
     const getLinkClassName = (href: string) => {
@@ -31,6 +32,14 @@ export function Navbar() {
         return `px-4 py-1.5 text-sm font-medium rounded-full transition-all ${isActive
             ? 'bg-violet-100 text-violet-700'
             : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+            }`
+    }
+
+    const getMobileLinkClassName = (href: string) => {
+        const isActive = pathname === href || (href === '/dashboard' && pathname?.startsWith('/dashboard'))
+        return `flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition-all ${isActive
+            ? 'bg-violet-100 text-violet-700'
+            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`
     }
 
@@ -56,6 +65,11 @@ export function Navbar() {
         checkRole()
     }, [user, accessToken])
 
+    // Close mobile menu on route change
+    useEffect(() => {
+        setMobileMenuOpen(false)
+    }, [pathname])
+
     const handleLogout = async () => {
         await supabase.auth.signOut()
         router.replace('/login')
@@ -75,7 +89,7 @@ export function Navbar() {
                     </span>
                 </Link>
 
-                {/* Orta Menü - Pill şeklinde */}
+                {/* Orta Menü - Pill şeklinde (Desktop) */}
                 <nav className="hidden md:flex items-center bg-gray-50 rounded-full px-2 py-1.5 border border-gray-100">
                     {user ? (
                         <>
@@ -124,6 +138,19 @@ export function Navbar() {
 
                 {/* Sağ Taraf - Profil veya Giriş Yap */}
                 <div className="flex items-center gap-3">
+                    {/* Mobile Menu Button */}
+                    <button
+                        className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        aria-label="Menü"
+                    >
+                        {mobileMenuOpen ? (
+                            <X className="h-6 w-6" />
+                        ) : (
+                            <Menu className="h-6 w-6" />
+                        )}
+                    </button>
+
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -168,7 +195,7 @@ export function Navbar() {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
-                        <Link href="/login">
+                        <Link href="/login" className="hidden sm:block">
                             <Button className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-6 h-10 text-sm font-medium shadow-md hover:shadow-lg transition-all rounded-full">
                                 Giriş Yap
                             </Button>
@@ -176,6 +203,99 @@ export function Navbar() {
                     )}
                 </div>
             </div>
+
+            {/* Mobile Menu Overlay */}
+            {mobileMenuOpen && (
+                <div className="md:hidden fixed inset-0 top-16 bg-white z-40 animate-in slide-in-from-top duration-200">
+                    <nav className="container mx-auto px-4 py-6 flex flex-col gap-2">
+                        {user ? (
+                            <>
+                                <Link
+                                    href="/"
+                                    className={getMobileLinkClassName('/')}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <Home className="h-5 w-5" />
+                                    Ana Sayfa
+                                </Link>
+                                <Link
+                                    href="/dashboard"
+                                    className={getMobileLinkClassName('/dashboard')}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <FolderOpen className="h-5 w-5" />
+                                    Kütüphanem
+                                </Link>
+                                <Link
+                                    href="/library"
+                                    className={getMobileLinkClassName('/library')}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <Users className="h-5 w-5" />
+                                    Topluluk
+                                </Link>
+                                {isAdmin && (
+                                    <Link
+                                        href="/admin"
+                                        className={getMobileLinkClassName('/admin')}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        <Shield className="h-5 w-5" />
+                                        Admin Paneli
+                                    </Link>
+                                )}
+                                <div className="border-t border-gray-100 my-4" />
+                                <button
+                                    onClick={() => {
+                                        handleLogout()
+                                        setMobileMenuOpen(false)
+                                    }}
+                                    className="flex items-center gap-3 px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                >
+                                    <LogOut className="h-5 w-5" />
+                                    Çıkış Yap
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    href="/"
+                                    className={getMobileLinkClassName('/')}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <Home className="h-5 w-5" />
+                                    Ana Sayfa
+                                </Link>
+                                <Link
+                                    href="#features"
+                                    className={getMobileLinkClassName('#features')}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Özellikler
+                                </Link>
+                                <Link
+                                    href="#how-it-works"
+                                    className={getMobileLinkClassName('#how-it-works')}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    Nasıl Çalışır
+                                </Link>
+                                <div className="border-t border-gray-100 my-4" />
+                                <Link
+                                    href="/login"
+                                    className="w-full"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <Button className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white h-12 text-base font-medium shadow-md rounded-xl">
+                                        Giriş Yap
+                                    </Button>
+                                </Link>
+                            </>
+                        )}
+                    </nav>
+                </div>
+            )}
         </header>
     )
 }
+

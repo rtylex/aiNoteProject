@@ -40,7 +40,8 @@ import { useRouter } from 'next/navigation'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
 
-type UploadStep = 'file' | 'type' | 'metadata' | 'visibility'
+// New simplified step flow: file -> visibility -> (if public) type -> metadata
+type UploadStep = 'file' | 'visibility' | 'type' | 'metadata'
 type DocumentType = 'course' | 'non_course'
 
 interface Category {
@@ -164,10 +165,10 @@ export function UploadModal() {
                 body: JSON.stringify({
                     title: file.name,
                     file_url: fileUrl,
-                    document_type: documentType,
-                    course_name: documentType === 'course' ? (courseName || null) : null,
-                    topic: documentType === 'course' ? (topic || null) : null,
-                    category_id: documentType === 'non_course' ? (categoryId || null) : null,
+                    document_type: visibility === 'private' ? 'course' : documentType,
+                    course_name: visibility === 'public' && documentType === 'course' ? (courseName || null) : null,
+                    topic: visibility === 'public' && documentType === 'course' ? (topic || null) : null,
+                    category_id: visibility === 'public' && documentType === 'non_course' ? (categoryId || null) : null,
                     visibility: visibility
                 })
             })
@@ -209,38 +210,79 @@ export function UploadModal() {
         setOpen(false)
     }
 
-    const canProceedToType = file !== null
+    const canProceedToVisibility = file !== null
+    const canProceedToType = true
     const canProceedToMetadata = true
-    const canProceedToVisibility = documentType === 'course' || (documentType === 'non_course' && categoryId)
+    const canUploadPrivate = file !== null
+    const canUploadPublic = file !== null && (documentType === 'course' || categoryId) && !(visibility === 'public' && documentType === 'course' && userRole === 'user')
 
-    // Check if user has permission to upload with current settings
-    const isRestrictedUpload = visibility === 'public' && documentType === 'course' && userRole === 'user'
-    const canUpload = file !== null && (documentType === 'course' || categoryId) && !isRestrictedUpload
+    // Determine total steps based on visibility
+    const getTotalSteps = () => visibility === 'private' ? 2 : 4
 
-    const getStepNumber = (s: UploadStep) => {
-        const steps: UploadStep[] = ['file', 'type', 'metadata', 'visibility']
-        return steps.indexOf(s) + 1
+    const renderStepIndicator = () => {
+        if (visibility === 'private' && step !== 'file' && step !== 'visibility') {
+            // For private, only show 2 steps
+            return (
+                <div className="flex items-center justify-center gap-2 mb-6">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'file' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                        1
+                    </div>
+                    <div className="w-6 h-0.5 bg-indigo-100" />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'visibility' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                        2
+                    </div>
+                </div>
+            )
+        }
+
+        // Default 2 steps for initial flow (file -> visibility)
+        if (step === 'file' || step === 'visibility') {
+            return (
+                <div className="flex items-center justify-center gap-2 mb-6">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'file' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                        1
+                    </div>
+                    <div className="w-6 h-0.5 bg-indigo-100" />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'visibility' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                        2
+                    </div>
+                    {visibility === 'public' && (
+                        <>
+                            <div className="w-6 h-0.5 bg-indigo-100" />
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'type' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                                3
+                            </div>
+                            <div className="w-6 h-0.5 bg-indigo-100" />
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'metadata' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                                4
+                            </div>
+                        </>
+                    )}
+                </div>
+            )
+        }
+
+        // Full 4 steps for public flow
+        return (
+            <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-indigo-100 text-indigo-600">
+                    1
+                </div>
+                <div className="w-6 h-0.5 bg-indigo-100" />
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-indigo-100 text-indigo-600">
+                    2
+                </div>
+                <div className="w-6 h-0.5 bg-indigo-100" />
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'type' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                    3
+                </div>
+                <div className="w-6 h-0.5 bg-indigo-100" />
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'metadata' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                    4
+                </div>
+            </div>
+        )
     }
-
-    const renderStepIndicator = () => (
-        <div className="flex items-center justify-center gap-2 mb-6">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'file' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
-                1
-            </div>
-            <div className="w-6 h-0.5 bg-indigo-100" />
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'type' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
-                2
-            </div>
-            <div className="w-6 h-0.5 bg-indigo-100" />
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'metadata' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
-                3
-            </div>
-            <div className="w-6 h-0.5 bg-indigo-100" />
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 'visibility' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
-                4
-            </div>
-        </div>
-    )
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => {
@@ -257,15 +299,15 @@ export function UploadModal() {
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         {step === 'file' && 'Dosya Seç'}
+                        {step === 'visibility' && 'Paylaşım Ayarı'}
                         {step === 'type' && 'Döküman Türü'}
                         {step === 'metadata' && (documentType === 'course' ? 'Ders Bilgileri' : 'Kategori Seç')}
-                        {step === 'visibility' && 'Paylaşım Ayarı'}
                     </DialogTitle>
                     <DialogDescription className="text-center text-gray-500">
                         {step === 'file' && 'PDF dosyanızı yükleyin'}
+                        {step === 'visibility' && 'Notunuzu kimlerle paylaşmak istiyorsunuz?'}
                         {step === 'type' && 'Bu döküman ne türde?'}
                         {step === 'metadata' && (documentType === 'course' ? 'Ders adı ve konu bilgilerini girin' : 'Dökümanınız için bir kategori seçin')}
-                        {step === 'visibility' && 'Notunuzu kimlerle paylaşmak istiyorsunuz?'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -324,7 +366,56 @@ export function UploadModal() {
                         </div>
                     )}
 
-                    {/* Step 2: Document Type Selection */}
+                    {/* Step 2: Visibility Selection (NOW SECOND!) */}
+                    {step === 'visibility' && (
+                        <div className="space-y-4">
+                            <div
+                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${visibility === 'private'
+                                    ? 'border-indigo-600 bg-indigo-50'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                                onClick={() => setVisibility('private')}
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${visibility === 'private' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
+                                        <Lock className={`w-5 h-5 ${visibility === 'private' ? 'text-white' : 'text-gray-500'}`} />
+                                    </div>
+                                    <div>
+                                        <h3 className={`font-semibold ${visibility === 'private' ? 'text-indigo-600' : 'text-gray-700'}`}>
+                                            Sadece Ben
+                                        </h3>
+                                        <p className="text-sm text-gray-500">
+                                            Bu not sadece size özel olacak. Kişisel çalışmalarınız için ideal.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${visibility === 'public'
+                                    ? 'border-indigo-600 bg-indigo-50'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                                onClick={() => setVisibility('public')}
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${visibility === 'public' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
+                                        <Globe className={`w-5 h-5 ${visibility === 'public' ? 'text-white' : 'text-gray-500'}`} />
+                                    </div>
+                                    <div>
+                                        <h3 className={`font-semibold ${visibility === 'public' ? 'text-indigo-600' : 'text-gray-700'}`}>
+                                            Toplulukla Paylaş
+                                        </h3>
+                                        <p className="text-sm text-gray-500">
+                                            Diğer öğrenciler de bu notla AI destekli çalışabilir. Admin onayı gerektirir.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 3: Document Type Selection (ONLY FOR PUBLIC) */}
                     {step === 'type' && (
                         <div className="space-y-4">
                             <div
@@ -370,10 +461,25 @@ export function UploadModal() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Warning for regular users about course document restrictions */}
+                            {documentType === 'course' && userRole === 'user' && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                                    <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-medium text-red-700">
+                                            Ders dökümanı paylaşımı kısıtlı
+                                        </p>
+                                        <p className="text-sm text-red-600 mt-1">
+                                            Topluluk kütüphanesine ders dökümanı yüklemek için öğretmen veya admin rolüne sahip olmanız gerekmektedir.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {/* Step 3: Metadata */}
+                    {/* Step 4: Metadata - Course Information */}
                     {step === 'metadata' && documentType === 'course' && (
                         <div className="space-y-4">
                             <div className="space-y-2">
@@ -421,7 +527,7 @@ export function UploadModal() {
                                 <p className="text-xs text-gray-400">
                                     {suggestions.courses.length > 0
                                         ? `${suggestions.courses.length} mevcut ders bulundu. Listeden seçebilir veya yeni girebilirsiniz.`
-                                        : 'Toplulukla paylaşacaksanız ders adını girmeniz önerilir'}
+                                        : 'Ders adını girmeniz önerilir'}
                                 </p>
                             </div>
 
@@ -506,7 +612,7 @@ export function UploadModal() {
                         </div>
                     )}
 
-                    {/* Step 3: Category Selection for non-course documents */}
+                    {/* Step 4: Category Selection for non-course documents */}
                     {step === 'metadata' && documentType === 'non_course' && (
                         <div className="space-y-4">
                             <div className="space-y-2">
@@ -542,79 +648,6 @@ export function UploadModal() {
                             </div>
                         </div>
                     )}
-
-                    {/* Step 4: Visibility */}
-                    {step === 'visibility' && (
-                        <div className="space-y-4">
-                            <div
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${visibility === 'private'
-                                    ? 'border-indigo-600 bg-indigo-50'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                    }`}
-                                onClick={() => setVisibility('private')}
-                            >
-                                <div className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${visibility === 'private' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                                        <Lock className={`w-5 h-5 ${visibility === 'private' ? 'text-white' : 'text-gray-500'}`} />
-                                    </div>
-                                    <div>
-                                        <h3 className={`font-semibold ${visibility === 'private' ? 'text-indigo-600' : 'text-gray-700'}`}>
-                                            Sadece Ben
-                                        </h3>
-                                        <p className="text-sm text-gray-500">
-                                            Bu not sadece size özel olacak. Kişisel çalışmalarınız için ideal.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${visibility === 'public'
-                                    ? 'border-indigo-600 bg-indigo-50'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                    }`}
-                                onClick={() => setVisibility('public')}
-                            >
-                                <div className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${visibility === 'public' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                                        <Globe className={`w-5 h-5 ${visibility === 'public' ? 'text-white' : 'text-gray-500'}`} />
-                                    </div>
-                                    <div>
-                                        <h3 className={`font-semibold ${visibility === 'public' ? 'text-indigo-600' : 'text-gray-700'}`}>
-                                            Toplulukla Paylaş
-                                        </h3>
-                                        <p className="text-sm text-gray-500">
-                                            Diğer öğrenciler de bu notla AI destekli çalışabilir. Admin onayı gerektirir.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {visibility === 'public' && documentType === 'course' && (!courseName || !topic) && (
-                                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                                    <p className="text-sm text-amber-700">
-                                        Toplulukla paylaşım için ders adı ve konu girmeniz önerilir.
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Warning for regular users about course document restrictions */}
-                            {visibility === 'public' && documentType === 'course' && userRole === 'user' && (
-                                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                                    <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium text-red-700">
-                                            Ders dökümanı paylaşımı kısıtlı
-                                        </p>
-                                        <p className="text-sm text-red-600 mt-1">
-                                            Topluluk kütüphanesine ders dökümanı yüklemek için öğretmen veya admin rolüne sahip olmanız gerekmektedir.
-                                            Sadece ders dışı dökümanları paylaşabilirsiniz.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
 
                 <DialogFooter className="flex gap-2">
@@ -622,9 +655,9 @@ export function UploadModal() {
                         <Button
                             variant="outline"
                             onClick={() => {
-                                if (step === 'visibility') setStep('metadata')
-                                else if (step === 'metadata') setStep('type')
-                                else if (step === 'type') setStep('file')
+                                if (step === 'metadata') setStep('type')
+                                else if (step === 'type') setStep('visibility')
+                                else if (step === 'visibility') setStep('file')
                             }}
                         >
                             <ChevronLeft className="w-4 h-4 mr-1" />
@@ -634,8 +667,8 @@ export function UploadModal() {
 
                     {step === 'file' && (
                         <Button
-                            onClick={() => setStep('type')}
-                            disabled={!canProceedToType}
+                            onClick={() => setStep('visibility')}
+                            disabled={!canProceedToVisibility}
                             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
                         >
                             Devam Et
@@ -643,31 +676,10 @@ export function UploadModal() {
                         </Button>
                     )}
 
-                    {step === 'type' && (
-                        <Button
-                            onClick={() => setStep('metadata')}
-                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-                        >
-                            Devam Et
-                            <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
-                    )}
-
-                    {step === 'metadata' && (
-                        <Button
-                            onClick={() => setStep('visibility')}
-                            disabled={!canProceedToVisibility}
-                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-                        >
-                            Devam Et
-                            <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
-                    )}
-
-                    {step === 'visibility' && (
+                    {step === 'visibility' && visibility === 'private' && (
                         <Button
                             onClick={handleUpload}
-                            disabled={!canUpload || uploading}
+                            disabled={!canUploadPrivate || uploading}
                             className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
                         >
                             {uploading ? (
@@ -679,6 +691,47 @@ export function UploadModal() {
                                 <>
                                     <UploadCloud className="w-4 h-4 mr-1" />
                                     Yükle ve Başla
+                                </>
+                            )}
+                        </Button>
+                    )}
+
+                    {step === 'visibility' && visibility === 'public' && (
+                        <Button
+                            onClick={() => setStep('type')}
+                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                        >
+                            Devam Et
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                        </Button>
+                    )}
+
+                    {step === 'type' && (
+                        <Button
+                            onClick={() => setStep('metadata')}
+                            disabled={documentType === 'course' && userRole === 'user'}
+                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                        >
+                            Devam Et
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                        </Button>
+                    )}
+
+                    {step === 'metadata' && (
+                        <Button
+                            onClick={handleUpload}
+                            disabled={!canUploadPublic || uploading}
+                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                        >
+                            {uploading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Yükleniyor...
+                                </>
+                            ) : (
+                                <>
+                                    <UploadCloud className="w-4 h-4 mr-1" />
+                                    Yükle ve Paylaş
                                 </>
                             )}
                         </Button>

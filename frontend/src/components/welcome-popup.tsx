@@ -1,33 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { X, BookOpen, Users, BarChart3, LogIn } from 'lucide-react'
 
-const POPUP_SHOWN_KEY = 'yirikai_welcome_shown'
-
 export default function WelcomePopup() {
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(true)
     const router = useRouter()
 
-    useEffect(() => {
-        // Check if popup was already shown in this browser
-        const wasShown = localStorage.getItem(POPUP_SHOWN_KEY)
-        if (!wasShown) {
-            setIsOpen(true)
-        }
-    }, [])
-
     const handleClose = () => {
-        // Mark as shown in localStorage
-        localStorage.setItem(POPUP_SHOWN_KEY, 'true')
         setIsOpen(false)
     }
 
     const handleLogin = () => {
-        // Mark as shown and redirect to login
-        localStorage.setItem(POPUP_SHOWN_KEY, 'true')
         setIsOpen(false)
         router.push('/login')
     }

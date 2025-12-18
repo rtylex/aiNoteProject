@@ -87,7 +87,7 @@ export function Navbar() {
                         alt="YirikAI Logo"
                         width={140}
                         height={45}
-                        className="group-hover:scale-105 transition-transform object-contain bg-white rounded p-1"
+                        className="group-hover:scale-105 transition-transform object-contain"
                         priority
                     />
                 </Link>

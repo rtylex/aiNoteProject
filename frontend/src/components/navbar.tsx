@@ -82,16 +82,14 @@ export function Navbar() {
             <div className="container mx-auto px-4 h-16 flex justify-between items-center">
                 {/* Logo - Sol */}
                 <Link href="/" className="flex items-center group">
-                    <div className="bg-white/90 rounded-lg px-2 py-1 shadow-sm">
-                        <Image
-                            src="/YIRIKAI.png"
-                            alt="YirikAI Logo"
-                            width={80}
-                            height={26}
-                            className="group-hover:scale-105 transition-transform object-contain"
-                            priority
-                        />
-                    </div>
+                    <Image
+                        src="/YIRIKAI.png"
+                        alt="YirikAI Logo"
+                        width={140}
+                        height={45}
+                        className="group-hover:scale-105 transition-transform object-contain bg-white rounded p-1"
+                        priority
+                    />
                 </Link>
 
                 {/* Orta Menü - Pill şeklinde (Desktop) */}

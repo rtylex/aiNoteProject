@@ -8,6 +8,14 @@ from app.services.gemini_service import gemini_service
 from app.services.deepseek_service import deepseek_service
 
 
+class ModelUnavailableError(Exception):
+    """Raised when the selected AI model is unavailable or fails."""
+    def __init__(self, model: str, message: str = None):
+        self.model = model
+        self.message = message or f"{model} modeli şu anda kullanılamıyor"
+        super().__init__(self.message)
+
+
 class AIService:
     """Unified AI service that routes requests to the appropriate model."""
     
@@ -31,16 +39,25 @@ class AIService:
         
         Returns:
             AI-generated answer
+            
+        Raises:
+            ModelUnavailableError: If the selected model fails
         """
-        if model == "deepseek" and self.deepseek.enabled:
+        if model == "deepseek":
+            if not self.deepseek.enabled:
+                raise ModelUnavailableError("DeepSeek", "DeepSeek API yapılandırılmamış")
             try:
                 return await self.deepseek.generate_answer(question, context)
             except Exception as e:
-                print(f"[AIService] DeepSeek failed, falling back to Gemini: {e}")
-                # Fallback to Gemini if DeepSeek fails
-                return await self.gemini.generate_answer(question, context)
+                print(f"[AIService] DeepSeek failed: {e}")
+                raise ModelUnavailableError("DeepSeek", str(e))
         
-        return await self.gemini.generate_answer(question, context)
+        # Gemini
+        try:
+            return await self.gemini.generate_answer(question, context)
+        except Exception as e:
+            print(f"[AIService] Gemini failed: {e}")
+            raise ModelUnavailableError("Gemini", str(e))
     
     async def generate_answer_simple(self, prompt: str, model: str = "deepseek") -> str:
         """
@@ -52,16 +69,25 @@ class AIService:
         
         Returns:
             AI-generated response
+            
+        Raises:
+            ModelUnavailableError: If the selected model fails
         """
-        if model == "deepseek" and self.deepseek.enabled:
+        if model == "deepseek":
+            if not self.deepseek.enabled:
+                raise ModelUnavailableError("DeepSeek", "DeepSeek API yapılandırılmamış")
             try:
                 return await self.deepseek.generate_answer_simple(prompt)
             except Exception as e:
-                print(f"[AIService] DeepSeek failed, falling back to Gemini: {e}")
-                # Fallback to Gemini if DeepSeek fails
-                return await self.gemini.generate_answer_simple(prompt)
+                print(f"[AIService] DeepSeek failed: {e}")
+                raise ModelUnavailableError("DeepSeek", str(e))
         
-        return await self.gemini.generate_answer_simple(prompt)
+        # Gemini
+        try:
+            return await self.gemini.generate_answer_simple(prompt)
+        except Exception as e:
+            print(f"[AIService] Gemini failed: {e}")
+            raise ModelUnavailableError("Gemini", str(e))
 
 
 # Singleton instance

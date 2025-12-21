@@ -9,7 +9,7 @@ from app.models.chat import ChatSession, ChatMessage, MultiDocumentSession, Mult
 from app.models.document import Document, DocumentEmbedding
 from app.models.user import UserProfile, UserRole
 from app.services.gemini_service import gemini_service
-from app.services.ai_service import ai_service
+from app.services.ai_service import ai_service, ModelUnavailableError
 from app.services.query_limit import check_query_limit, increment_query_count, get_query_status
 
 router = APIRouter()
@@ -194,6 +194,15 @@ async def chat_message(
             "query_limit": query_status
         }
 
+    except ModelUnavailableError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "error": "model_unavailable",
+                "model": e.model,
+                "message": e.message
+            }
+        )
     except HTTPException:
         raise
     except Exception as e:

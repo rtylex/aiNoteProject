@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle, Zap, ChevronDown, Star } from 'lucide-react'
+import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle, Zap, ChevronDown, Star, Lightbulb, BookOpen, ListChecks, GraduationCap, HelpCircle } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
@@ -29,6 +29,21 @@ interface LimitInfo {
     remaining: number
     limit: number
 }
+
+interface ModelError {
+    model: string
+    message: string
+}
+
+// Prompt templates for DeepSeek cache optimization
+const PROMPT_TEMPLATES = [
+    { icon: FileText, label: 'Kısaca Özetle', prompt: 'Bu dokümanları kısaca 2-3 paragrafta özetle.', color: 'text-blue-500' },
+    { icon: BookOpen, label: 'Detaylı Özetle', prompt: 'Bu dokümanları detaylı bir şekilde özetle. Tüm önemli noktaları kapsa.', color: 'text-indigo-500' },
+    { icon: ListChecks, label: 'Madde Madde', prompt: 'Bu dokümanların ana noktalarını madde madde listele.', color: 'text-emerald-500' },
+    { icon: Lightbulb, label: 'Basitçe Açıkla', prompt: 'Bu konuları basit ve anlaşılır bir şekilde açıkla.', color: 'text-amber-500' },
+    { icon: GraduationCap, label: 'Sınav Sorusu', prompt: 'Bu konulardan 5 adet sınav sorusu hazırla. Cevaplarını da ver.', color: 'text-purple-500' },
+    { icon: HelpCircle, label: 'Çoktan Seçmeli', prompt: 'Bu konulardan 5 adet çoktan seçmeli (A/B/C/D) soru hazırla. Doğru cevapları işaretle.', color: 'text-rose-500' },
+]
 
 function MultiChatContent() {
     const searchParams = useSearchParams()
@@ -53,6 +68,14 @@ function MultiChatContent() {
     const [showLimitModal, setShowLimitModal] = useState(false)
     const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null)
 
+    // Model error state
+    const [showModelError, setShowModelError] = useState(false)
+    const [modelError, setModelError] = useState<ModelError | null>(null)
+
+    // Template dropdown state
+    const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
+    const templateDropdownRef = useRef<HTMLDivElement>(null)
+
     // AI Model selection - default to DeepSeek (economic)
     const [selectedModel, setSelectedModel] = useState<'gemini' | 'deepseek'>(() => {
         if (typeof window !== 'undefined') {
@@ -69,11 +92,14 @@ function MultiChatContent() {
         localStorage.setItem('yirik-ai-model', selectedModel)
     }, [selectedModel])
 
-    // Close dropdown when clicking outside
+    // Close dropdowns when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target as Node)) {
                 setShowModelDropdown(false)
+            }
+            if (templateDropdownRef.current && !templateDropdownRef.current.contains(event.target as Node)) {
+                setShowTemplateDropdown(false)
             }
         }
         document.addEventListener('mousedown', handleClickOutside)
@@ -201,16 +227,17 @@ function MultiChatContent() {
         }
     }, [messages])
 
-    const handleSend = async () => {
-        if (!input.trim() || isLoading || !sessionId) return
+    const handleSend = async (promptOverride?: string) => {
+        const messageToSend = promptOverride || input
+        if (!messageToSend.trim() || isLoading || !sessionId) return
 
         const userMessage: Message = {
             id: Date.now(),
             sender: 'user',
-            message: input
+            message: messageToSend
         }
 
-        const sentMessage = input
+        const sentMessage = messageToSend
         setMessages(prev => [...prev, userMessage])
         setInput('')
         setIsLoading(true)
@@ -244,6 +271,17 @@ function MultiChatContent() {
                 // Remove the user message since it wasn't processed
                 setMessages(prev => prev.filter(m => m.id !== userMessage.id))
                 setInput(sentMessage) // Restore the input
+            } else if (response.status === 503) {
+                // Model unavailable - show error modal
+                const errorData = await response.json()
+                setModelError({
+                    model: errorData.detail?.model || selectedModel,
+                    message: errorData.detail?.message || 'Bu model şu anda kullanılamıyor'
+                })
+                setShowModelError(true)
+                // Remove the user message since it wasn't processed
+                setMessages(prev => prev.filter(m => m.id !== userMessage.id))
+                setInput(sentMessage) // Restore the input
             } else {
                 const errorData = await response.json()
                 const aiMessage: Message = {
@@ -264,6 +302,11 @@ function MultiChatContent() {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    // Handle template click
+    const handleTemplateClick = (prompt: string) => {
+        handleSend(prompt)
     }
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -576,8 +619,8 @@ function MultiChatContent() {
                                                             setShowModelDropdown(false)
                                                         }}
                                                         className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-all ${selectedModel === 'deepseek'
-                                                                ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300'
-                                                                : 'text-foreground/80 hover:bg-muted/50'
+                                                            ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300'
+                                                            : 'text-foreground/80 hover:bg-muted/50'
                                                             }`}
                                                         role="option"
                                                         aria-selected={selectedModel === 'deepseek'}
@@ -600,8 +643,8 @@ function MultiChatContent() {
                                                             setShowModelDropdown(false)
                                                         }}
                                                         className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-all ${selectedModel === 'gemini'
-                                                                ? 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300'
-                                                                : 'text-foreground/80 hover:bg-muted/50'
+                                                            ? 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300'
+                                                            : 'text-foreground/80 hover:bg-muted/50'
                                                             }`}
                                                         role="option"
                                                         aria-selected={selectedModel === 'gemini'}
@@ -622,6 +665,53 @@ function MultiChatContent() {
                                         </AnimatePresence>
                                     </div>
 
+                                    {/* Template Dropdown Button */}
+                                    <div className="relative shrink-0" ref={templateDropdownRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                                            className="group rounded-xl p-2 bg-background/80 border border-border/30 transition-all hover:bg-muted/50 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                                            aria-label="Şablonlar"
+                                            aria-expanded={showTemplateDropdown}
+                                            aria-haspopup="menu"
+                                        >
+                                            <Lightbulb
+                                                size={18}
+                                                className="text-amber-500 group-hover:text-amber-600 transition-colors"
+                                                strokeWidth={2}
+                                            />
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {showTemplateDropdown && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                                                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                                                    className="absolute left-0 bottom-full mb-2 w-56 rounded-xl border border-border/40 bg-background/95 py-1.5 shadow-lg backdrop-blur-xl z-50"
+                                                    role="menu"
+                                                >
+                                                    {PROMPT_TEMPLATES.map((template, index) => (
+                                                        <button
+                                                            key={index}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                handleTemplateClick(template.prompt)
+                                                                setShowTemplateDropdown(false)
+                                                            }}
+                                                            className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-foreground/80 transition-all hover:bg-muted/50"
+                                                            role="menuitem"
+                                                        >
+                                                            <template.icon className={`w-4 h-4 ${template.color}`} />
+                                                            <span>{template.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+
                                     <Input
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
@@ -631,7 +721,7 @@ function MultiChatContent() {
                                         className="flex-1"
                                     />
                                     <Button
-                                        onClick={handleSend}
+                                        onClick={() => handleSend()}
                                         disabled={!input.trim() || isLoading || !sessionId}
                                         className="bg-gradient-to-r from-indigo-600 to-purple-600"
                                     >

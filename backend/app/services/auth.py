@@ -13,11 +13,13 @@ def _fetch_user_from_supabase(token: str) -> dict | None:
     try:
         user_response = supabase_client.auth.get_user(token)
     except Exception as e:
-        print(f"DEBUG: Supabase auth.get_user failed - {type(e).__name__}: {str(e)}")
+        if settings.DEBUG_MODE:
+            print(f"DEBUG: Supabase auth.get_user failed - {type(e).__name__}: {str(e)}")
         return None
 
     if not user_response or not user_response.user:
-        print("DEBUG: Supabase user_response is empty")
+        if settings.DEBUG_MODE:
+            print("DEBUG: Supabase user_response is empty")
         return None
 
     user = user_response.user
@@ -26,20 +28,24 @@ def _fetch_user_from_supabase(token: str) -> dict | None:
         "email": user.email,
         "user_metadata": user.user_metadata  # Include user_metadata for full_name etc.
     }
-    print(f"DEBUG: Supabase auth successful, sub: {result.get('sub')}, metadata keys: {list(user.user_metadata.keys()) if user.user_metadata else 'None'}")
+    if settings.DEBUG_MODE:
+        print(f"DEBUG: Supabase auth successful, sub: {result.get('sub')}, metadata keys: {list(user.user_metadata.keys()) if user.user_metadata else 'None'}")
     return result
 
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
-    print(f"DEBUG: Attempting to authenticate with token (first 20 chars): {token[:20]}...")
+    if settings.DEBUG_MODE:
+        print(f"DEBUG: Attempting to authenticate with token (first 20 chars): {token[:20]}...")
 
     user = _fetch_user_from_supabase(token)
     if user:
-        print(f"DEBUG: Auth successful via Supabase, returning user: {user.get('sub')}")
+        if settings.DEBUG_MODE:
+            print(f"DEBUG: Auth successful via Supabase, returning user: {user.get('sub')}")
         return user
 
-    print("ERROR: Supabase auth failed!")
+    if settings.DEBUG_MODE:
+        print("ERROR: Supabase auth failed!")
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

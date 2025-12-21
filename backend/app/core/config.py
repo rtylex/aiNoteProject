@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     PORT: int = 8000
     
     # CORS - Frontend URLs that can access the API
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://232.32.32:3000"
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
     
     # Database & Services
     SUPABASE_URL: str
@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     DEEPSEEK_API_KEY: str | None = None  # Optional - for economic AI mode
     DATABASE_URL: str
     SUPABASE_STORAGE_BUCKET: str = "course_materials"
+    
+    # Debug mode - set to False in production
+    DEBUG_MODE: bool = False
 
     class Config:
         case_sensitive = True

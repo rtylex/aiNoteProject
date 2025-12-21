@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_KEY: str
     GEMINI_API_KEY: str
+    DEEPSEEK_API_KEY: str | None = None  # Optional - for economic AI mode
     DATABASE_URL: str
     SUPABASE_STORAGE_BUCKET: str = "course_materials"
 

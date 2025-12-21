@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, AlertCircle } from 'lucide-react'
+import { Loader2, AlertCircle, Sparkles, Zap } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
@@ -177,6 +177,20 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
     const [showLimitModal, setShowLimitModal] = useState(false)
     const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null)
 
+    // AI Model selection - default to DeepSeek (economic)
+    const [selectedModel, setSelectedModel] = useState<'gemini' | 'deepseek'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('yirik-ai-model')
+            return (saved === 'gemini' || saved === 'deepseek') ? saved : 'deepseek'
+        }
+        return 'deepseek'
+    })
+
+    // Save model preference to localStorage
+    useEffect(() => {
+        localStorage.setItem('yirik-ai-model', selectedModel)
+    }, [selectedModel])
+
     const bubbleMaxWidth = isFullWidth ? 'min(900px, calc(100% - 2rem))' : 'min(560px, calc(100% - 2rem))';
     const containerMaxWidth = isFullWidth ? 'max-w-4xl' : 'max-w-[560px]';
 
@@ -276,7 +290,8 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                 body: JSON.stringify({
                     document_id: documentId,
                     message: sentMessage,
-                    session_id: currentSessionId
+                    session_id: currentSessionId,
+                    model: selectedModel
                 })
             })
 
@@ -495,22 +510,49 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                         </div>
                     ) : (
                         <>
-                            <form onSubmit={(e) => { e.preventDefault(); handleSend() }} className="relative flex items-center">
-                                <Input
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    placeholder="Doküman hakkında bir soru sor..."
-                                    disabled={loading}
-                                    className="pr-20 py-6 rounded-full shadow-sm border-muted-foreground/20 focus-visible:ring-primary/20"
-                                />
-                                <Button
-                                    type="submit"
-                                    disabled={loading || !input.trim()}
-                                    size="sm"
-                                    className="absolute right-2 rounded-full px-4"
-                                >
-                                    Gönder
-                                </Button>
+                            <form onSubmit={(e) => { e.preventDefault(); handleSend() }} className="relative flex items-center gap-2">
+                                {/* Model Selection Toggle */}
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedModel(selectedModel === 'deepseek' ? 'gemini' : 'deepseek')}
+                                        className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 border ${selectedModel === 'deepseek'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                                : 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100'
+                                            }`}
+                                        title={selectedModel === 'deepseek' ? 'DeepSeek (Ekonomik)' : 'Gemini (Yüksek Kalite)'}
+                                    >
+                                        {selectedModel === 'deepseek' ? (
+                                            <>
+                                                <Zap className="w-3.5 h-3.5" />
+                                                <span className="hidden sm:inline">DeepSeek</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles className="w-3.5 h-3.5" />
+                                                <span className="hidden sm:inline">Gemini</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+
+                                <div className="relative flex-1">
+                                    <Input
+                                        value={input}
+                                        onChange={(e) => setInput(e.target.value)}
+                                        placeholder="Doküman hakkında bir soru sor..."
+                                        disabled={loading}
+                                        className="pr-20 py-6 rounded-full shadow-sm border-muted-foreground/20 focus-visible:ring-primary/20"
+                                    />
+                                    <Button
+                                        type="submit"
+                                        disabled={loading || !input.trim()}
+                                        size="sm"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-4"
+                                    >
+                                        Gönder
+                                    </Button>
+                                </div>
                             </form>
                             <p className="text-xs text-center text-muted-foreground mt-2">
                                 AI hatalar yapabilir. Önemli bilgileri kontrol edin.

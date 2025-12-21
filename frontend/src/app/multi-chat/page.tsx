@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle } from 'lucide-react'
+import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle, Zap } from 'lucide-react'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -51,6 +51,20 @@ function MultiChatContent() {
     // Limit modal state
     const [showLimitModal, setShowLimitModal] = useState(false)
     const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null)
+
+    // AI Model selection - default to DeepSeek (economic)
+    const [selectedModel, setSelectedModel] = useState<'gemini' | 'deepseek'>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('yirik-ai-model')
+            return (saved === 'gemini' || saved === 'deepseek') ? saved : 'deepseek'
+        }
+        return 'deepseek'
+    })
+
+    // Save model preference to localStorage
+    useEffect(() => {
+        localStorage.setItem('yirik-ai-model', selectedModel)
+    }, [selectedModel])
 
     // Check for existing session or new documents
     useEffect(() => {
@@ -194,7 +208,7 @@ function MultiChatContent() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${accessToken}`
                 },
-                body: JSON.stringify({ message: sentMessage })
+                body: JSON.stringify({ message: sentMessage, model: selectedModel })
             })
 
             if (response.ok) {
@@ -509,13 +523,37 @@ function MultiChatContent() {
 
                             {/* Input Area */}
                             <div className="border-t p-4 bg-white/50">
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 items-center">
+                                    {/* Model Selection Toggle */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedModel(selectedModel === 'deepseek' ? 'gemini' : 'deepseek')}
+                                        className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-all duration-200 border shrink-0 ${selectedModel === 'deepseek'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                                : 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100'
+                                            }`}
+                                        title={selectedModel === 'deepseek' ? 'DeepSeek (Ekonomik)' : 'Gemini (Yüksek Kalite)'}
+                                    >
+                                        {selectedModel === 'deepseek' ? (
+                                            <>
+                                                <Zap className="w-3.5 h-3.5" />
+                                                <span className="hidden sm:inline">DeepSeek</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles className="w-3.5 h-3.5" />
+                                                <span className="hidden sm:inline">Gemini</span>
+                                            </>
+                                        )}
+                                    </button>
+
                                     <Input
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Tüm dökümanlardan soru sorun..."
                                         disabled={isLoading || !sessionId}
+                                        className="flex-1"
                                     />
                                     <Button
                                         onClick={handleSend}

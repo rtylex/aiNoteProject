@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 import uuid
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Literal
 from sqlalchemy.orm import Session
 from app.services.auth import get_current_user
 from app.db.session import get_db
@@ -9,6 +9,7 @@ from app.models.chat import ChatSession, ChatMessage, MultiDocumentSession, Mult
 from app.models.document import Document, DocumentEmbedding
 from app.models.user import UserProfile, UserRole
 from app.services.gemini_service import gemini_service
+from app.services.ai_service import ai_service
 from app.services.query_limit import check_query_limit, increment_query_count, get_query_status
 
 router = APIRouter()
@@ -18,6 +19,7 @@ class ChatRequest(BaseModel):
     document_id: str
     message: str
     session_id: str | None = None
+    model: Literal["gemini", "deepseek"] = "deepseek"  # Default: DeepSeek (economic)
 
 
 class MultiDocumentChatRequest(BaseModel):
@@ -25,6 +27,7 @@ class MultiDocumentChatRequest(BaseModel):
     document_ids: list[str]
     message: str
     session_id: str | None = None
+    model: Literal["gemini", "deepseek"] = "deepseek"  # Default: DeepSeek (economic)
 
 
 # Multi-Document Session Schemas
@@ -42,6 +45,7 @@ class UpdateMultiSessionRequest(BaseModel):
 class MultiSessionMessageRequest(BaseModel):
     """Send a message in a multi-document session."""
     message: str = Field(..., min_length=1)
+    model: Literal["gemini", "deepseek"] = "deepseek"  # Default: DeepSeek (economic)
 
 
 def _parse_uuid(value: str | None, field_name: str) -> uuid.UUID:
@@ -169,7 +173,7 @@ async def chat_message(
 
         context = "\n\n".join(context_chunks)[:30000]
 
-        ai_response_text = await gemini_service.generate_answer(request.message, context)
+        ai_response_text = await ai_service.generate_answer(request.message, context, request.model)
 
         # 4. Save AI Message
         ai_msg = ChatMessage(
@@ -364,7 +368,7 @@ Kullanıcı Sorusu: {request.message}
 
 Yanıt:"""
 
-        ai_response_text = await gemini_service.generate_answer_simple(multi_doc_prompt)
+        ai_response_text = await ai_service.generate_answer_simple(multi_doc_prompt, request.model)
         
         # Increment query count after successful response
         query_status = increment_query_count(user_profile, db)
@@ -663,7 +667,7 @@ Kullanıcı Sorusu: {request.message}
 
 Yanıt:"""
 
-    ai_response_text = await gemini_service.generate_answer_simple(multi_doc_prompt)
+    ai_response_text = await ai_service.generate_answer_simple(multi_doc_prompt, request.model)
 
     # Save AI message
     ai_msg = MultiSessionMessage(

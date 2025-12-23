@@ -3,6 +3,10 @@ AI Service - Unified interface for AI model selection.
 
 This wrapper service allows switching between Gemini and DeepSeek
 based on user preference, providing a consistent interface for chat operations.
+
+CACHE OPTIMIZATION:
+DeepSeek supports prefix caching. The new generate_answer_multi_doc method
+separates context and question to enable caching of the fixed context prefix.
 """
 from app.services.gemini_service import gemini_service
 from app.services.deepseek_service import deepseek_service
@@ -84,6 +88,53 @@ class AIService:
         
         # Gemini
         try:
+            return await self.gemini.generate_answer_simple(prompt)
+        except Exception as e:
+            print(f"[AIService] Gemini failed: {e}")
+            raise ModelUnavailableError("Gemini", str(e))
+    
+    async def generate_answer_multi_doc(
+        self, 
+        question: str, 
+        combined_context: str, 
+        model: str = "deepseek"
+    ) -> str:
+        """
+        Cache-optimized answer generation for multi-document chat.
+        
+        This method separates context and question to enable DeepSeek's
+        prefix caching. The context is sent as a separate message that
+        can be cached across multiple questions.
+        
+        Args:
+            question: User's question
+            combined_context: Combined context from all documents
+            model: "gemini" or "deepseek" (default: deepseek)
+        
+        Returns:
+            AI-generated response
+            
+        Raises:
+            ModelUnavailableError: If the selected model fails
+        """
+        if model == "deepseek":
+            if not self.deepseek.enabled:
+                raise ModelUnavailableError("DeepSeek", "DeepSeek API yapılandırılmamış")
+            try:
+                # Use cache-optimized method
+                return await self.deepseek.generate_answer_multi_doc(question, combined_context)
+            except Exception as e:
+                print(f"[AIService] DeepSeek failed: {e}")
+                raise ModelUnavailableError("DeepSeek", str(e))
+        
+        # Gemini - fallback to simple method (no prefix caching)
+        try:
+            prompt = f"""Kaynak Materyalleri:
+{combined_context}
+
+Kullanıcı Sorusu: {question}
+
+Yanıt:"""
             return await self.gemini.generate_answer_simple(prompt)
         except Exception as e:
             print(f"[AIService] Gemini failed: {e}")

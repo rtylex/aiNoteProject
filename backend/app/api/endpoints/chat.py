@@ -340,44 +340,13 @@ async def multi_document_chat(
         # Combine all contexts
         combined_context = "\n---\n".join(all_contexts)[:50000]  # Extended limit for multi-doc
         
-        # Generate AI response with multi-document prompt
-        multi_doc_prompt = f"""Sen akademik düzeyde bilgiye sahip, uzman bir çalışma asistanısın. Kaynakları REFERANS olarak kullan.
-
-SORU TİPİNE GÖRE YANITLA:
-
-1. NORMAL SORU (bilgi isteme, tanım, açıklama):
-   - SADECE sorulan soruya odaklan
-   - Ekstra bilgi, ek açıklama veya ilgisiz detay EKLEME
-   - Kısa ve öz yanıt ver
-   - "Ayrıca...", "Bunun yanında..." gibi ifadelerle konu dışına ÇIKMA
-
-2. FİKİR/DEĞERLENDİRME SORUSU (ne düşünüyorsun, değerlendirir misin, yorumlar mısın, analiz et, karşılaştır):
-   - Kaynakları DERİNLEMESİNE İNCELE
-   - Özenli ve kapsamlı bir DEĞERLENDİRME sun
-   - Artıları ve eksileri belirt
-   - Farklı açılardan analiz yap
-   - Kendi yorumunu ve çıkarımlarını ekle
-   - Kaynaklar arası bağlantıları göster
-
-PARAPHRASE KURALLARI:
-1. Kaynakları TEMELİ OLARAK KULLAN ama KOPYALAMA YAPMA
-2. BİLGİLERİ SENTEZle - Kendi cümlelerinle yeniden yaz
-3. Minimum %50 değiştirilmiş metin - asla direkt alıntı yapma
-
-FORMATLAMA:
-- Türkçe yanıt ver
-- Önemli kavramları **kalın** yap
-- Gerekirse ## başlık ve ### alt başlık kullan
-- Kod varsa ``` bloğu kullan
-
-Kaynak Materyaller (sadece referans amaçlı):
-{combined_context}
-
-Kullanıcı Sorusu: {request.message}
-
-Yanıt:"""
-
-        ai_response_text = await ai_service.generate_answer_simple(multi_doc_prompt, request.model)
+        # Use cache-optimized method for DeepSeek
+        # Prompt templates are now in deepseek_service for consistent caching
+        ai_response_text = await ai_service.generate_answer_multi_doc(
+            question=request.message,
+            combined_context=combined_context,
+            model=request.model
+        )
         
         # Increment query count after successful response
         query_status = increment_query_count(user_profile, db)
@@ -650,44 +619,13 @@ async def send_multi_session_message(
     
     combined_context = "\n---\n".join(all_contexts)[:50000]
 
-    # Generate AI response
-    multi_doc_prompt = f"""Sen akademik düzeyde bilgiye sahip, uzman bir çalışma asistanısın. Kaynakları REFERANS olarak kullan.
-
-SORU TİPİNE GÖRE YANITLA:
-
-1. NORMAL SORU (bilgi isteme, tanım, açıklama):
-   - SADECE sorulan soruya odaklan
-   - Ekstra bilgi, ek açıklama veya ilgisiz detay EKLEME
-   - Kısa ve öz yanıt ver
-   - "Ayrıca...", "Bunun yanında..." gibi ifadelerle konu dışına ÇIKMA
-
-2. FİKİR/DEĞERLENDİRME SORUSU (ne düşünüyorsun, değerlendirir misin, yorumlar mısın, analiz et, karşılaştır):
-   - Kaynakları DERİNLEMESİNE İNCELE
-   - Özenli ve kapsamlı bir DEĞERLENDİRME sun
-   - Artıları ve eksileri belirt
-   - Farklı açılardan analiz yap
-   - Kendi yorumunu ve çıkarımlarını ekle
-   - Kaynaklar arası bağlantıları göster
-
-PARAPHRASE KURALLARI:
-1. Kaynakları TEMELİ OLARAK KULLAN ama KOPYALAMA YAPMA
-2. BİLGİLERİ SENTEZle - Kendi cümlelerinle yeniden yaz
-3. Minimum %50 değiştirilmiş metin - asla direkt alıntı yapma
-
-FORMATLAMA:
-- Türkçe yanıt ver
-- Önemli kavramları **kalın** yap
-- Gerekirse ## başlık ve ### alt başlık kullan
-- Kod varsa ``` bloğu kullan
-
-Kaynak Materyaller (sadece referans amaçlı):
-{combined_context}
-
-Kullanıcı Sorusu: {request.message}
-
-Yanıt:"""
-
-    ai_response_text = await ai_service.generate_answer_simple(multi_doc_prompt, request.model)
+    # Use cache-optimized method for DeepSeek
+    # Prompt templates are now in deepseek_service for consistent caching
+    ai_response_text = await ai_service.generate_answer_multi_doc(
+        question=request.message,
+        combined_context=combined_context,
+        model=request.model
+    )
 
     # Save AI message
     ai_msg = MultiSessionMessage(

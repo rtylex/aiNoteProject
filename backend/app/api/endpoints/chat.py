@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 import uuid
 from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from app.services.auth import get_current_user
 from app.db.session import get_db
 from app.models.chat import ChatSession, ChatMessage, MultiDocumentSession, MultiSessionMessage, multi_session_documents
@@ -459,7 +459,11 @@ async def list_multi_sessions(
     """List all multi-document sessions for the current user."""
     user_uuid = _parse_uuid(current_user.get("sub"), "user identifier")
     
-    sessions = db.query(MultiDocumentSession).filter(
+    # Eager loading ile N+1 sorununu çözüyoruz
+    sessions = db.query(MultiDocumentSession).options(
+        selectinload(MultiDocumentSession.documents),
+        selectinload(MultiDocumentSession.messages)
+    ).filter(
         MultiDocumentSession.user_id == user_uuid
     ).order_by(MultiDocumentSession.updated_at.desc()).all()
     
@@ -487,7 +491,11 @@ async def get_multi_session(
     user_uuid = _parse_uuid(current_user.get("sub"), "user identifier")
     session_uuid = _parse_uuid(session_id, "session id")
     
-    session = db.query(MultiDocumentSession).filter(
+    # Eager loading ile N+1 sorununu çözüyoruz
+    session = db.query(MultiDocumentSession).options(
+        selectinload(MultiDocumentSession.documents),
+        selectinload(MultiDocumentSession.messages)
+    ).filter(
         MultiDocumentSession.id == session_uuid,
         MultiDocumentSession.user_id == user_uuid
     ).first()
@@ -594,7 +602,10 @@ async def send_multi_session_message(
             }
         )
     
-    session = db.query(MultiDocumentSession).filter(
+    # Eager loading ile documents'ı önceden yükle (N+1 sorunu çözümü)
+    session = db.query(MultiDocumentSession).options(
+        selectinload(MultiDocumentSession.documents)
+    ).filter(
         MultiDocumentSession.id == session_uuid,
         MultiDocumentSession.user_id == user_uuid
     ).first()

@@ -8,7 +8,7 @@ from typing import Optional, List
 from fastapi import APIRouter, UploadFile, File, Depends, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import text, inspect
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.services.auth import get_current_user
 from app.db.session import get_db
 from app.models.document import Document, DocumentEmbedding, VisibilityType, DocumentType, DocumentCategory
@@ -300,7 +300,10 @@ async def list_public_documents(
     Only documents with visibility='public' and is_approved=True are returned.
     Supports filtering by document_type, course name, topic, and category.
     """
-    query = db.query(Document).filter(
+    # Eager loading ile N+1 sorununu çözüyoruz - category'yi önceden yükle
+    query = db.query(Document).options(
+        joinedload(Document.category)
+    ).filter(
         Document.visibility == VisibilityType.PUBLIC.value,
         Document.is_approved == True,
         Document.status == "completed"
@@ -317,10 +320,9 @@ async def list_public_documents(
 
     documents = query.order_by(Document.created_at.desc()).offset(offset).limit(limit).all()
 
-    # Add category names to results
-    result = []
-    for doc in documents:
-        doc_dict = {
+    # Category zaten eager loading ile yüklendi, artık N+1 yok
+    return [
+        {
             "id": str(doc.id),
             "user_id": str(doc.user_id),
             "title": doc.title,
@@ -330,18 +332,13 @@ async def list_public_documents(
             "course_name": doc.course_name,
             "topic": doc.topic,
             "category_id": str(doc.category_id) if doc.category_id else None,
-            "category_name": None,
+            "category_name": doc.category.name if doc.category else None,
             "visibility": doc.visibility,
             "is_approved": doc.is_approved,
             "created_at": doc.created_at.isoformat() if doc.created_at else ""
         }
-        if doc.category_id:
-            category = db.query(DocumentCategory).filter(DocumentCategory.id == doc.category_id).first()
-            if category:
-                doc_dict["category_name"] = category.name
-        result.append(doc_dict)
-
-    return result
+        for doc in documents
+    ]
 
 
 @router.get("/courses")

@@ -447,7 +447,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                                     <>
                                         <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
                                         <p className="text-lg font-medium text-muted-foreground">Doküman hazırlanıyor...</p>
-                                        <p className="text-sm text-muted-foreground">OCR işlemi tamamlandığında sohbete başlayabilirsiniz.</p>
+                                        <p className="text-sm text-muted-foreground">İşlem tamamlandığında sohbete başlayabilirsiniz.</p>
                                     </>
                                 ) : (
                                     <>
@@ -592,7 +592,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                                 </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                OCR işlemi devam ediyor, birkaç saniye içinde sohbete başlayabilirsiniz.
+                                Doküman işleniyor, birkaç saniye içinde sohbete başlayabilirsiniz.
                             </p>
                         </div>
                     ) : documentStatus === 'failed' ? (

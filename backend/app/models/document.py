@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime, Text, Enum as SQLEnum
+from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime, Text, Enum as SQLEnum, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.db.base import Base
@@ -81,6 +81,7 @@ class DocumentEmbedding(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"))
+    page_number = Column(Integer, nullable=True, default=0, index=True)  # Chunk order for full-doc retrieval
     content = Column(String)
     embedding = Column(Vector(768))
     

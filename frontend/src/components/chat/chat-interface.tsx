@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, AlertCircle, Sparkles, Zap, ChevronDown, Star, Lightbulb, FileText, GraduationCap, ListChecks, HelpCircle, BookOpen } from 'lucide-react'
+import { Loader2, AlertCircle, Zap, Lightbulb, FileText, GraduationCap, ListChecks, HelpCircle, BookOpen } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -201,28 +201,14 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
     const templateDropdownRef = useRef<HTMLDivElement>(null)
 
-    // AI Model selection - default to DeepSeek (economic)
-    const [selectedModel, setSelectedModel] = useState<'gemini' | 'deepseek'>(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem('yirik-ai-model')
-            return (saved === 'gemini' || saved === 'deepseek') ? saved : 'deepseek'
-        }
-        return 'deepseek'
-    })
-    const [showModelDropdown, setShowModelDropdown] = useState(false)
-    const modelDropdownRef = useRef<HTMLDivElement>(null)
+    // AI Model - always use DeepSeek
+    const selectedModel = 'deepseek'
 
-    // Save model preference to localStorage
-    useEffect(() => {
-        localStorage.setItem('yirik-ai-model', selectedModel)
-    }, [selectedModel])
 
-    // Close dropdowns when clicking outside
+
+    // Close template dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target as Node)) {
-                setShowModelDropdown(false)
-            }
             if (templateDropdownRef.current && !templateDropdownRef.current.contains(event.target as Node)) {
                 setShowTemplateDropdown(false)
             }
@@ -621,88 +607,10 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                     ) : (
                         <>
                             <form onSubmit={(e) => { e.preventDefault(); handleSend() }} className="relative flex items-center gap-2">
-                                {/* Model Selection Dropdown */}
-                                <div className="relative shrink-0" ref={modelDropdownRef}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowModelDropdown(!showModelDropdown)}
-                                        className="flex items-center gap-2 rounded-xl border border-border/30 bg-background/80 px-3 py-2 text-sm font-medium text-foreground/80 transition hover:border-border/50 hover:bg-background/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                                        aria-label="AI model seç"
-                                        aria-expanded={showModelDropdown}
-                                        aria-haspopup="listbox"
-                                    >
-                                        {selectedModel === 'deepseek' ? (
-                                            <Zap className="w-4 h-4 text-emerald-500" />
-                                        ) : (
-                                            <Sparkles className="w-4 h-4 text-violet-500" />
-                                        )}
-                                        <span className="hidden sm:inline">
-                                            {selectedModel === 'deepseek' ? 'DeepSeek' : 'Gemini'}
-                                        </span>
-                                        <ChevronDown className={`w-4 h-4 text-foreground/50 transition-transform duration-200 ${showModelDropdown ? 'rotate-180' : ''}`} />
-                                    </button>
-
-                                    <AnimatePresence>
-                                        {showModelDropdown && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                                                transition={{ duration: 0.15, ease: 'easeOut' }}
-                                                className="absolute left-0 bottom-full mb-2 w-48 rounded-xl border border-border/40 bg-background/95 py-1.5 shadow-lg backdrop-blur-xl z-50"
-                                                role="listbox"
-                                            >
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setSelectedModel('deepseek')
-                                                        setShowModelDropdown(false)
-                                                    }}
-                                                    className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-all ${selectedModel === 'deepseek'
-                                                        ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300'
-                                                        : 'text-foreground/80 hover:bg-muted/50'
-                                                        }`}
-                                                    role="option"
-                                                    aria-selected={selectedModel === 'deepseek'}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <Zap className="w-4 h-4" />
-                                                        <div className="text-left">
-                                                            <div className="font-medium">DeepSeek</div>
-                                                            <div className="text-xs opacity-60">Ekonomik</div>
-                                                        </div>
-                                                    </div>
-                                                    {selectedModel === 'deepseek' && (
-                                                        <Star className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500" />
-                                                    )}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setSelectedModel('gemini')
-                                                        setShowModelDropdown(false)
-                                                    }}
-                                                    className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-all ${selectedModel === 'gemini'
-                                                        ? 'bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300'
-                                                        : 'text-foreground/80 hover:bg-muted/50'
-                                                        }`}
-                                                    role="option"
-                                                    aria-selected={selectedModel === 'gemini'}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <Sparkles className="w-4 h-4" />
-                                                        <div className="text-left">
-                                                            <div className="font-medium">Gemini</div>
-                                                            <div className="text-xs opacity-60">Yüksek Kalite</div>
-                                                        </div>
-                                                    </div>
-                                                    {selectedModel === 'gemini' && (
-                                                        <Star className="w-3.5 h-3.5 text-violet-500 fill-violet-500" />
-                                                    )}
-                                                </button>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                {/* DeepSeek Model Indicator */}
+                                <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-background/80 px-3 py-2 text-sm font-medium text-foreground/80">
+                                    <Zap className="w-4 h-4 text-emerald-500" />
+                                    <span className="hidden sm:inline">DeepSeek</span>
                                 </div>
 
                                 {/* Template Dropdown Button */}

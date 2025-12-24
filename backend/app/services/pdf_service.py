@@ -123,6 +123,7 @@ async def _process_document(document_id: str, file_path: str | None = None):
 
         # Process embeddings in parallel chunks (max 3 concurrent to avoid API rate limiting)
         chunk_size = 3
+        page_index = 0  # Track page/chunk order for hybrid context retrieval
         for i in range(0, len(page_texts), chunk_size):
             chunk = page_texts[i:i+chunk_size]
             print(f"Processing chunk {i//chunk_size + 1}: pages {i} to {i+len(chunk)-1}")
@@ -143,7 +144,7 @@ async def _process_document(document_id: str, file_path: str | None = None):
                 return
 
             # Save embeddings to database
-            for text, embedding in zip(chunk, embeddings):
+            for idx, (text, embedding) in enumerate(zip(chunk, embeddings)):
                 # If embedding failed, try OCR fallback
                 if isinstance(embedding, Exception):
                     print(f"Embedding failed for page, attempting OCR fallback: {embedding}")
@@ -164,10 +165,14 @@ async def _process_document(document_id: str, file_path: str | None = None):
 
                 db_embedding = DocumentEmbedding(
                     document_id=document.id,
+                    page_number=page_index + idx,  # Track order for full-doc retrieval
                     content=text,
                     embedding=embedding
                 )
                 db.add(db_embedding)
+            
+            # Update page_index for next chunk
+            page_index += len(chunk)
 
             # Commit after each chunk
             try:

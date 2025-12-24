@@ -3,6 +3,7 @@ import uuid
 from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import func
 from app.services.auth import get_current_user
 from app.db.session import get_db
 from app.models.chat import ChatSession, ChatMessage, MultiDocumentSession, MultiSessionMessage, multi_session_documents
@@ -53,6 +54,143 @@ def _parse_uuid(value: str | None, field_name: str) -> uuid.UUID:
         return uuid.UUID(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):
         raise HTTPException(status_code=400, detail=f"Invalid {field_name}")
+
+
+# =============================================================================
+# Hybrid Context Strategy - Smart Context Selection
+# =============================================================================
+# Token thresholds for switching between Full Document and RAG modes
+# Full mode: entire document in context (better for DeepSeek cache)
+# RAG mode: semantic search for relevant chunks (for large documents)
+TOKEN_THRESHOLDS = {
+    "deepseek": 25000,   # ~100 pages - DeepSeek V3 has 64K context
+    "gemini": 100000     # ~400 pages - Gemini has 1M context
+}
+
+
+async def get_document_token_count(doc_id: uuid.UUID, db: Session) -> int:
+    """
+    Estimate total token count for a document.
+    Uses character count / 4 as approximation (~4 chars per token).
+    """
+    total_chars = db.query(func.sum(func.length(DocumentEmbedding.content))).filter(
+        DocumentEmbedding.document_id == doc_id
+    ).scalar() or 0
+    return total_chars // 4
+
+
+async def get_smart_context(
+    doc_id: uuid.UUID,
+    question: str,
+    db: Session,
+    model: str = "deepseek"
+) -> tuple[str, str]:
+    """
+    Smart context selection based on document size.
+    
+    Returns:
+        tuple[str, str]: (context, mode) where mode is "full" or "rag"
+    """
+    # Check token count (lightweight query)
+    estimated_tokens = await get_document_token_count(doc_id, db)
+    threshold = TOKEN_THRESHOLDS.get(model, 25000)
+
+    if estimated_tokens < threshold:
+        # FULL DOCUMENT MODE - Get all chunks ordered by page_number
+        all_chunks = db.query(DocumentEmbedding).filter(
+            DocumentEmbedding.document_id == doc_id
+        ).order_by(DocumentEmbedding.page_number).all()
+
+        if not all_chunks:
+            return "", "empty"
+
+        full_content = "\n\n".join([c.content for c in all_chunks if c.content])
+        print(f"[Chat] FULL mode: {estimated_tokens} tokens, threshold: {threshold}")
+        return full_content, "full"
+
+    else:
+        # RAG MODE - Semantic search for most relevant chunks
+        query_embedding = await gemini_service.generate_query_embedding(question)
+
+        if query_embedding and any(query_embedding):
+            relevant_chunks = db.query(DocumentEmbedding).filter(
+                DocumentEmbedding.document_id == doc_id
+            ).order_by(
+                DocumentEmbedding.embedding.cosine_distance(query_embedding)
+            ).limit(5).all()
+
+            context = "\n\n".join([c.content for c in relevant_chunks if c.content])
+        else:
+            # Fallback: first 5 chunks by page order
+            fallback_chunks = db.query(DocumentEmbedding).filter(
+                DocumentEmbedding.document_id == doc_id
+            ).order_by(DocumentEmbedding.page_number).limit(5).all()
+            context = "\n\n".join([c.content for c in fallback_chunks if c.content])
+
+        print(f"[Chat] RAG mode: {estimated_tokens} tokens, threshold: {threshold}")
+        return context, "rag"
+
+
+async def get_smart_context_multi(
+    doc_ids: list[uuid.UUID],
+    question: str,
+    db: Session,
+    model: str = "deepseek"
+) -> tuple[dict[uuid.UUID, str], str]:
+    """
+    Smart context selection for multiple documents.
+    
+    Returns:
+        tuple[dict, str]: (doc_contexts dict, mode)
+    """
+    # Calculate total token count across all documents
+    total_tokens = 0
+    doc_char_counts = {}
+
+    for doc_id in doc_ids:
+        chars = db.query(func.sum(func.length(DocumentEmbedding.content))).filter(
+            DocumentEmbedding.document_id == doc_id
+        ).scalar() or 0
+        doc_char_counts[doc_id] = chars
+        total_tokens += chars // 4
+
+    # Multi-doc threshold: 1.5x single doc threshold
+    threshold = int(TOKEN_THRESHOLDS.get(model, 25000) * 1.5)
+
+    if total_tokens < threshold:
+        # FULL MODE - Get entire content from all documents
+        doc_contexts = {}
+        for doc_id in doc_ids:
+            chunks = db.query(DocumentEmbedding).filter(
+                DocumentEmbedding.document_id == doc_id
+            ).order_by(DocumentEmbedding.page_number).all()
+
+            doc_contexts[doc_id] = "\n\n".join([c.content for c in chunks if c.content])
+
+        print(f"[MultiChat] FULL mode: {total_tokens} tokens, threshold: {threshold}")
+        return doc_contexts, "full"
+
+    else:
+        # RAG MODE - Get top 3 relevant chunks from each document
+        query_embedding = await gemini_service.generate_query_embedding(question)
+        doc_contexts = {}
+
+        for doc_id in doc_ids:
+            if query_embedding and any(query_embedding):
+                chunks = db.query(DocumentEmbedding).filter(
+                    DocumentEmbedding.document_id == doc_id
+                ).order_by(
+                    DocumentEmbedding.embedding.cosine_distance(query_embedding)
+                ).limit(3).all()
+            else:
+                chunks = db.query(DocumentEmbedding).filter(
+                    DocumentEmbedding.document_id == doc_id
+                ).order_by(DocumentEmbedding.page_number).limit(3).all()
+
+            doc_contexts[doc_id] = "\n\n".join([c.content for c in chunks if c.content])
+
+        print(f"[MultiChat] RAG mode: {total_tokens} tokens, threshold: {threshold}")
+        return doc_contexts, "rag"
 
 
 @router.get("/query-status")
@@ -151,27 +289,16 @@ async def chat_message(
         db.add(user_msg)
         db.commit()
 
-        # 3. Retrieve context limited to the authenticated user's document via vector search
-        query_embedding = await gemini_service.generate_query_embedding(request.message)
-        context_chunks: list[str] = []
+        # 3. Get smart context (full doc for small docs, RAG for large docs)
+        context, context_mode = await get_smart_context(
+            doc_id=session.document_id,
+            question=request.message,
+            db=db,
+            model=request.model
+        )
 
-        if query_embedding and any(query_embedding):
-            doc_embeddings = (
-                db.query(DocumentEmbedding)
-                .filter(DocumentEmbedding.document_id == session.document_id)
-                .order_by(DocumentEmbedding.embedding.cosine_distance(query_embedding))
-                .limit(5)
-                .all()
-            )
-            context_chunks = [emb.content for emb in doc_embeddings if emb.content]
-
-        if not context_chunks:
-            fallback_embeddings = db.query(DocumentEmbedding).filter(
-                DocumentEmbedding.document_id == session.document_id
-            ).limit(5).all()
-            context_chunks = [emb.content for emb in fallback_embeddings if emb.content]
-
-        context = "\n\n".join(context_chunks)[:30000]
+        if not context and context_mode == "empty":
+            raise HTTPException(status_code=404, detail="Document has no content")
 
         ai_response_text = await ai_service.generate_answer(request.message, context, request.model)
 
@@ -191,6 +318,7 @@ async def chat_message(
             "session_id": str(session.id),
             "message": ai_response_text,
             "sender": "ai",
+            "context_mode": context_mode,  # NEW: Indicate which mode was used
             "query_limit": query_status
         }
 
@@ -310,38 +438,29 @@ async def multi_document_chat(
             doc_uuids.append(doc_uuid)
             document_titles[str(doc_uuid)] = document.title
         
-        # Generate query embedding
-        query_embedding = await gemini_service.generate_query_embedding(request.message)
+        # Get smart context (full doc for small docs, RAG for large docs)
+        doc_contexts, context_mode = await get_smart_context_multi(
+            doc_ids=doc_uuids,
+            question=request.message,
+            db=db,
+            model=request.model
+        )
         
-        # Collect context from all documents with source labels
+        # Build combined context with source labels
         all_contexts = []
-        
         for doc_uuid in doc_uuids:
-            doc_title = document_titles[str(doc_uuid)]
-            
-            if query_embedding and any(query_embedding):
-                doc_embeddings = (
-                    db.query(DocumentEmbedding)
-                    .filter(DocumentEmbedding.document_id == doc_uuid)
-                    .order_by(DocumentEmbedding.embedding.cosine_distance(query_embedding))
-                    .limit(3)  # Top 3 chunks per document
-                    .all()
-                )
-            else:
-                doc_embeddings = db.query(DocumentEmbedding).filter(
-                    DocumentEmbedding.document_id == doc_uuid
-                ).limit(3).all()
-            
-            if doc_embeddings:
-                doc_context = "\n".join([emb.content for emb in doc_embeddings if emb.content])
-                if doc_context:
-                    all_contexts.append(f"[KAYNAK: {doc_title}]\n{doc_context}\n")
+            content = doc_contexts.get(doc_uuid, "")
+            if content:
+                title = document_titles[str(doc_uuid)]
+                all_contexts.append(f"[KAYNAK: {title}]\n{content}\n")
         
-        # Combine all contexts
-        combined_context = "\n---\n".join(all_contexts)[:50000]  # Extended limit for multi-doc
+        combined_context = "\n---\n".join(all_contexts)
+        
+        # Apply model-based character limit (safety limit even in full mode)
+        max_chars = 120000 if request.model == "gemini" else 50000
+        combined_context = combined_context[:max_chars]
         
         # Use cache-optimized method for DeepSeek
-        # Prompt templates are now in deepseek_service for consistent caching
         ai_response_text = await ai_service.generate_answer_multi_doc(
             question=request.message,
             combined_context=combined_context,
@@ -356,6 +475,7 @@ async def multi_document_chat(
             "sender": "ai",
             "document_count": len(doc_uuids),
             "documents": [{"id": str(uid), "title": document_titles[str(uid)]} for uid in doc_uuids],
+            "context_mode": context_mode,  # NEW: Indicate which mode was used
             "query_limit": query_status
         }
 
@@ -591,36 +711,31 @@ async def send_multi_session_message(
     db.add(user_msg)
     db.commit()
     
-    # Get context from all session documents
-    query_embedding = await gemini_service.generate_query_embedding(request.message)
+    # Get smart context from session documents (full doc for small docs, RAG for large)
+    doc_ids = [doc.id for doc in session.documents]
+    document_titles = {str(doc.id): doc.title for doc in session.documents}
+    
+    doc_contexts, context_mode = await get_smart_context_multi(
+        doc_ids=doc_ids,
+        question=request.message,
+        db=db,
+        model=request.model
+    )
+    
+    # Build combined context with source labels
     all_contexts = []
-    document_titles = {}
-    
     for doc in session.documents:
-        document_titles[str(doc.id)] = doc.title
-        
-        if query_embedding and any(query_embedding):
-            doc_embeddings = (
-                db.query(DocumentEmbedding)
-                .filter(DocumentEmbedding.document_id == doc.id)
-                .order_by(DocumentEmbedding.embedding.cosine_distance(query_embedding))
-                .limit(3)
-                .all()
-            )
-        else:
-            doc_embeddings = db.query(DocumentEmbedding).filter(
-                DocumentEmbedding.document_id == doc.id
-            ).limit(3).all()
-        
-        if doc_embeddings:
-            doc_context = "\n".join([emb.content for emb in doc_embeddings if emb.content])
-            if doc_context:
-                all_contexts.append(f"[KAYNAK: {doc.title}]\n{doc_context}\n")
+        content = doc_contexts.get(doc.id, "")
+        if content:
+            all_contexts.append(f"[KAYNAK: {doc.title}]\n{content}\n")
     
-    combined_context = "\n---\n".join(all_contexts)[:50000]
+    combined_context = "\n---\n".join(all_contexts)
+    
+    # Apply model-based character limit
+    max_chars = 120000 if request.model == "gemini" else 50000
+    combined_context = combined_context[:max_chars]
 
     # Use cache-optimized method for DeepSeek
-    # Prompt templates are now in deepseek_service for consistent caching
     ai_response_text = await ai_service.generate_answer_multi_doc(
         question=request.message,
         combined_context=combined_context,
@@ -647,6 +762,7 @@ async def send_multi_session_message(
         "session_id": str(session.id),
         "message": ai_response_text,
         "sender": "ai",
+        "context_mode": context_mode,  # NEW: Indicate which mode was used
         "query_limit": query_status
     }
 

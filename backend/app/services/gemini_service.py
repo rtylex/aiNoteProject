@@ -16,7 +16,7 @@ executor = ThreadPoolExecutor(max_workers=5)
 class GeminiService:
     def __init__(self):
         self.model_name = "gemini-2.5-flash"
-        self.embedding_model = "text-embedding-004"
+        self.embedding_model = "text-multilingual-embedding-002"
 
     async def generate_embedding(self, text: str, *, task: str = "retrieval_document", retry_count: int = 3) -> list[float]:
         """Generate embedding with retry logic and timeout"""

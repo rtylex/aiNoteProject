@@ -1,53 +1,80 @@
+"""
+JWT-based authentication service.
+
+Replaces the old Supabase auth with a fully self-hosted solution.
+Handles password hashing, JWT token creation/verification, and
+the FastAPI dependency for protected endpoints.
+"""
+from datetime import datetime, timedelta
+from typing import Optional
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from supabase import create_client, Client
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
 from app.core.config import settings
 
+# ---------------------------------------------------------------------------
+# Password hashing
+# ---------------------------------------------------------------------------
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-supabase_client: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
+def hash_password(password: str) -> str:
+    """Hash a plaintext password."""
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a plaintext password against its hash."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+# ---------------------------------------------------------------------------
+# JWT tokens
+# ---------------------------------------------------------------------------
+ALGORITHM = "HS256"
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Create a signed JWT token."""
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+
+def verify_token(token: str) -> dict | None:
+    """Decode and verify a JWT token. Returns the payload or None."""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
+
+
+# ---------------------------------------------------------------------------
+# FastAPI dependency — drop-in replacement for the old get_current_user
+# ---------------------------------------------------------------------------
 security = HTTPBearer()
 
 
-def _fetch_user_from_supabase(token: str) -> dict | None:
-    try:
-        user_response = supabase_client.auth.get_user(token)
-    except Exception as e:
-        if settings.DEBUG_MODE:
-            print(f"DEBUG: Supabase auth.get_user failed - {type(e).__name__}: {str(e)}")
-        return None
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    """
+    FastAPI dependency that extracts and verifies the JWT token.
 
-    if not user_response or not user_response.user:
-        if settings.DEBUG_MODE:
-            print("DEBUG: Supabase user_response is empty")
-        return None
-
-    user = user_response.user
-    result = {
-        "sub": user.id, 
-        "email": user.email,
-        "user_metadata": user.user_metadata  # Include user_metadata for full_name etc.
-    }
-    if settings.DEBUG_MODE:
-        print(f"DEBUG: Supabase auth successful, sub: {result.get('sub')}, metadata keys: {list(user.user_metadata.keys()) if user.user_metadata else 'None'}")
-    return result
-
-
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    Returns a dict with at least {"sub": "<user-uuid>", "email": "<email>"}.
+    This keeps the same interface the rest of the codebase already relies on.
+    """
     token = credentials.credentials
-    if settings.DEBUG_MODE:
-        print(f"DEBUG: Attempting to authenticate with token (first 20 chars): {token[:20]}...")
+    payload = verify_token(token)
 
-    user = _fetch_user_from_supabase(token)
-    if user:
-        if settings.DEBUG_MODE:
-            print(f"DEBUG: Auth successful via Supabase, returning user: {user.get('sub')}")
-        return user
+    if not payload or "sub" not in payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    if settings.DEBUG_MODE:
-        print("ERROR: Supabase auth failed!")
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    return payload

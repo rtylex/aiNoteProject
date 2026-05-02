@@ -1,8 +1,8 @@
 """
 User profile model for role management.
 
-This model extends Supabase auth with additional user data,
-primarily the role field for admin access control.
+Now fully self-hosted — no Supabase dependency.
+Handles authentication, roles, and query limits.
 """
 import uuid
 import enum
@@ -21,17 +21,18 @@ class UserRole(str, enum.Enum):
 
 class UserProfile(Base):
     """
-    User profile model storing role and metadata.
+    User model storing credentials, role and metadata.
 
-    This table is separate from Supabase auth.users but linked via user_id.
-    Created automatically when a user first interacts with the system.
+    This is now the single source of truth for user identity.
+    user_id kept as alias of id for backward compatibility with existing code.
     """
     __tablename__ = "user_profiles"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), unique=True, nullable=False, index=True)
-    full_name = Column(String(100), nullable=True)  # User's full name from registration
-    email = Column(String(255), nullable=True)  # Synced from Supabase Auth on login
+    # user_id kept as a computed alias in code — the DB column is 'id'
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(100), nullable=True)
     role = Column(String(20), default=UserRole.USER.value, nullable=False)
     
     # Daily query limit tracking
@@ -41,7 +42,13 @@ class UserProfile(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
+    @property
+    def user_id(self):
+        """Backward compatibility: many places use user_id which was the Supabase UID."""
+        return self.id
+
     def is_admin(self) -> bool:
         """Check if user has admin role."""
         return self.role == UserRole.ADMIN.value
+
 

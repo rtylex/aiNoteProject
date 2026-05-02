@@ -103,16 +103,15 @@ def get_or_create_user_profile(db, user_id: uuid.UUID, email: str = None, full_n
     Get existing user profile or create a new one.
 
     This ensures every user has a profile record for role management.
-    Email and full_name are synced from Supabase Auth when available.
     """
     # Ensure table exists
     ensure_user_profiles_table(db)
 
-    profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+    profile = db.query(UserProfile).filter(UserProfile.id == user_id).first()
 
     if not profile:
         profile = UserProfile(
-            user_id=user_id,
+            id=user_id,
             email=email,
             full_name=full_name,
             role=UserRole.USER.value
@@ -121,11 +120,8 @@ def get_or_create_user_profile(db, user_id: uuid.UUID, email: str = None, full_n
         db.commit()
         db.refresh(profile)
     else:
-        # Sync email and full_name from Supabase Auth if changed
+        # Sync full_name if changed
         updated = False
-        if email and profile.email != email:
-            profile.email = email
-            updated = True
         if full_name and profile.full_name != full_name:
             profile.full_name = full_name
             updated = True
@@ -168,15 +164,10 @@ async def get_my_profile(
     Get the current user's profile including role.
 
     Creates a profile if one doesn't exist.
-    Syncs email and full_name from Supabase Auth to profile.
     """
     user_id = uuid.UUID(current_user.get("sub"))
-    email = current_user.get("email")  # Get email from Supabase Auth
-    # Try to get name from user_metadata (check both full_name and display_name)
-    user_metadata = current_user.get("user_metadata", {})
-    full_name = None
-    if user_metadata:
-        full_name = user_metadata.get("full_name") or user_metadata.get("display_name") or user_metadata.get("name")
+    email = current_user.get("email")
+    full_name = None  # name already stored in DB from registration
 
     profile = get_or_create_user_profile(db, user_id, email=email, full_name=full_name)
 
@@ -184,7 +175,7 @@ async def get_my_profile(
         id=str(profile.id),
         user_id=str(profile.user_id),
         full_name=profile.full_name,
-        email=profile.email,  # Now from profile (synced from Supabase Auth)
+        email=profile.email,
         role=profile.role,
         created_at=profile.created_at.isoformat() if profile.created_at else ""
     )
@@ -210,13 +201,13 @@ async def list_users(
 
     profiles = query.order_by(UserProfile.created_at.desc()).offset(offset).limit(limit).all()
 
-    # Email and full_name are synced from Supabase Auth when user logs in
+    # Email and full_name are stored in DB from registration
     return [
         UserProfileResponse(
             id=str(p.id),
             user_id=str(p.user_id),
             full_name=p.full_name,
-            email=p.email,  # Email synced from Supabase Auth on user login
+            email=p.email,
             role=p.role,
             created_at=p.created_at.isoformat() if p.created_at else ""
         )
@@ -246,7 +237,7 @@ async def update_user_role(
         )
 
     target_user_id = uuid.UUID(user_id)
-    profile = db.query(UserProfile).filter(UserProfile.user_id == target_user_id).first()
+    profile = db.query(UserProfile).filter(UserProfile.id == target_user_id).first()
 
     if not profile:
         raise HTTPException(status_code=404, detail="User profile not found")

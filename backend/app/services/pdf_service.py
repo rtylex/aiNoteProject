@@ -1,11 +1,11 @@
 import asyncio
+import os
 import requests
 import io
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
 from app.models.document import Document, DocumentEmbedding
 from app.services.gemini_service import gemini_service
-from app.services.storage_security import ensure_allowed_storage_url, InvalidStorageURLError
 from app.db.session import SessionLocal
 import uuid
 
@@ -27,16 +27,14 @@ async def _process_document(document_id: str, file_path: str | None = None):
 
         pdf_file = None
 
-        if document.file_url and document.file_url.startswith("http"):
-            try:
-                ensure_allowed_storage_url(document.file_url)
-            except InvalidStorageURLError as exc:
-                print(f"Blocked file URL for document {document_id}: {exc}")
-                document.status = "failed"
-                db.commit()
-                return
+        # Priority 1: Use the explicit file_path argument (local disk path)
+        if file_path and os.path.isfile(file_path):
+            print(f"[PDF] Reading local file: {file_path}")
+            with open(file_path, "rb") as f:
+                pdf_file = io.BytesIO(f.read())
 
-            # Retry logic for downloading PDF with increased timeout
+        # Priority 2: If file_url is an HTTP URL, download it
+        elif document.file_url and document.file_url.startswith("http"):
             max_retries = 3
             for attempt in range(max_retries):
                 try:
@@ -47,13 +45,18 @@ async def _process_document(document_id: str, file_path: str | None = None):
                 except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
                     if attempt < max_retries - 1:
                         print(f"Download attempt {attempt + 1} failed, retrying: {e}")
-                        await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                        await asyncio.sleep(2 ** attempt)
                     else:
                         raise
-        elif file_path and "mock_url" not in file_path:
-            pass
-        else:
-            pass
+
+        # Priority 3: If file_url is a relative /uploads/ path, resolve it locally
+        elif document.file_url and document.file_url.startswith("/uploads/"):
+            from app.core.config import settings
+            local_path = os.path.join(settings.UPLOAD_DIR, document.file_url.replace("/uploads/", "", 1))
+            if os.path.isfile(local_path):
+                print(f"[PDF] Reading from uploads dir: {local_path}")
+                with open(local_path, "rb") as f:
+                    pdf_file = io.BytesIO(f.read())
 
         if not pdf_file:
             if document.file_url and "mock_url" in document.file_url:

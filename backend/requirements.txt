@@ -6,7 +6,8 @@ pydantic
 pydantic-settings
 google-generativeai
 openai
-supabase
+passlib[bcrypt]
+python-jose[cryptography]
 langchain
 pypdf
 python-multipart

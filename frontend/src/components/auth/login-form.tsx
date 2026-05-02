@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Mail, Lock, UserPlus, LogIn, User } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 export default function LoginForm() {
     const [email, setEmail] = useState('')
@@ -19,6 +19,7 @@ export default function LoginForm() {
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
     const router = useRouter()
+    const { login, register } = useAuth()
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -26,13 +27,10 @@ export default function LoginForm() {
         setError(null)
         setSuccess(null)
 
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        })
+        const result = await login(email, password)
 
-        if (error) {
-            setError(error.message)
+        if (result.error) {
+            setError(result.error)
             setLoading(false)
         } else {
             router.push('/')
@@ -67,21 +65,12 @@ export default function LoginForm() {
             return
         }
 
-        const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    full_name: fullName.trim()
-                }
-            }
-        })
+        const result = await register(email, password, fullName.trim())
 
-        if (error) {
-            setError(error.message)
+        if (result.error) {
+            setError(result.error)
             setLoading(false)
         } else {
-            // Kayıt başarılı, direkt dashboard'a yönlendir
             setSuccess('Kayıt başarılı! Yönlendiriliyorsunuz...')
             router.push('/dashboard')
             router.refresh()

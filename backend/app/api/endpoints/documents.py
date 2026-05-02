@@ -15,38 +15,11 @@ from app.models.document import Document, DocumentEmbedding, VisibilityType, Doc
 from app.models.chat import ChatSession, ChatMessage
 from app.models.user import UserProfile, UserRole
 from app.services.pdf_service import process_document
-from app.services.storage_security import ensure_allowed_storage_url, InvalidStorageURLError
 import uuid
 
 router = APIRouter()
 
 
-def sync_user_profile(db: Session, current_user: dict):
-    """Sync user profile data (email, full_name) from Supabase Auth to user_profiles table."""
-    user_id = uuid.UUID(current_user.get("sub"))
-    email = current_user.get("email")
-    user_metadata = current_user.get("user_metadata", {})
-    full_name = None
-    if user_metadata:
-        full_name = user_metadata.get("full_name") or user_metadata.get("display_name") or user_metadata.get("name")
-    
-    # Get or create profile
-    profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
-    if not profile:
-        profile = UserProfile(user_id=user_id, email=email, full_name=full_name, role=UserRole.USER.value)
-        db.add(profile)
-        db.commit()
-    else:
-        # Sync data if changed
-        updated = False
-        if email and profile.email != email:
-            profile.email = email
-            updated = True
-        if full_name and profile.full_name != full_name:
-            profile.full_name = full_name
-            updated = True
-        if updated:
-            db.commit()
 
 
 def ensure_document_columns(db):
@@ -154,13 +127,33 @@ async def upload_document(
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Upload a document file directly."""
-    file_path = f"mock_url/{file.filename}"
+    """Upload a document file directly to the server disk."""
+    import os
+    from pathlib import Path
+    from app.core.config import settings
+
+    # Sanitize filename
+    sanitized_name = file.filename.replace(" ", "_")
+    for ch in ['/', '\\', '..', '<', '>', ':', '"', '|', '?', '*']:
+        sanitized_name = sanitized_name.replace(ch, '_')
+    unique_filename = f"{uuid.uuid4().hex}_{sanitized_name}"
+
+    # Save file to disk
+    upload_dir = Path(settings.UPLOAD_DIR)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    file_path = upload_dir / unique_filename
+
+    contents = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+    # Build the URL that will be stored in DB and used to access the file
+    file_url = f"/uploads/{unique_filename}"
 
     db_doc = Document(
         user_id=uuid.UUID(current_user.get("sub")),
         title=file.filename,
-        file_url=file_path,
+        file_url=file_url,
         status="pending",
         visibility=VisibilityType.PRIVATE.value,
         is_approved=False
@@ -169,9 +162,10 @@ async def upload_document(
     db.commit()
     db.refresh(db_doc)
 
-    background_tasks.add_task(process_document, str(db_doc.id), file_path)
+    background_tasks.add_task(process_document, str(db_doc.id), str(file_path))
 
-    return {"id": str(db_doc.id), "filename": file.filename, "status": "pending"}
+    return {"id": str(db_doc.id), "filename": file.filename, "file_url": file_url, "status": "pending"}
+
 
 
 @router.post("/")
@@ -193,11 +187,6 @@ async def create_document(
     """
     # Ensure new columns exist
     ensure_document_columns(db)
-
-    try:
-        safe_url = ensure_allowed_storage_url(doc_in.file_url)
-    except InvalidStorageURLError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
 
     # Validate document type specific fields
     if doc_in.document_type == DocumentType.NON_COURSE.value:
@@ -225,7 +214,7 @@ async def create_document(
     
     if is_public and is_course_doc:
         user_uuid = uuid.UUID(current_user.get("sub"))
-        user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_uuid).first()
+        user_profile = db.query(UserProfile).filter(UserProfile.id == user_uuid).first()
         
         # Check if user has teacher or admin role
         allowed_roles = [UserRole.TEACHER.value, UserRole.ADMIN.value]
@@ -241,7 +230,7 @@ async def create_document(
     db_doc = Document(
         user_id=uuid.UUID(current_user.get("sub")),
         title=doc_in.title,
-        file_url=safe_url,
+        file_url=doc_in.file_url,
         status="pending",
         document_type=doc_in.document_type,
         course_name=doc_in.course_name if doc_in.document_type == DocumentType.COURSE.value else None,
@@ -276,9 +265,6 @@ async def list_documents(
     db: Session = Depends(get_db)
 ):
     """List all documents owned by the current user."""
-    # Sync user profile data from Supabase Auth
-    sync_user_profile(db, current_user)
-    
     user_uuid = uuid.UUID(current_user.get("sub"))
     documents = db.query(Document).filter(Document.user_id == user_uuid).all()
     return documents
@@ -503,7 +489,7 @@ async def get_document(
     )
 
     # Check if user is admin
-    user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_uuid).first()
+    user_profile = db.query(UserProfile).filter(UserProfile.id == user_uuid).first()
     is_admin = user_profile and user_profile.role == UserRole.ADMIN
 
     if not is_owner and not is_public_approved and not is_admin:
@@ -560,7 +546,7 @@ async def delete_document(
     doc_uuid = uuid.UUID(document_id)
 
     # Check if user is admin
-    user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_uuid).first()
+    user_profile = db.query(UserProfile).filter(UserProfile.id == user_uuid).first()
     is_admin = user_profile and user_profile.role == UserRole.ADMIN
 
     if is_admin:

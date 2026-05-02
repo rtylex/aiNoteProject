@@ -201,7 +201,7 @@ async def get_user_query_status(
     """Get the current user's daily query status."""
     user_uuid = _parse_uuid(current_user.get("sub"), "user identifier")
     
-    user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_uuid).first()
+    user_profile = db.query(UserProfile).filter(UserProfile.id == user_uuid).first()
     if not user_profile:
         user_profile = UserProfile(user_id=user_uuid)
         db.add(user_profile)
@@ -222,7 +222,7 @@ async def chat_message(
         user_uuid = _parse_uuid(current_user.get("sub"), "user identifier")
 
         # Check daily query limit first
-        user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_uuid).first()
+        user_profile = db.query(UserProfile).filter(UserProfile.id == user_uuid).first()
         if not user_profile:
             user_profile = UserProfile(user_id=user_uuid)
             db.add(user_profile)
@@ -392,7 +392,7 @@ async def multi_document_chat(
         user_uuid = _parse_uuid(current_user.get("sub"), "user identifier")
         
         # Check daily query limit
-        user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_uuid).first()
+        user_profile = db.query(UserProfile).filter(UserProfile.id == user_uuid).first()
         if not user_profile:
             user_profile = UserProfile(user_id=user_uuid)
             db.add(user_profile)
@@ -513,7 +513,7 @@ async def create_multi_session(
         is_owner = document.user_id == user_uuid
         is_public_approved = (document.visibility == 'public' and document.is_approved)
         
-        user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_uuid).first()
+        user_profile = db.query(UserProfile).filter(UserProfile.id == user_uuid).first()
         is_admin = user_profile and user_profile.role == UserRole.ADMIN
         
         if not is_owner and not is_public_approved and not is_admin:
@@ -672,7 +672,7 @@ async def send_multi_session_message(
     session_uuid = _parse_uuid(session_id, "session id")
     
     # Check daily query limit
-    user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_uuid).first()
+    user_profile = db.query(UserProfile).filter(UserProfile.id == user_uuid).first()
     if not user_profile:
         user_profile = UserProfile(user_id=user_uuid)
         db.add(user_profile)

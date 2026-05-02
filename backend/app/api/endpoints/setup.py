@@ -82,11 +82,11 @@ async def make_first_admin(
         email = current_user.get("email")
 
         # Get or create user profile
-        profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+        profile = db.query(UserProfile).filter(UserProfile.id == user_id).first()
 
         if not profile:
             profile = UserProfile(
-                user_id=user_id,
+                id=user_id,
                 role=UserRole.ADMIN.value
             )
             db.add(profile)

@@ -5,7 +5,7 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from app.core.config import settings
 
-# Use connection string for Supabase (PostgreSQL)
+# PostgreSQL connection string
 SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 
 engine = create_engine(
@@ -14,7 +14,7 @@ engine = create_engine(
     pool_size=5,
     max_overflow=10,
     pool_timeout=30,
-    pool_recycle=300,  # Recycle connections every 5 minutes (Supabase can be aggressive)
+    pool_recycle=300,  # Recycle connections every 5 minutes
     pool_pre_ping=True,  # Test connection before using it
     connect_args={
         "connect_timeout": 30,

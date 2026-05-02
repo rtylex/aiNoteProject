@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { BookOpen, LogOut, Library, Shield, Menu, X, Home, FolderOpen, Users } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import {
     DropdownMenu,
@@ -21,7 +20,7 @@ import { useAuth } from '@/lib/auth-context'
 import { API_BASE_URL } from '@/lib/api-config'
 
 export function Navbar() {
-    const { user, accessToken } = useAuth()
+    const { user, accessToken, logout } = useAuth()
     const router = useRouter()
     const pathname = usePathname()
     const [isAdmin, setIsAdmin] = useState(false)
@@ -71,8 +70,8 @@ export function Navbar() {
         setMobileMenuOpen(false)
     }, [pathname])
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut()
+    const handleLogout = () => {
+        logout()
         router.replace('/login')
         router.refresh()
     }
@@ -159,7 +158,6 @@ export function Navbar() {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-violet-100 transition-all">
                                     <Avatar className="h-10 w-10 border-2 border-white shadow-md">
-                                        <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email ?? 'avatar'} />
                                         <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-sm font-medium">
                                             {user.email?.charAt(0).toUpperCase()}
                                         </AvatarFallback>
@@ -169,7 +167,7 @@ export function Navbar() {
                             <DropdownMenuContent className="w-56" align="end" forceMount>
                                 <DropdownMenuLabel className="font-normal">
                                     <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{user.user_metadata?.full_name || 'Kullanıcı'}</p>
+                                        <p className="text-sm font-medium leading-none">{user.full_name || 'Kullanıcı'}</p>
                                         <p className="text-xs leading-none text-muted-foreground">
                                             {user.email}
                                         </p>

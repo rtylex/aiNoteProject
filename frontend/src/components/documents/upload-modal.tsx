@@ -20,7 +20,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { supabase } from '@/lib/supabase/client'
 import {
     UploadCloud,
     FileText,
@@ -134,28 +133,29 @@ export function UploadModal() {
         setUploading(true)
 
         try {
-            const sanitizedName = file.name
-                .replace(/[^a-zA-Z0-9.-]/g, '_')
-                .replace(/_{2,}/g, '_')
+            // Step 1: Upload file to our backend via FormData
+            const formData = new FormData()
+            formData.append('file', file)
 
-            const filename = `${Date.now()}-${sanitizedName}`
-            const { data, error } = await supabase.storage
-                .from('course_materials')
-                .upload(filename, file)
+            const uploadRes = await fetch(`${API_BASE_URL}/api/v1/documents/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: formData
+            })
 
-            if (error) {
-                console.error('Upload error:', error)
+            if (!uploadRes.ok) {
+                console.error('Upload error:', await uploadRes.text())
                 alert('Yükleme başarısız oldu')
                 setUploading(false)
                 return
             }
 
-            const { data: publicUrlData } = supabase.storage
-                .from('course_materials')
-                .getPublicUrl(data.path)
+            const uploadData = await uploadRes.json()
+            const fileUrl = uploadData.file_url
 
-            const fileUrl = publicUrlData.publicUrl
-
+            // Step 2: Create document record with metadata
             const response = await fetch(`${API_BASE_URL}/api/v1/documents/`, {
                 method: 'POST',
                 headers: {

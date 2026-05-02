@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname
     const requiresAuth = pathname.startsWith('/dashboard') || pathname.startsWith('/chat')
     const isLoginRoute = pathname === '/login'

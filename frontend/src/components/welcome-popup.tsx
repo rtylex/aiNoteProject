@@ -1,13 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { X, BookOpen, Users, BarChart3, LogIn } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 export default function WelcomePopup() {
     const [isOpen, setIsOpen] = useState(true)
     const router = useRouter()
+    const { user, loading } = useAuth()
+
+    useEffect(() => {
+        if (user && !loading) {
+            setIsOpen(false)
+        }
+    }, [user, loading])
 
     const handleClose = () => {
         setIsOpen(false)
@@ -18,6 +26,7 @@ export default function WelcomePopup() {
         router.push('/login')
     }
 
+    if (loading || user) return null
     if (!isOpen) return null
 
     return (

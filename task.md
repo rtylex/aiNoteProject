@@ -14,10 +14,10 @@
 - [x] **A5.** Node.js 20 ve PM2 kurulumu ✅
 - [x] **A6.** Python 3, pip ve venv kurulumu ✅
 - [x] **A7.** Nginx kurulumu ✅
-- [ ] **A8.** Projeyi sunucuya klonlama (`/var/www/aiNoteProject`)
-- [ ] **A9.** Backend: venv oluştur, `pip install`, `.env` ayarla
-- [ ] **A10.** Backend: `alembic upgrade head` ile veritabanı tablolarını oluştur
-- [ ] **A11.** Backend: Systemd servisi oluştur (Gunicorn + Uvicorn worker)
+- [x] **A8.** Projeyi sunucuya klonlama (`/var/www/aiNoteProject`) ✅
+- [x] **A9.** Backend: venv oluştur, `pip install`, `.env` ayarla ✅
+- [x] **A10.** Backend: `alembic upgrade head` ile veritabanı tablolarını oluştur ✅
+- [x] **A11.** Backend: Systemd servisi oluştur (Gunicorn + Uvicorn worker) ✅
 - [ ] **A12.** Frontend: `npm install`, `.env` ayarla, `npm run build`
 - [ ] **A13.** Frontend: PM2 ile başlat
 - [ ] **A14.** Nginx reverse proxy ayarları (frontend → :3000, backend → :8000)

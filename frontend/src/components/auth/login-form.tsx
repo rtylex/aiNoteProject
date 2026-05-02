@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, Mail, Lock, UserPlus, LogIn, User } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { useEffect } from 'react'
 
 export default function LoginForm() {
     const [email, setEmail] = useState('')
@@ -19,7 +20,13 @@ export default function LoginForm() {
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
     const router = useRouter()
-    const { login, register } = useAuth()
+    const { login, register, user, loading: authLoading } = useAuth()
+
+    useEffect(() => {
+        if (user && !authLoading) {
+            router.push('/dashboard')
+        }
+    }, [user, authLoading, router])
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()

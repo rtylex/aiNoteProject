@@ -33,6 +33,21 @@ async def startup_event():
     print(f"🚀 {settings.PROJECT_NAME} API starting...")
     print(f"📡 CORS allowed origins: {origins}")
     print(f"📂 Uploads directory: {uploads_dir.resolve()}")
+    
+    # Ensure pgvector extension exists
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        print("🔧 Ensuring pgvector extension is enabled...")
+        db.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        db.commit()
+        print("✅ pgvector extension is ready")
+    except Exception as e:
+        print(f"⚠️ Warning: Could not enable pgvector: {e}")
+        db.rollback()
+    finally:
+        db.close()
 
 from app.api.api import api_router
 app.include_router(api_router, prefix=settings.API_V1_STR)

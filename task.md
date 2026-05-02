@@ -19,7 +19,7 @@
 - [x] **A10.** Backend: `alembic upgrade head` ile veritabanı tablolarını oluştur ✅
 - [x] **A11.** Backend: Systemd servisi oluştur (Gunicorn + Uvicorn worker) ✅
 - [ ] **A12.** Frontend: `npm install`, `.env` ayarla, `npm run build`
-- [ ] **A13.** Frontend: PM2 ile başlat
+- [x] **A13.** Frontend: PM2 ile başlat
 - [ ] **A14.** Nginx reverse proxy ayarları (frontend → :3000, backend → :8000)
 - [ ] **A15.** (Opsiyonel) Domain varsa SSL sertifikası kur (certbot)
 

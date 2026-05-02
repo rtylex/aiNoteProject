@@ -40,7 +40,8 @@ export default function LoginForm() {
             setError(result.error)
             setLoading(false)
         } else {
-            router.push('/')
+            setLoading(false)
+            router.replace('/dashboard')
             router.refresh()
         }
     }
@@ -79,7 +80,8 @@ export default function LoginForm() {
             setLoading(false)
         } else {
             setSuccess('Kayıt başarılı! Yönlendiriliyorsunuz...')
-            router.push('/dashboard')
+            setLoading(false)
+            router.replace('/dashboard')
             router.refresh()
         }
     }

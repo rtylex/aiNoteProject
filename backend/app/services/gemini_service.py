@@ -1,57 +1,62 @@
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from app.core.config import settings
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
-# Configure Gemini
-genai.configure(api_key=settings.GEMINI_API_KEY)
+# Configure Gemini with new SDK
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 # Thread pool for blocking Gemini calls
 executor = ThreadPoolExecutor(max_workers=5)
 
 class GeminiService:
     def __init__(self):
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
-        self.embedding_model = "models/text-embedding-004"
+        self.model_name = "gemini-2.5-flash"
+        self.embedding_model = "text-embedding-004"
 
     async def generate_embedding(self, text: str, *, task: str = "retrieval_document", retry_count: int = 3) -> list[float]:
         """Generate embedding with retry logic and timeout"""
         for attempt in range(retry_count):
             try:
-                # Run blocking Gemini call in thread pool
                 loop = asyncio.get_event_loop()
 
-                # Only use title for retrieval_document task (Gemini API requirement)
                 def _embed():
+                    task_type_map = {
+                        "retrieval_document": "RETRIEVAL_DOCUMENT",
+                        "retrieval_query": "RETRIEVAL_QUERY",
+                    }
+                    task_type = task_type_map.get(task, "RETRIEVAL_DOCUMENT")
+
+                    config = types.EmbedContentConfig(task_type=task_type)
                     if task == "retrieval_document":
-                        return genai.embed_content(
-                            model=self.embedding_model,
-                            content=text[:9000],
-                            task_type=task,
+                        config = types.EmbedContentConfig(
+                            task_type=task_type,
                             title="Embedding of document chunk"
                         )
-                    else:
-                        return genai.embed_content(
-                            model=self.embedding_model,
-                            content=text[:9000],
-                            task_type=task
-                        )
+
+                    result = client.models.embed_content(
+                        model=self.embedding_model,
+                        contents=text[:9000],
+                        config=config
+                    )
+                    return result.embeddings[0].values
 
                 result = await asyncio.wait_for(
                     loop.run_in_executor(executor, _embed),
-                    timeout=30.0  # 30 second timeout per attempt
+                    timeout=30.0
                 )
-                return result['embedding']
+                return result
             except asyncio.TimeoutError:
                 print(f"Embedding timeout (attempt {attempt+1}/{retry_count}): {text[:50]}...")
                 if attempt < retry_count - 1:
-                    await asyncio.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
+                    await asyncio.sleep(2 ** attempt)
                     continue
                 raise
             except Exception as e:
                 print(f"Error generating embedding (attempt {attempt+1}/{retry_count}): {e}")
                 if attempt < retry_count - 1:
-                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    await asyncio.sleep(2 ** attempt)
                     continue
                 raise
 
@@ -59,22 +64,21 @@ class GeminiService:
         return await self.generate_embedding(text, task="retrieval_query")
 
     async def ocr_pdf_page(self, image_bytes: bytes) -> str:
-        """
-        Use Gemini 2.5 Flash vision to extract text from a PDF page image.
-        """
+        """Use Gemini vision to extract text from a PDF page image."""
         try:
             loop = asyncio.get_event_loop()
-            
+
             def _ocr():
-                # Determine mime type - try to detect from bytes
                 mime_type = "image/jpeg"
                 if image_bytes[:4] == b'\x89PNG':
                     mime_type = "image/png"
                 elif image_bytes[:2] == b'BM':
                     mime_type = "image/bmp"
-                
-                response = self.model.generate_content([
-                    """Bu bir PDF sayfasının görüntüsü. Lütfen bu sayfadaki TÜM metni aynen oku ve yaz.
+
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=[
+                        """Bu bir PDF sayfasının görüntüsü. Lütfen bu sayfadaki TÜM metni aynen oku ve yaz.
 
 KURALLAR:
 - Metni olduğu gibi oku, yorum ekleme
@@ -84,13 +88,14 @@ KURALLAR:
 - Eğer hiç okunabilir metin yoksa, boş yanıt ver
 
 Sayfa metni:""",
-                    {"mime_type": mime_type, "data": image_bytes}
-                ])
+                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+                    ]
+                )
                 return response.text
-            
+
             result = await asyncio.wait_for(
                 loop.run_in_executor(executor, _ocr),
-                timeout=60.0  # 60 second timeout for OCR
+                timeout=60.0
             )
             return result.strip() if result else ""
         except asyncio.TimeoutError:
@@ -101,18 +106,17 @@ Sayfa metni:""",
             return ""
 
     async def ocr_pdf_file(self, pdf_bytes: bytes) -> str:
-        """
-        Use Gemini 2.5 Flash to extract ALL text from a PDF file.
-        This is used when normal text extraction fails (scanned PDFs).
-        """
+        """Use Gemini to extract ALL text from a PDF file."""
         print(f"[OCR] Starting PDF OCR, file size: {len(pdf_bytes)} bytes")
         try:
             loop = asyncio.get_event_loop()
-            
+
             def _ocr_pdf():
-                print("[OCR] Sending PDF to Gemini 2.5 Flash...")
-                response = self.model.generate_content([
-                    """Bu bir PDF dosyası. Lütfen bu PDF'deki TÜM metni oku ve yaz.
+                print("[OCR] Sending PDF to Gemini...")
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=[
+                        """Bu bir PDF dosyası. Lütfen bu PDF'deki TÜM metni oku ve yaz.
 
 KURALLAR:
 - Tüm sayfaları oku
@@ -124,16 +128,17 @@ KURALLAR:
 - Eğer hiç okunabilir metin yoksa, boş yanıt ver
 
 PDF içeriği:""",
-                    {"mime_type": "application/pdf", "data": pdf_bytes}
-                ])
+                        types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+                    ]
+                )
                 result_text = response.text if response.text else ""
                 print(f"[OCR] Gemini returned {len(result_text)} chars")
                 return result_text
-            
+
             print("[OCR] Waiting for Gemini response (timeout: 120s)...")
             result = await asyncio.wait_for(
                 loop.run_in_executor(executor, _ocr_pdf),
-                timeout=120.0  # 2 minute timeout for full PDF OCR
+                timeout=120.0
             )
             print(f"[OCR] OCR complete, extracted {len(result) if result else 0} chars")
             return result.strip() if result else ""
@@ -146,19 +151,15 @@ PDF içeriği:""",
             traceback.print_exc()
             return ""
 
-
     async def extract_text_with_vision(self, problematic_text: str) -> str:
-        """
-        Use Gemini 2.5 Flash to clean/fix problematic text that failed embedding.
-        This handles cases where text extraction produced garbage characters,
-        mixed encodings, or other issues that prevent successful embedding.
-        """
+        """Use Gemini to clean/fix problematic text that failed embedding."""
         try:
             loop = asyncio.get_event_loop()
-            
+
             def _extract():
-                response = self.model.generate_content(
-                    f"""Aşağıdaki metin bir PDF'den çıkarılmış ancak sorunlu olabilir 
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=f"""Aşağıdaki metin bir PDF'den çıkarılmış ancak sorunlu olabilir 
 (bozuk karakterler, anlamsız semboller vb. içerebilir).
 
 Lütfen bu metinden anlamlı içeriği çıkar ve temiz bir şekilde yeniden yaz.
@@ -171,7 +172,7 @@ Sorunlu metin:
 Temizlenmiş metin:"""
                 )
                 return response.text
-            
+
             result = await asyncio.wait_for(
                 loop.run_in_executor(executor, _extract),
                 timeout=30.0
@@ -182,15 +183,15 @@ Temizlenmiş metin:"""
             return ""
 
     async def generate_answer_simple(self, prompt: str) -> str:
-        """
-        Direct prompt to Gemini without any wrapper.
-        Used for multi-document chat where the prompt is already formatted.
-        """
+        """Direct prompt to Gemini without any wrapper."""
         try:
             loop = asyncio.get_event_loop()
 
             def _generate():
-                response = self.model.generate_content(prompt)
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt
+                )
                 return response.text
 
             result = await asyncio.wait_for(
@@ -246,12 +247,15 @@ Yanıt:"""
             loop = asyncio.get_event_loop()
 
             def _generate():
-                response = self.model.generate_content(prompt)
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt
+                )
                 return response.text
 
             result = await asyncio.wait_for(
                 loop.run_in_executor(executor, _generate),
-                timeout=60.0  # 60 second timeout
+                timeout=60.0
             )
             return result
         except asyncio.TimeoutError:
@@ -260,4 +264,3 @@ Yanıt:"""
             return f"Yanıt oluşturulurken hata: {e}"
 
 gemini_service = GeminiService()
-

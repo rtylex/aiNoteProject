@@ -5,7 +5,10 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 # Configure Gemini with new SDK
-client = genai.Client(api_key=settings.GEMINI_API_KEY)
+client = genai.Client(
+    api_key=settings.GEMINI_API_KEY,
+    http_options={"api_version": "v1"}
+)
 
 # Thread pool for blocking Gemini calls
 executor = ThreadPoolExecutor(max_workers=5)

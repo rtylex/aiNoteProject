@@ -1,4 +1,4 @@
-﻿import google.generativeai as genai
+import google.generativeai as genai
 from app.core.config import settings
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
@@ -12,7 +12,7 @@ executor = ThreadPoolExecutor(max_workers=5)
 class GeminiService:
     def __init__(self):
         self.model = genai.GenerativeModel('gemini-2.5-flash')
-        self.embedding_model = "models/text-embedding-004"
+        self.embedding_model = "models/embedding-001"
 
     async def generate_embedding(self, text: str, *, task: str = "retrieval_document", retry_count: int = 3) -> list[float]:
         """Generate embedding with retry logic and timeout"""

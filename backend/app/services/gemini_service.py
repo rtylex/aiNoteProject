@@ -33,7 +33,11 @@ class GeminiService:
                         content=text[:9000],
                         task_type=task_type
                     )
-                    return result['embedding']
+                    # Veritabanı 768 boyut beklediği için 3072 gelirse kırpıyoruz
+                    embedding = result['embedding']
+                    if len(embedding) > 768:
+                        embedding = embedding[:768]
+                    return embedding
 
                 result = await asyncio.wait_for(
                     loop.run_in_executor(executor, _embed),

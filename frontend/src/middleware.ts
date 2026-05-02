@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname
     const requiresAuth = pathname.startsWith('/dashboard') || pathname.startsWith('/chat')
     const isLoginRoute = pathname === '/login'
@@ -24,7 +24,7 @@ export async function proxy(request: NextRequest) {
     }
 
     if (isLoginRoute && token) {
-        return NextResponse.redirect(new URL('/', request.url))
+        return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     return response

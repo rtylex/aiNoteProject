@@ -59,13 +59,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     const data = await res.json()
                     setUser(data)
                     setAccessToken(token)
+                    document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=86400; SameSite=Lax`
                 } else {
                     // Token is invalid — clean up
                     localStorage.removeItem(TOKEN_KEY)
+                    document.cookie = `${TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`
                 }
             })
             .catch(() => {
                 localStorage.removeItem(TOKEN_KEY)
+                document.cookie = `${TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`
             })
             .finally(() => setLoading(false))
     }, [])
@@ -88,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             const data = await res.json()
             localStorage.setItem(TOKEN_KEY, data.access_token)
+            document.cookie = `${TOKEN_KEY}=${data.access_token}; path=/; max-age=86400; SameSite=Lax`
             setAccessToken(data.access_token)
             setUser(data.user)
             return {}
@@ -114,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             const data = await res.json()
             localStorage.setItem(TOKEN_KEY, data.access_token)
+            document.cookie = `${TOKEN_KEY}=${data.access_token}; path=/; max-age=86400; SameSite=Lax`
             setAccessToken(data.access_token)
             setUser(data.user)
             return {}
@@ -127,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // ------------------------------------------------------------------
     const logout = useCallback(() => {
         localStorage.removeItem(TOKEN_KEY)
+        document.cookie = `${TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`
         setAccessToken(null)
         setUser(null)
     }, [])

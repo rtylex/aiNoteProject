@@ -6,8 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 # Configure Gemini with new SDK
 client = genai.Client(
-    api_key=settings.GEMINI_API_KEY,
-    http_options={"api_version": "v1"}
+    api_key=settings.GEMINI_API_KEY
 )
 
 # Thread pool for blocking Gemini calls
@@ -16,7 +15,7 @@ executor = ThreadPoolExecutor(max_workers=5)
 class GeminiService:
     def __init__(self):
         self.model_name = "gemini-2.5-flash"
-        self.embedding_model = "embedding-001"
+        self.embedding_model = "text-embedding-004"
 
     async def generate_embedding(self, text: str, *, task: str = "retrieval_document", retry_count: int = 3) -> list[float]:
         """Generate embedding with retry logic and timeout"""

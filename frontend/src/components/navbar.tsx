@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -25,22 +25,86 @@ export function Navbar() {
     const pathname = usePathname()
     const [isAdmin, setIsAdmin] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const navRef = useRef<HTMLElement | null>(null)
+    const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
+    const [activeDesktopHref, setActiveDesktopHref] = useState('/')
+    const [desktopIndicator, setDesktopIndicator] = useState({
+        left: 0,
+        width: 0,
+        opacity: 0
+    })
 
-    // Aktif link stilini belirle
+    const desktopLinks = user
+        ? [
+            { href: '/', label: 'Ana Sayfa' },
+            { href: '/dashboard', label: 'Kütüphanem' },
+            { href: '/library', label: 'Topluluk' }
+        ]
+        : [
+            { href: '/', label: 'Ana Sayfa' },
+            { href: '#features', label: 'Özellikler' },
+            { href: '#how-it-works', label: 'Nasıl Çalışır' }
+        ]
+
+    // Desktop link stilini belirle
     const getLinkClassName = (href: string) => {
-        const isActive = pathname === href || (href === '/dashboard' && pathname?.startsWith('/dashboard'))
-        return `px-4 py-1.5 text-sm font-medium rounded-full transition-all ${isActive
-            ? 'bg-violet-100 text-violet-700'
-            : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+        const isActive = activeDesktopHref === href
+        return `relative z-10 px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${isActive
+            ? 'text-[#011133]'
+            : 'text-gray-600 hover:text-gray-900'
             }`
     }
 
     const getMobileLinkClassName = (href: string) => {
         const isActive = pathname === href || (href === '/dashboard' && pathname?.startsWith('/dashboard'))
         return `flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition-all ${isActive
-            ? 'bg-violet-100 text-violet-700'
+            ? 'bg-[#d9dff0] text-[#011133]'
             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
             }`
+    }
+
+    const syncDesktopActiveHref = () => {
+        if (user) {
+            if (pathname?.startsWith('/dashboard')) {
+                setActiveDesktopHref('/dashboard')
+                return
+            }
+            if (pathname === '/library') {
+                setActiveDesktopHref('/library')
+                return
+            }
+            setActiveDesktopHref('/')
+            return
+        }
+
+        // Landing sayfasında hash linkler de aktif görünsün
+        if (pathname === '/' && typeof window !== 'undefined') {
+            const hash = window.location.hash
+            if (hash === '#features' || hash === '#how-it-works') {
+                setActiveDesktopHref(hash)
+                return
+            }
+        }
+        setActiveDesktopHref('/')
+    }
+
+    const updateDesktopIndicator = () => {
+        const navElement = navRef.current
+        const activeLink = linkRefs.current[activeDesktopHref]
+
+        if (!navElement || !activeLink) {
+            setDesktopIndicator((prev) => ({ ...prev, opacity: 0 }))
+            return
+        }
+
+        const navRect = navElement.getBoundingClientRect()
+        const linkRect = activeLink.getBoundingClientRect()
+
+        setDesktopIndicator({
+            left: linkRect.left - navRect.left,
+            width: linkRect.width,
+            opacity: 1
+        })
     }
 
     useEffect(() => {
@@ -70,6 +134,29 @@ export function Navbar() {
         setMobileMenuOpen(false)
     }, [pathname])
 
+    useEffect(() => {
+        syncDesktopActiveHref()
+    }, [pathname, user])
+
+    useEffect(() => {
+        if (!user && pathname === '/') {
+            const handleHashChange = () => syncDesktopActiveHref()
+            window.addEventListener('hashchange', handleHashChange)
+            return () => window.removeEventListener('hashchange', handleHashChange)
+        }
+    }, [user, pathname])
+
+    useEffect(() => {
+        const rafId = requestAnimationFrame(() => updateDesktopIndicator())
+        const handleResize = () => updateDesktopIndicator()
+
+        window.addEventListener('resize', handleResize)
+        return () => {
+            cancelAnimationFrame(rafId)
+            window.removeEventListener('resize', handleResize)
+        }
+    }, [activeDesktopHref, desktopLinks.length])
+
     const handleLogout = () => {
         logout()
         router.replace('/login')
@@ -77,39 +164,72 @@ export function Navbar() {
     }
 
     return (
-        <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+        <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-white/10 transition-all duration-300">
             <div className="container mx-auto px-4 h-16 flex justify-between items-center">
                 {/* Logo - Sol */}
                 <Link href="/" className="flex items-center group">
                     <Image
-                        src="/YIRIKAI.png"
+                        src="/bitigAcikTema.png"
                         alt="YirikAI Logo"
                         width={140}
                         height={45}
-                        className="group-hover:scale-105 transition-transform object-contain"
+                        className="block dark:hidden group-hover:scale-105 transition-transform object-contain"
+                        priority
+                    />
+                    <Image
+                        src="/bitigKapali (2).png"
+                        alt="YirikAI Logo"
+                        width={140}
+                        height={45}
+                        className="hidden dark:block group-hover:scale-105 transition-transform object-contain"
                         priority
                     />
                 </Link>
 
                 {/* Orta Menü - Pill şeklinde (Desktop) */}
-                <nav className="hidden md:flex items-center bg-gray-50 rounded-full px-2 py-1.5 border border-gray-100">
+                <nav
+                    ref={navRef}
+                    aria-label="Ana navigasyon"
+                    className="hidden md:flex relative items-center bg-gray-50/50 backdrop-blur-sm rounded-full px-2 py-1.5 border border-gray-200/50 shadow-sm"
+                >
+                    <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-1.5 bottom-1.5 rounded-full bg-[#d9dff0] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 ease-out motion-reduce:transition-none"
+                        style={{
+                            width: `${desktopIndicator.width}px`,
+                            transform: `translateX(${desktopIndicator.left}px)`,
+                            opacity: desktopIndicator.opacity
+                        }}
+                    />
                     {user ? (
                         <>
                             <Link
                                 href="/"
                                 className={getLinkClassName('/')}
+                                aria-current={activeDesktopHref === '/' ? 'page' : undefined}
+                                ref={(el) => {
+                                    linkRefs.current['/'] = el
+                                }}
                             >
                                 Ana Sayfa
                             </Link>
                             <Link
                                 href="/dashboard"
                                 className={getLinkClassName('/dashboard')}
+                                aria-current={activeDesktopHref === '/dashboard' ? 'page' : undefined}
+                                ref={(el) => {
+                                    linkRefs.current['/dashboard'] = el
+                                }}
                             >
                                 Kütüphanem
                             </Link>
                             <Link
                                 href="/library"
                                 className={getLinkClassName('/library')}
+                                aria-current={activeDesktopHref === '/library' ? 'page' : undefined}
+                                ref={(el) => {
+                                    linkRefs.current['/library'] = el
+                                }}
                             >
                                 Topluluk
                             </Link>
@@ -119,18 +239,31 @@ export function Navbar() {
                             <Link
                                 href="/"
                                 className={getLinkClassName('/')}
+                                aria-current={activeDesktopHref === '/' ? 'page' : undefined}
+                                ref={(el) => {
+                                    linkRefs.current['/'] = el
+                                }}
+                                onClick={() => setActiveDesktopHref('/')}
                             >
                                 Ana Sayfa
                             </Link>
                             <Link
                                 href="#features"
                                 className={getLinkClassName('#features')}
+                                ref={(el) => {
+                                    linkRefs.current['#features'] = el
+                                }}
+                                onClick={() => setActiveDesktopHref('#features')}
                             >
                                 Özellikler
                             </Link>
                             <Link
                                 href="#how-it-works"
                                 className={getLinkClassName('#how-it-works')}
+                                ref={(el) => {
+                                    linkRefs.current['#how-it-works'] = el
+                                }}
+                                onClick={() => setActiveDesktopHref('#how-it-works')}
                             >
                                 Nasıl Çalışır
                             </Link>
@@ -156,9 +289,9 @@ export function Navbar() {
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-violet-100 transition-all">
+                                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-[#d9dff0] transition-all">
                                     <Avatar className="h-10 w-10 border-2 border-white shadow-md">
-                                        <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-sm font-medium">
+                                        <AvatarFallback className="bg-gradient-to-br from-[#011133] to-[#23335c] text-[#f4f1e0] text-sm font-medium">
                                             {user.email?.charAt(0).toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
@@ -197,7 +330,7 @@ export function Navbar() {
                         </DropdownMenu>
                     ) : (
                         <Link href="/login" className="hidden sm:block">
-                            <Button className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-6 h-10 text-sm font-medium shadow-md hover:shadow-lg transition-all rounded-full">
+                            <Button className="bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] px-6 h-10 text-sm font-medium shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-full">
                                 Giriş Yap
                             </Button>
                         </Link>
@@ -287,7 +420,7 @@ export function Navbar() {
                                     className="w-full"
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
-                                    <Button className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white h-12 text-base font-medium shadow-md rounded-xl">
+                                    <Button className="w-full bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] h-12 text-base font-medium shadow-md rounded-xl">
                                         Giriş Yap
                                     </Button>
                                 </Link>

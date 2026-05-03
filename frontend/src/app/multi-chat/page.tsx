@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle, Zap, Lightbulb, BookOpen, ListChecks, GraduationCap, HelpCircle } from 'lucide-react'
+import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle, Zap, Lightbulb, BookOpen, ListChecks, GraduationCap, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
@@ -78,6 +78,9 @@ function MultiChatContent() {
 
     // AI Model - always use DeepSeek
     const selectedModel = 'deepseek'
+
+    // Mobile docs toggle state
+    const [showMobileDocs, setShowMobileDocs] = useState(false)
 
 
 
@@ -472,21 +475,68 @@ function MultiChatContent() {
 
             <div className="container mx-auto px-4 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    {/* Sidebar - Selected Documents */}
-                    <div className="lg:col-span-1">
-                        <Card className="sticky top-24">
+                    {/* Mobile - Selected Documents Toggle */}
+                    <div className="lg:hidden">
+                        <Button 
+                            variant="outline" 
+                            className="w-full flex justify-between items-center bg-white/80 backdrop-blur-sm"
+                            onClick={() => setShowMobileDocs(!showMobileDocs)}
+                        >
+                            <div className="flex items-center gap-2">
+                                <FileText className="w-4 h-4 text-indigo-600" />
+                                <span className="font-medium">Seçili Dökümanlar ({documents.length})</span>
+                            </div>
+                            {showMobileDocs ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </Button>
+                        
+                        <AnimatePresence>
+                            {showMobileDocs && (
+                                <motion.div 
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden mt-2"
+                                >
+                                    <Card>
+                                        <CardContent className="space-y-2 p-4 max-h-[30vh] overflow-y-auto">
+                                            {documents.map((doc, index) => (
+                                                <div
+                                                    key={doc.id}
+                                                    className="flex items-center gap-3 p-2 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100"
+                                                >
+                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                                        {index + 1}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-gray-800 truncate">
+                                                            {doc.title}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Sidebar - Selected Documents (Desktop) */}
+                    <div className="hidden lg:block lg:col-span-1">
+                        <Card className="sticky top-24 bg-white/80 backdrop-blur-xl border-white/50 shadow-lg">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-medium text-gray-500">
+                                <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                                    <FileText className="w-4 h-4" />
                                     Seçili Dökümanlar
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-2">
+                            <CardContent className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
                                 {documents.map((doc, index) => (
                                     <div
                                         key={doc.id}
-                                        className="flex items-center gap-3 p-2 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100"
+                                        className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border border-indigo-100/50 hover:border-indigo-200 hover:shadow-sm transition-all"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm">
                                             {index + 1}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -494,7 +544,6 @@ function MultiChatContent() {
                                                 {doc.title}
                                             </p>
                                         </div>
-                                        <FileText className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                                     </div>
                                 ))}
                             </CardContent>

@@ -104,7 +104,8 @@ class DeepSeekService:
     def __init__(self):
         self.enabled = bool(settings.DEEPSEEK_API_KEY)
         self.client = None
-        self.model = "deepseek-chat"  # DeepSeek-V3.2
+        self.model = "deepseek-chat"  # DeepSeek-V3 (text)
+        self.vision_model = "deepseek-vl2"  # DeepSeek Vision (OCR)
         
         if self.enabled:
             self.client = OpenAI(
@@ -313,6 +314,111 @@ class DeepSeekService:
         except Exception as e:
             print(f"[DeepSeek] ERROR: {e}")
             raise
+
+
+    async def ocr_pdf_file(self, pdf_bytes: bytes) -> str:
+        """
+        Use DeepSeek Vision (deepseek-vl2) to extract ALL text from a scanned PDF.
+        PDF sayfalarını PyMuPDF ile görüntüye çevirir, base64 olarak API'ye gönderir.
+        
+        Gemini'ye fallback için tasarlanmıştır — hata durumunda '' döndürür.
+        """
+        if not self.enabled or not self.client:
+            print("[DeepSeek OCR] Service not enabled, skipping")
+            return ""
+        
+        print(f"[DeepSeek OCR] Starting PDF OCR, file size: {len(pdf_bytes)} bytes")
+        
+        try:
+            import fitz  # PyMuPDF
+            import base64
+            
+            # PDF'i belleğe yükle
+            pdf_doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            all_text_parts = []
+            
+            print(f"[DeepSeek OCR] PDF has {len(pdf_doc)} pages")
+            
+            for page_num in range(len(pdf_doc)):
+                page = pdf_doc[page_num]
+                
+                # Sayfayı yüksek kaliteli PNG'ye çevir (200 DPI)
+                mat = fitz.Matrix(200/72, 200/72)  # 200 DPI
+                pix = page.get_pixmap(matrix=mat)
+                img_bytes = pix.tobytes("png")
+                img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+                
+                print(f"[DeepSeek OCR] Processing page {page_num + 1}/{len(pdf_doc)}")
+                
+                try:
+                    loop = asyncio.get_event_loop()
+                    
+                    def _ocr_page(b64=img_b64, pnum=page_num):
+                        response = self.client.chat.completions.create(
+                            model=self.vision_model,
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": [
+                                        {
+                                            "type": "image_url",
+                                            "image_url": {
+                                                "url": f"data:image/png;base64,{b64}"
+                                            }
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": """Bu PDF sayfasındaki TÜM metni oku ve yaz.
+
+KURALLAR:
+- Metni olduğu gibi oku, yorum ekleme
+- Tablo varsa düzgün formatla
+- Başlıkları ve alt başlıkları koru
+- Liste varsa madde işaretlerini koru
+- Sayfa numarası ekleme
+- Eğer hiç okunabilir metin yoksa sadece boş yanıt ver
+
+Sayfa metni:"""
+                                        }
+                                    ]
+                                }
+                            ],
+                            max_tokens=4096
+                        )
+                        return response.choices[0].message.content or ""
+                    
+                    page_text = await asyncio.wait_for(
+                        loop.run_in_executor(executor, _ocr_page),
+                        timeout=60.0
+                    )
+                    
+                    if page_text.strip():
+                        all_text_parts.append(page_text.strip())
+                        print(f"[DeepSeek OCR] Page {page_num + 1}: {len(page_text)} chars extracted")
+                    else:
+                        print(f"[DeepSeek OCR] Page {page_num + 1}: no text found")
+                        
+                except asyncio.TimeoutError:
+                    print(f"[DeepSeek OCR] Page {page_num + 1} TIMEOUT, skipping")
+                    continue
+                except Exception as page_err:
+                    print(f"[DeepSeek OCR] Page {page_num + 1} ERROR: {page_err}")
+                    continue
+            
+            pdf_doc.close()
+            
+            full_text = "\n\n".join(all_text_parts)
+            print(f"[DeepSeek OCR] Complete: {len(full_text)} total chars from {len(all_text_parts)} pages")
+            return full_text
+            
+        except ImportError:
+            print("[DeepSeek OCR] PyMuPDF not installed. Run: pip install PyMuPDF")
+            return ""
+        except Exception as e:
+            print(f"[DeepSeek OCR] FAILED: {e}")
+            import traceback
+            traceback.print_exc()
+            return ""
 
 
 # Singleton instance

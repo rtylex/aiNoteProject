@@ -6,6 +6,7 @@ from pypdf import PdfReader
 from sqlalchemy.orm import Session
 from app.models.document import Document, DocumentEmbedding
 from app.services.gemini_service import gemini_service
+from app.services.deepseek_service import deepseek_service
 from app.db.session import SessionLocal
 import uuid
 
@@ -86,41 +87,55 @@ async def _process_document(document_id: str, file_path: str | None = None):
         
         print(f"Normal extraction: {len(page_texts)} pages, {total_text_chars} total chars")
         
-        # If we got very little text, use Gemini to OCR the entire PDF
+        # If we got very little text, try OCR — DeepSeek first, Gemini fallback
         if total_text_chars < 100:
-            print(f"[PDF] Insufficient text ({total_text_chars} chars < 100), triggering Gemini PDF OCR...")
-            try:
-                # Reset file pointer and get PDF bytes
-                pdf_file.seek(0)
-                pdf_bytes = pdf_file.read()
-                print(f"[PDF] Read {len(pdf_bytes)} bytes from PDF file")
-                
-                # Use Gemini to extract text from the PDF
-                print("[PDF] Calling gemini_service.ocr_pdf_file()...")
-                ocr_text = await gemini_service.ocr_pdf_file(pdf_bytes)
-                print(f"[PDF] OCR returned: {len(ocr_text) if ocr_text else 0} chars")
-                
-                if ocr_text and len(ocr_text.strip()) >= 50:
-                    # Split OCR text into chunks for embedding
-                    # Each chunk ~2000 chars for good embedding quality
-                    chunk_size = 2000
-                    ocr_chunks = []
-                    
-                    for i in range(0, len(ocr_text), chunk_size):
-                        chunk = ocr_text[i:i+chunk_size]
-                        if len(chunk.strip()) >= 20:
-                            ocr_chunks.append(chunk)
-                    
-                    page_texts = ocr_chunks
-                    print(f"[PDF] Gemini OCR SUCCESS: {len(ocr_text)} chars split into {len(page_texts)} chunks")
-                else:
-                    print(f"[PDF] Gemini OCR returned insufficient text: {len(ocr_text) if ocr_text else 0} chars")
-            except Exception as e:
-                print(f"[PDF] Gemini PDF OCR FAILED: {e}")
-                import traceback
-                traceback.print_exc()
+            print(f"[PDF] Insufficient text ({total_text_chars} chars < 100), triggering OCR...")
+            ocr_text = ""
 
+            # --- Önce DeepSeek Vision ile dene ---
+            if deepseek_service.enabled:
+                print("[PDF] Trying DeepSeek Vision OCR...")
+                try:
+                    pdf_file.seek(0)
+                    pdf_bytes = pdf_file.read()
+                    ocr_text = await deepseek_service.ocr_pdf_file(pdf_bytes)
+                    if ocr_text and len(ocr_text.strip()) >= 50:
+                        print(f"[PDF] DeepSeek OCR SUCCESS: {len(ocr_text)} chars")
+                    else:
+                        print(f"[PDF] DeepSeek OCR returned insufficient text ({len(ocr_text) if ocr_text else 0} chars), falling back to Gemini...")
+                        ocr_text = ""
+                except Exception as ds_err:
+                    print(f"[PDF] DeepSeek OCR FAILED: {ds_err}, falling back to Gemini...")
+                    ocr_text = ""
+            else:
+                print("[PDF] DeepSeek not configured, skipping to Gemini OCR")
 
+            # --- DeepSeek başarısız olduysa Gemini'ye fallback ---
+            if not ocr_text:
+                print("[PDF] Calling Gemini OCR as fallback...")
+                try:
+                    pdf_file.seek(0)
+                    pdf_bytes = pdf_file.read()
+                    print(f"[PDF] Read {len(pdf_bytes)} bytes from PDF file")
+                    ocr_text = await gemini_service.ocr_pdf_file(pdf_bytes)
+                    print(f"[PDF] Gemini OCR returned: {len(ocr_text) if ocr_text else 0} chars")
+                except Exception as e:
+                    print(f"[PDF] Gemini OCR FAILED: {e}")
+                    import traceback
+                    traceback.print_exc()
+
+            # --- OCR sonucunu chunk'lara böl ---
+            if ocr_text and len(ocr_text.strip()) >= 50:
+                chunk_size = 2000
+                ocr_chunks = []
+                for i in range(0, len(ocr_text), chunk_size):
+                    chunk = ocr_text[i:i+chunk_size]
+                    if len(chunk.strip()) >= 20:
+                        ocr_chunks.append(chunk)
+                page_texts = ocr_chunks
+                print(f"[PDF] OCR text split into {len(page_texts)} chunks")
+            else:
+                print(f"[PDF] OCR failed entirely: {len(ocr_text) if ocr_text else 0} chars")
 
         print(f"Processing {len(page_texts)} pages for document {document_id}")
 

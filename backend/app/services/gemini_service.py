@@ -13,7 +13,7 @@ class GeminiService:
     def __init__(self):
         import google.generativeai as genai
         genai.configure(api_key=settings.GEMINI_API_KEY)  # API key'i buraya
-        self.client = genai.GenerativeModel("gemini-2.5-flash")
+        self.model = genai.GenerativeModel("gemini-2.5-flash")
         self.model_name = "gemini-2.5-flash"
         self.embedding_model = "models/gemini-embedding-001"  # Düzeltildi
 

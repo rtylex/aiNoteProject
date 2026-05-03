@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
@@ -45,23 +45,15 @@ const PROMPT_TEMPLATES = [
 const markdownComponents: Components = {
     pre({ className = '', ...props }) {
         return (
-            <pre
-                {...props}
-                className="rounded-lg bg-muted/80 shadow-inner"
-                style={{
-                    width: '100%',
-                    maxWidth: '100%',
-                    padding: '12px',
-                    margin: '8px 0',
-                    overflow: 'auto',
-                    fontSize: '0.75rem',
-                    fontFamily: 'monospace',
-                    wordBreak: 'break-all',
-                    whiteSpace: 'pre-wrap',
-                    overflowWrap: 'break-word',
-                    lineHeight: '1.4'
-                }}
-            />
+            <div className="w-full overflow-x-auto my-2 rounded-lg bg-muted/80 shadow-inner">
+                <pre
+                    {...props}
+                    className="p-3 text-[10px] sm:text-xs font-mono break-normal whitespace-pre"
+                    style={{
+                        lineHeight: '1.4'
+                    }}
+                />
+            </div>
         )
     },
     code({ node, inline, className = '', children, ...props }: any) {
@@ -69,16 +61,7 @@ const markdownComponents: Components = {
             return (
                 <code
                     {...props}
-                    style={{
-                        display: 'inline',
-                        backgroundColor: 'rgba(0, 0, 0, 0.15)',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        fontSize: '0.8em',
-                        fontFamily: 'monospace',
-                        wordBreak: 'break-word',
-                        overflowWrap: 'break-word'
-                    }}
+                    className="bg-black/10 px-1.5 py-0.5 rounded text-[0.8em] font-mono break-all"
                 >
                     {children}
                 </code>
@@ -87,14 +70,7 @@ const markdownComponents: Components = {
         return (
             <code
                 {...props}
-                style={{
-                    display: 'block',
-                    width: '100%',
-                    fontSize: '0.75rem',
-                    fontFamily: 'monospace',
-                    wordBreak: 'break-all',
-                    overflowWrap: 'break-word'
-                }}
+                className="block w-full text-[10px] sm:text-xs font-mono break-all"
             >
                 {children}
             </code>
@@ -102,71 +78,50 @@ const markdownComponents: Components = {
     },
     table({ className, ...props }) {
         return (
-            <div style={{ width: '100%', maxWidth: '100%', overflow: 'auto', margin: '8px 0', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.1)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }} {...props} />
+            <div className="w-full overflow-x-auto my-2 rounded-md border border-border/20">
+                <table className="w-full border-collapse text-[10px] sm:text-xs" {...props} />
             </div>
         )
     },
     th({ className, ...props }) {
         return (
-            <th style={{ padding: '6px 8px', textAlign: 'left', borderBottom: '1px solid rgba(0,0,0,0.1)', backgroundColor: 'rgba(0,0,0,0.05)', fontWeight: 600, wordBreak: 'break-word' }} {...props} />
+            <th className="p-2 text-left border-b border-border/20 bg-muted/30 font-semibold" {...props} />
         )
     },
     td({ className, ...props }) {
         return (
-            <td style={{ padding: '6px 8px', textAlign: 'left', borderBottom: '1px solid rgba(0,0,0,0.1)', wordBreak: 'break-word' }} {...props} />
+            <td className="p-2 text-left border-b border-border/20 break-words" {...props} />
         )
     },
     img({ className, ...props }) {
         return (
             // eslint-disable-next-line @next/next/no-img-element
-            <img style={{ maxWidth: '100%', height: 'auto', borderRadius: '6px', margin: '8px 0', display: 'block' }} {...props} alt={props.alt || ''} />
+            <img className="max-w-full h-auto rounded-md my-2 block" {...props} alt={props.alt || ''} />
         )
     },
     h1({ children }) {
-        return <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '12px 0 8px 0', wordBreak: 'break-word' }}>{children}</h1>
+        return <h1 className="text-lg sm:text-xl font-bold mt-4 mb-2 break-words">{children}</h1>
     },
     h2({ children }) {
-        return <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '12px 0 8px 0', wordBreak: 'break-word' }}>{children}</h2>
+        return <h2 className="text-base sm:text-lg font-bold mt-3 mb-2 break-words">{children}</h2>
     },
     h3({ children }) {
-        return <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '10px 0 6px 0', wordBreak: 'break-word' }}>{children}</h3>
-    },
-    h4({ children }) {
-        return <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: '8px 0 4px 0', wordBreak: 'break-word' }}>{children}</h4>
-    },
-    h5({ children }) {
-        return <h5 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '8px 0 4px 0', wordBreak: 'break-word' }}>{children}</h5>
-    },
-    h6({ children }) {
-        return <h6 style={{ fontSize: '0.9rem', fontWeight: 700, margin: '8px 0 4px 0', wordBreak: 'break-word' }}>{children}</h6>
+        return <h3 className="text-sm sm:text-base font-bold mt-2 mb-1 break-words">{children}</h3>
     },
     p({ children }) {
-        return <p style={{ margin: '0 0 8px 0', wordBreak: 'break-word', lineHeight: '1.5' }}>{children}</p>
-    },
-    strong({ children }) {
-        return <strong style={{ fontWeight: 700, wordBreak: 'break-word' }}>{children}</strong>
-    },
-    em({ children }) {
-        return <em style={{ fontStyle: 'italic', wordBreak: 'break-word' }}>{children}</em>
+        return <p className="mb-2 last:mb-0 leading-relaxed break-words text-sm sm:text-base">{children}</p>
     },
     ul({ children }) {
-        return <ul style={{ margin: '8px 0', paddingLeft: '20px', wordBreak: 'break-word' }}>{children}</ul>
+        return <ul className="my-2 pl-5 list-disc break-words text-sm sm:text-base">{children}</ul>
     },
     ol({ children }) {
-        return <ol style={{ margin: '8px 0', paddingLeft: '20px', wordBreak: 'break-word' }}>{children}</ol>
+        return <ol className="my-2 pl-5 list-decimal break-words text-sm sm:text-base">{children}</ol>
     },
     li({ children }) {
-        return <li style={{ margin: '4px 0', wordBreak: 'break-word' }}>{children}</li>
+        return <li className="my-1 break-words">{children}</li>
     },
     blockquote({ children }) {
-        return <blockquote style={{ borderLeft: '4px solid rgba(0,0,0,0.2)', paddingLeft: '12px', margin: '8px 0', fontStyle: 'italic', opacity: 0.8, wordBreak: 'break-word' }}>{children}</blockquote>
-    },
-    hr() {
-        return <hr style={{ margin: '12px 0', border: 'none', borderTop: '1px solid rgba(0,0,0,0.1)' }} />
-    },
-    a({ href, children }) {
-        return <a href={href} style={{ color: '#3b82f6', textDecoration: 'underline', wordBreak: 'break-word' }} target="_blank" rel="noopener noreferrer">{children}</a>
+        return <blockquote className="border-l-4 border-muted pl-3 my-2 italic opacity-80 break-words">{children}</blockquote>
     },
 }
 

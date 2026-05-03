@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { ChatInterface } from '@/components/chat/chat-interface'
 import dynamic from 'next/dynamic'
 
@@ -19,21 +19,37 @@ export function ChatLayout({ documentId }: ChatLayoutProps) {
     const [showPdf, setShowPdf] = useState(true)
     const [pdfLoaded, setPdfLoaded] = useState(false)
 
+    // Sayfa ilk yüklendiğinde mobilde olup olmadığını kontrol et
+    useEffect(() => {
+        const checkMobile = () => {
+            if (window.innerWidth < 768) {
+                setShowPdf(false)
+            } else {
+                setShowPdf(true)
+            }
+        }
+        
+        checkMobile()
+        // Pencere boyutu değiştiğinde de kontrol et
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
+
     const handlePdfLoadComplete = useCallback(() => {
         setPdfLoaded(true)
     }, [])
 
     return (
         <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background">
-            {/* PDF Viewer Section - her zaman render edilir */}
-            <div className={`transition-all duration-300 ease-in-out ${showPdf ? 'w-1/2 border-r' : 'w-0'} overflow-hidden relative min-w-0`}>
+            {/* PDF Viewer Section - Mobilde tamamen gizli, masaüstünde kontrollü */}
+            <div className={`transition-all duration-300 ease-in-out ${showPdf ? 'md:w-1/2 border-r' : 'w-0'} overflow-hidden relative min-w-0 hidden md:block`}>
                 <div className="h-full w-full">
                     <PDFViewer documentId={documentId} onHide={() => setShowPdf(false)} onLoadComplete={handlePdfLoadComplete} />
                 </div>
             </div>
 
-            {/* Chat Interface Section - PDF yüklenene kadar loading göster */}
-            <div className={`flex-1 flex flex-col h-full min-w-0 transition-all duration-300 ${showPdf ? 'w-1/2' : 'w-full'}`}>
+            {/* Chat Interface Section - Mobilde her zaman tam ekran, masaüstünde PDF'e göre ayarlanır */}
+            <div className={`flex-1 flex flex-col h-full min-w-0 transition-all duration-300 w-full ${showPdf ? 'md:w-1/2' : 'md:w-full'}`}>
                 {!pdfLoaded ? (
                     // PDF yüklenirken sağ tarafta da loading göster
                     <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30">

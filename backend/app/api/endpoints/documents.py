@@ -122,12 +122,11 @@ class TopicInfo(BaseModel):
 
 @router.post("/upload")
 async def upload_document(
-    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Upload a document file directly to the server disk."""
+    """Upload a document file directly to the server disk and return the URL."""
     import os
     from pathlib import Path
     from app.core.config import settings
@@ -150,21 +149,7 @@ async def upload_document(
     # Build the URL that will be stored in DB and used to access the file
     file_url = f"/uploads/{unique_filename}"
 
-    db_doc = Document(
-        user_id=uuid.UUID(current_user.get("sub")),
-        title=file.filename,
-        file_url=file_url,
-        status="pending",
-        visibility=VisibilityType.PRIVATE.value,
-        is_approved=False
-    )
-    db.add(db_doc)
-    db.commit()
-    db.refresh(db_doc)
-
-    background_tasks.add_task(process_document, str(db_doc.id), str(file_path))
-
-    return {"id": str(db_doc.id), "filename": file.filename, "file_url": file_url, "status": "pending"}
+    return {"filename": file.filename, "file_url": file_url}
 
 
 

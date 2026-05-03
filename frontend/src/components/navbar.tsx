@@ -164,7 +164,9 @@ export function Navbar() {
     }
 
     return (
-        <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-white/10 transition-all duration-300">
+        <header className="sticky top-0 z-[999] w-full transition-all duration-300">
+            {/* backdrop-blur only on top bar — if it wraps the header, fixed mobile menu collapses (zero height CB) */}
+            <div className="border-b border-gray-200/50 dark:border-white/10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl">
             <div className="container mx-auto px-4 h-16 flex justify-between items-center">
                 {/* Logo - Sol */}
                 <Link href="/" className="flex items-center group">
@@ -337,10 +339,11 @@ export function Navbar() {
                     )}
                 </div>
             </div>
+            </div>
 
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
-                <div className="md:hidden fixed inset-0 top-[64px] bg-white dark:bg-slate-950 z-[1000] animate-in slide-in-from-top duration-200 overflow-y-auto">
+                <div className="md:hidden fixed inset-0 top-16 bg-white dark:bg-slate-950 z-[1000] animate-in slide-in-from-top duration-200 overflow-y-auto">
                     <nav className="container mx-auto px-4 py-6 flex flex-col gap-2">
                         {user ? (
                             <>

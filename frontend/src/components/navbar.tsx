@@ -340,7 +340,7 @@ export function Navbar() {
 
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
-                <div className="md:hidden fixed inset-0 top-16 bg-white dark:bg-slate-950 z-[100] animate-in slide-in-from-top duration-300 overflow-y-auto">
+                <div className="md:hidden fixed inset-0 top-[64px] bg-white dark:bg-slate-950 z-[1000] animate-in slide-in-from-top duration-200 overflow-y-auto">
                     <nav className="container mx-auto px-4 py-6 flex flex-col gap-2">
                         {user ? (
                             <>

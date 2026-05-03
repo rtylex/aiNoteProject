@@ -30,8 +30,8 @@ export default function WelcomePopup() {
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0a0d16]/75 backdrop-blur-sm p-4">
-            <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-gradient-to-b from-[#011133] via-[#101a31] to-[#232429] rounded-2xl border border-[#3d4351]/60 shadow-2xl font-[family-name:var(--font-orbitron)]">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-[#0a0d16]/75 backdrop-blur-sm p-4">
+            <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden bg-gradient-to-b from-[#011133] via-[#101a31] to-[#232429] rounded-2xl border border-[#3d4351]/60 shadow-2xl font-[family-name:var(--font-orbitron)]">
                 {/* Close Button */}
                 <button
                     onClick={handleClose}

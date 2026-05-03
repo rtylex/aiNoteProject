@@ -277,7 +277,7 @@ export function Navbar() {
                 <div className="flex items-center gap-3">
                     {/* Mobile Menu Button */}
                     <button
-                        className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="md:hidden relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors z-[1100]"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         aria-label="Menü"
                     >
@@ -343,7 +343,7 @@ export function Navbar() {
 
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
-                <div className="md:hidden fixed inset-0 top-16 bg-white dark:bg-slate-950 z-[1000] animate-in slide-in-from-top duration-200 overflow-y-auto">
+                <div className="md:hidden fixed inset-0 top-[64px] bg-white dark:bg-slate-950 z-[1000] animate-in slide-in-from-top duration-200 overflow-y-auto overflow-x-hidden">
                     <nav className="container mx-auto px-4 py-6 flex flex-col gap-2">
                         {user ? (
                             <>

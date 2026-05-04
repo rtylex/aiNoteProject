@@ -21,6 +21,9 @@ const orbitron = Orbitron({
 export const metadata: Metadata = {
   title: "YirikAI - Notlarınla Konuş, Geleceğini Tasarla",
   description: "Akademik verilerle eğitilen yapay zeka dil modeli ile öğrencilere çalışma süreçlerinde rehberlik eden AI platformu.",
+  other: {
+    google: "notranslate",
+  },
 };
 
 import { Navbar } from "@/components/navbar";
@@ -32,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
+    <html lang="en" translate="no" suppressHydrationWarning className="overflow-x-hidden">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} antialiased overflow-x-hidden`}
         suppressHydrationWarning

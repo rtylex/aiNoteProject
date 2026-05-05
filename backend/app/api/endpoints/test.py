@@ -11,7 +11,7 @@ from app.services.auth import get_current_user
 from app.db.session import get_db
 from app.models.document import Document
 from app.models.test import Test, TestQuestion
-from app.models.chat import ChatSession
+from app.models.chat import MultiDocumentSession
 from app.services.test_service import (
     extract_document_content,
     extract_session_content,
@@ -141,9 +141,9 @@ async def generate_test_from_session(
 
     session_uuid = uuid.UUID(request.session_id)
 
-    session = db.query(ChatSession).filter(
-        ChatSession.id == session_uuid,
-        ChatSession.user_id == user_uuid
+    session = db.query(MultiDocumentSession).filter(
+        MultiDocumentSession.id == session_uuid,
+        MultiDocumentSession.user_id == user_uuid
     ).first()
 
     if not session:

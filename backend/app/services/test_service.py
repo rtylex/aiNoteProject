@@ -59,23 +59,25 @@ def extract_document_content(db: Session, document_id: uuid.UUID) -> str:
 
 def extract_session_content(db: Session, session_id: uuid.UUID) -> str:
     """Extract combined content from all documents in a multi-document session."""
-    from app.models.chat import ChatSession, ChatSessionDocument
+    from app.models.chat import MultiDocumentSession, multi_session_documents
 
-    session = db.query(ChatSession).filter(ChatSession.id == session_id).first()
+    session = db.query(MultiDocumentSession).filter(MultiDocumentSession.id == session_id).first()
     if not session:
         raise ValueError("Session not found")
 
-    session_docs = db.query(ChatSessionDocument).filter(
-        ChatSessionDocument.session_id == session_id
+    session_doc_ids = db.query(multi_session_documents.c.document_id).filter(
+        multi_session_documents.c.session_id == session_id
     ).all()
 
-    if not session_docs:
+    if not session_doc_ids:
         raise ValueError("Session has no documents")
 
+    doc_ids = [row[0] for row in session_doc_ids]
+
     contents = []
-    for session_doc in session_docs:
+    for doc_id in doc_ids:
         doc_embeddings = db.query(DocumentEmbedding).filter(
-            DocumentEmbedding.document_id == session_doc.document_id
+            DocumentEmbedding.document_id == doc_id
         ).order_by(DocumentEmbedding.page_number).all()
 
         for emb in doc_embeddings:

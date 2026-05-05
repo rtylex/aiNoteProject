@@ -120,7 +120,15 @@ DERS İÇERİĞİ:
         if not result:
             raise ValueError("Empty response from AI")
 
-        parsed = json.loads(result)
+        cleaned = result.strip()
+        if cleaned.startswith("```json"):
+            cleaned = cleaned[len("```json"):].strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned[len("```"):].strip()
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3].strip()
+
+        parsed = json.loads(cleaned)
 
         if "questions" not in parsed or not isinstance(parsed["questions"], list):
             raise ValueError(f"Invalid AI response format: {result[:200]}")

@@ -381,7 +381,7 @@ export default function LibraryPage() {
                         </CardTitle>
                     </CardHeader>
                 </Link>
-                <CardContent className="pt-0">
+                <CardContent>
                     {isNonCourse && doc.category_name && (
                         <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
                             {doc.category_name}
@@ -399,14 +399,12 @@ export default function LibraryPage() {
                             })}
                         </span>
                     </div>
-                    {accessToken && (
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                            <CreateTestFromLibraryModal
-                                documentIds={[doc.id]}
-                                documentTitles={[doc.title]}
-                            />
-                        </div>
-                    )}
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                        <CreateTestFromLibraryModal
+                            documentIds={[doc.id]}
+                            documentTitles={[doc.title]}
+                        />
+                    </div>
                 </CardContent>
             </Card>
         )

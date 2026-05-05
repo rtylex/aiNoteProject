@@ -364,8 +364,8 @@ export default function LibraryPage() {
         }
 
         return (
-            <Link href={accessToken ? `/chat/${doc.id}` : '/login'} key={doc.id}>
-                <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group bg-white/80 backdrop-blur-sm border-white/20 hover:-translate-y-1 h-full">
+            <Card className="hover:shadow-xl transition-all duration-300 group bg-white/80 backdrop-blur-sm border-white/20 hover:-translate-y-1 h-full">
+                <Link href={accessToken ? `/chat/${doc.id}` : '/login'} className="block">
                     <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                             <div className={`w-12 h-12 bg-gradient-to-br ${isNonCourse ? 'from-purple-500 to-pink-500' : 'from-green-500 to-teal-500'} rounded-lg flex items-center justify-center mb-3`}>
@@ -398,17 +398,15 @@ export default function LibraryPage() {
                                 })}
                             </span>
                         </div>
-                        {accessToken && (
-                            <div className="mt-4 pt-4 border-t border-gray-100">
-                                <CreateTestFromLibraryModal
-                                    documentIds={[doc.id]}
-                                    documentTitles={[doc.title]}
-                                />
-                            </div>
-                        )}
                     </CardContent>
-                </Card>
-            </Link>
+                </Link>
+                <div className="px-6 pb-6">
+                    <CreateTestFromLibraryModal
+                        documentIds={[doc.id]}
+                        documentTitles={[doc.title]}
+                    />
+                </div>
+            </Card>
         )
     }
 

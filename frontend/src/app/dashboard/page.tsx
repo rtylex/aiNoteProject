@@ -340,8 +340,8 @@ export default function DashboardPage() {
                                                 </Card>
                                             </div>
                                         ) : (
-                                            <Link href={`/chat/${doc.id}`}>
-                                                <Card className="hover:shadow-xl transition-all cursor-pointer group bg-white/80 backdrop-blur-sm hover:-translate-y-1">
+                                            <Card className="hover:shadow-xl transition-all group bg-white/80 backdrop-blur-sm hover:-translate-y-1">
+                                                <Link href={`/chat/${doc.id}`}>
                                                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                                         <div className="space-y-1 pr-8 min-w-0 flex-1">
                                                             <CardTitle className="truncate text-lg font-semibold text-gray-800 group-hover:text-indigo-600">{doc.title}</CardTitle>
@@ -349,21 +349,21 @@ export default function DashboardPage() {
                                                         </div>
                                                         {!isSelectMode && <DeleteDocumentDialog documentId={doc.id} documentTitle={doc.title} onDelete={handleDelete} />}
                                                     </CardHeader>
-                                                    <CardContent>
-                                                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-                                                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${doc.status === 'completed' ? 'bg-green-100 text-green-700' : doc.status === 'processing' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}`}>
-                                                                {doc.status === 'completed' ? 'Tamamlandı' : doc.status === 'processing' ? 'İşleniyor' : doc.status}
-                                                            </span>
-                                                            <span className="text-xs text-gray-400">{new Date(doc.created_at).toLocaleDateString('tr-TR')}</span>
+                                                </Link>
+                                                <CardContent>
+                                                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+                                                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${doc.status === 'completed' ? 'bg-green-100 text-green-700' : doc.status === 'processing' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}`}>
+                                                            {doc.status === 'completed' ? 'Tamamlandı' : doc.status === 'processing' ? 'İşleniyor' : doc.status}
+                                                        </span>
+                                                        <span className="text-xs text-gray-400">{new Date(doc.created_at).toLocaleDateString('tr-TR')}</span>
+                                                    </div>
+                                                    {doc.status === 'completed' && (
+                                                        <div className="mt-4 pt-4 border-t border-gray-100">
+                                                            <CreateTestModal documentId={doc.id} documentTitle={doc.title} />
                                                         </div>
-                                                        {doc.status === 'completed' && (
-                                                            <div className="mt-4 pt-4 border-t border-gray-100">
-                                                                <CreateTestModal documentId={doc.id} documentTitle={doc.title} />
-                                                            </div>
-                                                        )}
-                                                    </CardContent>
-                                                </Card>
-                                            </Link>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
                                         )}
                                     </div>
                                 ))

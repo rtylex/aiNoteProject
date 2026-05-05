@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { UploadModal } from '@/components/documents/upload-modal'
+import { CreateTestModal } from '@/components/test/create-test-modal'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
@@ -9,7 +10,7 @@ import { DeleteDocumentDialog } from '@/components/documents/delete-document-dia
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { CheckSquare, Square, X, MessageSquare, Sparkles, Trash2, Edit2, ChevronRight, FileText, Clock } from 'lucide-react'
+import { CheckSquare, Square, X, MessageSquare, Sparkles, Trash2, Edit2, ChevronRight, FileText, Clock, ClipboardList } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
     AlertDialog,
@@ -49,6 +50,10 @@ export default function DashboardPage() {
 
     const [error, setError] = useState<string | null>(null)
     const [activeTab, setActiveTab] = useState<string>('documents')
+
+    // Tests state
+    const [tests, setTests] = useState<any[]>([])
+    const [loadingTests, setLoadingTests] = useState(false)
 
     // Multi-select state
     const [isSelectMode, setIsSelectMode] = useState(false)
@@ -110,12 +115,33 @@ export default function DashboardPage() {
         }
     }, [accessToken])
 
+    const fetchTests = useCallback(async () => {
+        if (!accessToken) return
+        try {
+            setLoadingTests(true)
+            const response = await fetch(`${API_BASE_URL}/api/v1/test/`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+            if (response.ok) {
+                const data = await response.json()
+                setTests(data)
+            }
+        } catch (error) {
+            console.error('Error fetching tests:', error)
+        } finally {
+            setLoadingTests(false)
+        }
+    }, [accessToken])
+
     useEffect(() => {
         const controller = new AbortController()
         fetchDocuments(controller.signal)
         fetchMultiSessions()
+        if (activeTab === 'tests') {
+            fetchTests()
+        }
         return () => controller.abort()
-    }, [fetchDocuments, fetchMultiSessions])
+    }, [fetchDocuments, fetchMultiSessions, fetchTests, activeTab])
 
     const handleDelete = async (id: string) => {
         if (!accessToken) return
@@ -212,6 +238,10 @@ export default function DashboardPage() {
                                     {multiSessions.length}
                                 </span>
                             )}
+                        </TabsTrigger>
+                        <TabsTrigger value="tests" className="flex items-center gap-2">
+                            <ClipboardList className="w-4 h-4" />
+                            Testlerim
                         </TabsTrigger>
                     </TabsList>
 
@@ -326,6 +356,11 @@ export default function DashboardPage() {
                                                             </span>
                                                             <span className="text-xs text-gray-400">{new Date(doc.created_at).toLocaleDateString('tr-TR')}</span>
                                                         </div>
+                                                        {doc.status === 'completed' && (
+                                                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                                                <CreateTestModal documentId={doc.id} documentTitle={doc.title} />
+                                                            </div>
+                                                        )}
                                                     </CardContent>
                                                 </Card>
                                             </Link>
@@ -404,6 +439,92 @@ export default function DashboardPage() {
                                         </Button>
                                     </Card>
                                 ))
+                            )}
+                        </div>
+                    </TabsContent>
+
+                    {/* Tests Tab */}
+                    <TabsContent value="tests">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {loadingTests ? (
+                                <div className="col-span-full flex justify-center items-center py-20">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                                </div>
+                            ) : tests.length === 0 ? (
+                                <Card className="col-span-full border-dashed border-2 bg-white/50">
+                                    <CardHeader className="text-center py-10">
+                                        <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <ClipboardList className="w-8 h-8 text-white" />
+                                        </div>
+                                        <CardTitle className="text-xl text-gray-600">Henüz test yok</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="text-center pb-10">
+                                        <p className="text-gray-500 mb-4">Dökümanlarınızdan test oluşturmak için Dökümanlarım sekmesine gidin.</p>
+                                        <Button onClick={() => setActiveTab('documents')} variant="outline">
+                                            Dökümanlarıma Git
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                tests.map((test) => {
+                                    const percentage = test.total_questions > 0 && test.score !== null
+                                        ? Math.round((test.score || 0) / test.total_questions * 100)
+                                        : null
+
+                                    return (
+                                        <Card key={test.id} className="hover:shadow-xl transition-all group bg-white/80 backdrop-blur-sm hover:-translate-y-1">
+                                            <Link href={`/test/${test.id}${test.completed ? '?retry=true' : ''}`}>
+                                                <CardHeader className="pb-2">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-3 ${
+                                                            test.completed
+                                                                ? (percentage !== null && percentage >= 60
+                                                                    ? 'bg-gradient-to-br from-green-400 to-emerald-500'
+                                                                    : 'bg-gradient-to-br from-red-400 to-rose-500')
+                                                                : 'bg-gradient-to-br from-amber-400 to-orange-500'
+                                                        }`}>
+                                                            {test.completed ? (
+                                                                percentage !== null && percentage >= 60 ? (
+                                                                    <CheckSquare className="w-6 h-6 text-white" />
+                                                                ) : (
+                                                                    <X className="w-6 h-6 text-white" />
+                                                                )
+                                                            ) : (
+                                                                <ClipboardList className="w-6 h-6 text-white" />
+                                                            )}
+                                                        </div>
+                                                        {test.completed && percentage !== null && (
+                                                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                                                percentage >= 60 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                                            }`}>
+                                                                %{percentage}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <CardTitle className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 truncate">
+                                                        {test.title}
+                                                    </CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                                                        <div className="flex items-center gap-1">
+                                                            <FileText className="w-4 h-4" />
+                                                            <span>{test.total_questions} soru</span>
+                                                        </div>
+                                                        {test.completed && test.score !== null && (
+                                                            <div className="flex items-center gap-1">
+                                                                <span>{test.score} doğru</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs text-gray-400">
+                                                        {new Date(test.created_at).toLocaleDateString('tr-TR')}
+                                                    </div>
+                                                </CardContent>
+                                            </Link>
+                                        </Card>
+                                    )
+                                })
                             )}
                         </div>
                     </TabsContent>

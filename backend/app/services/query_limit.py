@@ -2,6 +2,7 @@
 Query limit service for tracking and enforcing daily query limits.
 """
 import datetime
+import uuid
 from sqlalchemy.orm import Session
 from app.models.user import UserProfile
 
@@ -66,7 +67,7 @@ def get_query_status(user_profile: UserProfile) -> dict:
     Get current query status without modifying anything.
     """
     today = datetime.date.today()
-    
+
     # Check if counter should be reset (but don't actually reset)
     if user_profile.last_query_date != today:
         return {
@@ -74,11 +75,42 @@ def get_query_status(user_profile: UserProfile) -> dict:
             "limit": DAILY_QUERY_LIMIT,
             "used": 0
         }
-    
+
     remaining = DAILY_QUERY_LIMIT - user_profile.daily_query_count
-    
+
     return {
         "remaining": max(0, remaining),
         "limit": DAILY_QUERY_LIMIT,
         "used": user_profile.daily_query_count
     }
+
+
+def check_and_consume_query(user_id: uuid.UUID, db: Session) -> tuple[bool, str]:
+    """
+    Check if user has remaining queries and consume one if yes.
+
+    Returns:
+        tuple of (can_use: bool, message: str)
+        If can_use is True, query was consumed.
+        If can_use is False, message explains why.
+    """
+    import uuid
+    user_profile = db.query(UserProfile).filter(UserProfile.id == user_id).first()
+
+    if not user_profile:
+        return False, "Kullanıcı bulunamadı"
+
+    today = datetime.date.today()
+
+    if user_profile.last_query_date != today:
+        user_profile.daily_query_count = 0
+        user_profile.last_query_date = today
+
+    if user_profile.daily_query_count >= DAILY_QUERY_LIMIT:
+        remaining = 0
+        return False, f"Günlük sorgu limiti doldu. Yarin tekrar deneyin. (Limit: {DAILY_QUERY_LIMIT})"
+
+    user_profile.daily_query_count += 1
+    db.commit()
+
+    return True, ""

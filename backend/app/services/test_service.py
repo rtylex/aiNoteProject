@@ -152,34 +152,38 @@ def create_test(
     question_count: int
 ) -> Test:
     """Create a test with questions in the database."""
-    test = Test(
-        id=uuid.uuid4(),
-        user_id=user_id,
-        document_id=document_id,
-        title=title,
-        question_count=question_count,
-        total_questions=len(questions_data),
-        completed=False,
-        is_public=False
-    )
-    db.add(test)
-    db.flush()
-
-    for idx, q_data in enumerate(questions_data):
-        question = TestQuestion(
+    original_expire = db.expire_on_commit
+    db.expire_on_commit = False
+    try:
+        test = Test(
             id=uuid.uuid4(),
-            test_id=test.id,
-            question_text=q_data["question"],
-            options=q_data["options"],
-            correct_answer=q_data["correct_answer"],
-            explanation=q_data.get("explanation", ""),
-            order_num=idx + 1
+            user_id=user_id,
+            document_id=document_id,
+            title=title,
+            question_count=question_count,
+            total_questions=len(questions_data),
+            completed=False,
+            is_public=False
         )
-        db.add(question)
+        db.add(test)
+        db.flush()
 
-    db.commit()
-    db.refresh(test)
-    return test
+        for idx, q_data in enumerate(questions_data):
+            question = TestQuestion(
+                id=uuid.uuid4(),
+                test_id=test.id,
+                question_text=q_data["question"],
+                options=q_data["options"],
+                correct_answer=q_data["correct_answer"],
+                explanation=q_data.get("explanation", ""),
+                order_num=idx + 1
+            )
+            db.add(question)
+
+        db.commit()
+        return test
+    finally:
+        db.expire_on_commit = original_expire
 
 
 def submit_test(

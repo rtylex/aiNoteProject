@@ -14,12 +14,12 @@ from app.models.test import Test, TestQuestion
 from app.services.test_service import (
     extract_document_content,
     generate_test_questions,
-    create_test,
-    submit_test,
+    create_test as create_test_in_db,
+    submit_test as submit_test_answers,
     get_test_with_questions,
     list_user_tests,
     list_public_tests,
-    delete_test,
+    delete_test as delete_test_from_db,
     toggle_test_public,
 )
 from app.services.query_limit import check_and_consume_query
@@ -89,7 +89,7 @@ async def generate_test(
 
     title = f"{document.title} - Test"
 
-    test = create_test(
+    test = create_test_in_db(
         db=db,
         user_id=user_uuid,
         document_id=doc_uuid,
@@ -168,7 +168,7 @@ async def submit_test(
     test_uuid = uuid.UUID(test_id)
 
     try:
-        return submit_test(db, test_uuid, user_uuid, request.answers)
+        return submit_test_answers(db, test_uuid, user_uuid, request.answers)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -201,7 +201,7 @@ async def delete_test(
     test_uuid = uuid.UUID(test_id)
 
     try:
-        delete_test(db, test_uuid, user_uuid)
+        delete_test_from_db(db, test_uuid, user_uuid)
         return {"message": "Test deleted successfully"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { UploadModal } from '@/components/documents/upload-modal'
 import { CreateTestModal } from '@/components/test/create-test-modal'
+import { DeleteTestDialog } from '@/components/test/delete-test-dialog'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
@@ -472,8 +473,8 @@ export default function DashboardPage() {
                                         : null
 
                                     return (
-                                        <Card key={test.id} className="hover:shadow-xl transition-all group bg-white/80 backdrop-blur-sm hover:-translate-y-1">
-                                            <Link href={`/test/${test.id}${test.completed ? '?retry=true' : ''}`}>
+                                        <Card key={test.id} className="hover:shadow-xl transition-all group bg-white/80 backdrop-blur-sm hover:-translate-y-1 relative">
+                                            <Link href={`/test/${test.id}`}>
                                                 <CardHeader className="pb-2">
                                                     <div className="flex items-start justify-between">
                                                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-3 ${
@@ -505,23 +506,39 @@ export default function DashboardPage() {
                                                         {test.title}
                                                     </CardTitle>
                                                 </CardHeader>
-                                                <CardContent>
-                                                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                                                        <div className="flex items-center gap-1">
-                                                            <FileText className="w-4 h-4" />
-                                                            <span>{test.total_questions} soru</span>
-                                                        </div>
-                                                        {test.completed && test.score !== null && (
-                                                            <div className="flex items-center gap-1">
-                                                                <span>{test.score} doğru</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-xs text-gray-400">
-                                                        {new Date(test.created_at).toLocaleDateString('tr-TR')}
-                                                    </div>
-                                                </CardContent>
                                             </Link>
+                                            <CardContent>
+                                                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                                                    <div className="flex items-center gap-1">
+                                                        <FileText className="w-4 h-4" />
+                                                        <span>{test.total_questions} soru</span>
+                                                    </div>
+                                                    {test.completed && test.score !== null && (
+                                                        <div className="flex items-center gap-1">
+                                                            <span>{test.score} doğru</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs text-gray-400">
+                                                        {new Date(test.created_at).toLocaleDateString('tr-TR')}
+                                                    </span>
+                                                    <div className="flex items-center gap-1">
+                                                        {test.completed && (
+                                                            <Link href={`/test/${test.id}?retry=true`}>
+                                                                <Button variant="outline" size="sm" className="text-xs h-7">
+                                                                    Tekrar Çöz
+                                                                </Button>
+                                                            </Link>
+                                                        )}
+                                                        <DeleteTestDialog
+                                                            testId={test.id}
+                                                            testTitle={test.title}
+                                                            onDelete={(id) => setTests(prev => prev.filter(t => t.id !== id))}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </CardContent>
                                         </Card>
                                     )
                                 })

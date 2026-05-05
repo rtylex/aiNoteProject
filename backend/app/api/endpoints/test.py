@@ -151,9 +151,14 @@ async def get_test(
     test_uuid = uuid.UUID(test_id)
 
     try:
-        return get_test_with_questions(db, test_uuid, user_uuid, include_answers=False)
+        return get_test_with_questions(db, test_uuid, user_uuid, include_answers=True if _test_completed(db, test_uuid) else False)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+def _test_completed(db: Session, test_id: uuid.UUID) -> bool:
+    test = db.query(Test).filter(Test.id == test_id).first()
+    return test.completed if test else False
 
 
 @router.post("/{test_id}/submit")

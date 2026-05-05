@@ -549,22 +549,30 @@ export default function DashboardPage() {
 
                 {/* Delete Session Confirmation Dialog */}
                 <AlertDialog open={deleteSessionDialog.open} onOpenChange={(open) => setDeleteSessionDialog(prev => ({ ...prev, open }))}>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Çalışmayı Sil</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Bu işlem geri alınamaz.
-                                <span className="font-semibold text-foreground"> "{deleteSessionDialog.sessionTitle}" </span>
+                    <AlertDialogContent className="max-w-md">
+                        <AlertDialogHeader className="text-center pb-2">
+                            <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <Trash2 className="w-8 h-8 text-white" />
+                            </div>
+                            <AlertDialogTitle className="text-xl text-gray-800">
+                                Çoklu Çalışmayı Sil
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-600 mt-3">
+                                Bu işlem <span className="font-semibold text-indigo-600">geri alınamaz</span>.
+                                <span className="font-medium text-gray-800"> &quot;{deleteSessionDialog.sessionTitle}&quot; </span>
                                 çalışması ve tüm mesaj geçmişi kalıcı olarak silinecektir.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setDeleteSessionDialog({ open: false, sessionId: null, sessionTitle: '' })}>
+                        <AlertDialogFooter className="gap-3">
+                            <AlertDialogCancel 
+                                onClick={() => setDeleteSessionDialog({ open: false, sessionId: null, sessionTitle: '' })}
+                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
+                            >
                                 İptal
                             </AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={() => deleteSessionDialog.sessionId && handleDeleteSession(deleteSessionDialog.sessionId)}
-                                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                                className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg shadow-red-500/25"
                                 disabled={deletingSession}
                             >
                                 {deletingSession ? "Siliniyor..." : "Sil"}

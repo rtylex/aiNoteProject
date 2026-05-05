@@ -56,26 +56,49 @@ export function DeleteDocumentDialog({ documentId, documentTitle, onDelete }: De
                     <Trash2 className="h-4 w-4" />
                 </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the document
-                        <span className="font-semibold text-foreground"> &quot;{documentTitle}&quot; </span>
-                        and all associated chat history.
+            <AlertDialogContent 
+                onClick={(e) => e.stopPropagation()}
+                className="max-w-md"
+            >
+                <AlertDialogHeader className="text-center pb-2">
+                    <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <Trash2 className="w-8 h-8 text-white" />
+                    </div>
+                    <AlertDialogTitle className="text-xl text-gray-800">
+                        Dökümanı Silmek İstiyor musunuz?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-600 mt-3">
+                        Bu işlem <span className="font-semibold text-indigo-600">geri alınamaz</span>. 
+                        <span className="font-medium text-gray-800"> &quot;{documentTitle}&quot; </span>
+                        dökümanı ve tüm sohbet geçmişi kalıcı olarak silinecektir.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={(e) => {
-                        e.stopPropagation()
-                        setOpen(false)
-                    }}>Cancel</AlertDialogCancel>
+                <AlertDialogFooter className="gap-3">
+                    <AlertDialogCancel 
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setOpen(false)
+                        }}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 border-0"
+                    >
+                        İptal
+                    </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleDelete}
-                        className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                        className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg shadow-red-500/25"
                         disabled={deleting}
                     >
-                        {deleting ? "Deleting..." : "Delete"}
+                        {deleting ? (
+                            <span className="flex items-center gap-2">
+                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                </svg>
+                                Siliniyor...
+                            </span>
+                        ) : (
+                            "Sil"
+                        )}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

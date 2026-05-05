@@ -70,6 +70,9 @@ export function UploadModal() {
     const [suggestions, setSuggestions] = useState<CourseSuggestions>({ courses: [], topics: [], course_topics: {} })
     const [showCourseDropdown, setShowCourseDropdown] = useState(false)
     const [showTopicDropdown, setShowTopicDropdown] = useState(false)
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+    const [showErrorDialog, setShowErrorDialog] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
     const router = useRouter()
     const { accessToken } = useAuth()
 
@@ -182,18 +185,21 @@ export function UploadModal() {
             // Reset form
             resetForm()
 
-            // If public, show message about pending approval
             if (visibility === 'public') {
-                alert('Notunuz başarıyla yüklendi! Admin onayından sonra topluluk kütüphanesinde görünecektir.')
-                router.push('/dashboard')
+                setShowSuccessDialog(true)
+                setTimeout(() => {
+                    router.push('/dashboard')
+                    router.refresh()
+                }, 3000)
             } else {
                 router.push(`/chat/${result.id}`)
+                router.refresh()
             }
-            router.refresh()
 
-        } catch (e) {
+        } catch (e: any) {
             console.error(e)
-            alert('Yükleme veya işleme sırasında bir hata oluştu')
+            setErrorMessage(e?.response?.data?.detail || 'Yükleme veya işleme sırasında bir hata oluştu')
+            setShowErrorDialog(true)
         } finally {
             setUploading(false)
         }
@@ -260,6 +266,7 @@ export function UploadModal() {
     }
 
     return (
+        <>
         <Dialog open={open} onOpenChange={(isOpen) => {
             setOpen(isOpen)
             if (!isOpen) resetForm()
@@ -714,5 +721,64 @@ export function UploadModal() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+            <DialogContent className="max-w-md text-center">
+                <DialogHeader className="pb-2">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <DialogTitle className="text-xl text-gray-800">
+                        Başarıyla Yüklendi!
+                    </DialogTitle>
+                </DialogHeader>
+                <DialogDescription className="text-gray-600 py-2">
+                    Notunuz <span className="font-semibold text-indigo-600">admin onayına</span> gönderildi. 
+                    Onaylandıktan sonra topluluk kütüphanesinde görünecektir.
+                </DialogDescription>
+                <DialogFooter className="justify-center">
+                    <Button 
+                        onClick={() => {
+                            setShowSuccessDialog(false)
+                            router.push('/dashboard')
+                            router.refresh()
+                        }}
+                        className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                    >
+                        Dashboard'a Dön
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+            <DialogContent className="max-w-md text-center">
+                <DialogHeader className="pb-2">
+                    <div className="w-20 h-20 bg-gradient-to-br from-red-400 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <AlertTriangle className="w-10 h-10 text-white" />
+                    </div>
+                    <DialogTitle className="text-xl text-gray-800">
+                        Hata Oluştu
+                    </DialogTitle>
+                </DialogHeader>
+                <DialogDescription className="text-gray-600 py-2">
+                    {errorMessage}
+                </DialogDescription>
+                <DialogFooter className="justify-center">
+                    <Button 
+                        onClick={() => {
+                            setShowErrorDialog(false)
+                            setStep('file')
+                        }}
+                        className="flex-1 bg-gray-600 hover:bg-gray-700"
+                    >
+                        Tekrar Dene
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        </>
     )
 }

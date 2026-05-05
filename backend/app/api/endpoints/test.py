@@ -9,9 +9,19 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from app.services.auth import get_current_user
 from app.db.session import get_db
-from app.services import test_service
-from app.models.user import UserProfile
-import app.services.query_limit as query_limit
+from app.services.test_service import (
+    extract_document_content,
+    suggest_question_count,
+    generate_test_questions,
+    create_test,
+    submit_test,
+    get_test_with_questions,
+    list_user_tests,
+    list_public_tests,
+    delete_test,
+    toggle_test_public,
+)
+from app.services.query_limit import check_and_consume_query
 
 
 router = APIRouter()
@@ -32,8 +42,6 @@ class TestShareRequest(BaseModel):
 
 def check_and_use_query_limit(user_id: uuid.UUID, db: Session) -> bool:
     """Check if user has remaining query quota and consume one for test generation."""
-    from app.services.query_limit import check_and_consume_query
-
     can_use, message = check_and_consume_query(user_id, db)
     if not can_use:
         raise HTTPException(status_code=429, detail=message)

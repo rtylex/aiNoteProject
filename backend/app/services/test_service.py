@@ -176,7 +176,7 @@ DERS İÇERİĞİ:
 def create_test(
     db: Session,
     user_id: uuid.UUID,
-    document_id: uuid.UUID,
+    document_id: uuid.UUID | None,
     title: str,
     questions_data: list[dict],
     question_count: int

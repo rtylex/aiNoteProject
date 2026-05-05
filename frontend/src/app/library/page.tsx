@@ -380,32 +380,34 @@ export default function LibraryPage() {
                             {doc.title}
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        {isNonCourse && doc.category_name && (
-                            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                                {doc.category_name}
-                            </span>
-                        )}
-                        <div className="flex justify-between items-center mt-2 pt-4 border-t border-gray-100">
-                            <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-green-100 text-green-700">
-                                AI ile Çalış
-                            </span>
-                            <span className="text-xs text-gray-400">
-                                {new Date(doc.created_at).toLocaleDateString('tr-TR', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                })}
-                            </span>
-                        </div>
-                    </CardContent>
                 </Link>
-                <div className="px-6 pb-6">
-                    <CreateTestFromLibraryModal
-                        documentIds={[doc.id]}
-                        documentTitles={[doc.title]}
-                    />
-                </div>
+                <CardContent className="pt-0">
+                    {isNonCourse && doc.category_name && (
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                            {doc.category_name}
+                        </span>
+                    )}
+                    <div className="flex justify-between items-center mt-2 pt-4 border-t border-gray-100">
+                        <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-green-100 text-green-700">
+                            AI ile Çalış
+                        </span>
+                        <span className="text-xs text-gray-400">
+                            {new Date(doc.created_at).toLocaleDateString('tr-TR', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            })}
+                        </span>
+                    </div>
+                    {accessToken && (
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                            <CreateTestFromLibraryModal
+                                documentIds={[doc.id]}
+                                documentTitles={[doc.title]}
+                            />
+                        </div>
+                    )}
+                </CardContent>
             </Card>
         )
     }

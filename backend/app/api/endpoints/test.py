@@ -9,6 +9,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from app.services.auth import get_current_user
 from app.db.session import get_db
+from app.models.document import Document
+from app.models.test import Test, TestQuestion
 from app.services.test_service import (
     extract_document_content,
     generate_test_questions,
@@ -69,8 +71,6 @@ async def generate_test(
 
     doc_uuid = uuid.UUID(request.document_id)
 
-    from app.models.document import Document
-from app.models.test import Test, TestQuestion
     document = db.query(Document).filter(Document.id == doc_uuid).first()
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")

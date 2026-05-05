@@ -11,8 +11,10 @@ from app.services.auth import get_current_user
 from app.db.session import get_db
 from app.models.document import Document
 from app.models.test import Test, TestQuestion
+from app.models.chat import ChatSession
 from app.services.test_service import (
     extract_document_content,
+    extract_session_content,
     generate_test_questions,
     create_test as create_test_in_db,
     submit_test as submit_test_answers,
@@ -30,6 +32,11 @@ router = APIRouter()
 
 class TestGenerateRequest(BaseModel):
     document_id: str = Field(..., min_length=1)
+    question_count: int = Field(default=15, ge=5, le=30)
+
+
+class TestGenerateFromSessionRequest(BaseModel):
+    session_id: str = Field(..., min_length=1)
     question_count: int = Field(default=15, ge=5, le=30)
 
 
@@ -93,6 +100,74 @@ async def generate_test(
         db=db,
         user_id=user_uuid,
         document_id=doc_uuid,
+        title=title,
+        questions_data=questions_data,
+        question_count=request.question_count
+    )
+
+    db_questions = db.query(TestQuestion).filter(
+        TestQuestion.test_id == test.id
+    ).order_by(TestQuestion.order_num).all()
+
+    return {
+        "test_id": str(test.id),
+        "title": test.title,
+        "question_count": test.total_questions,
+        "questions": [
+            {
+                "id": str(q.id),
+                "question_text": q.question_text,
+                "options": q.options,
+                "order": q.order_num
+            }
+            for q in db_questions
+        ]
+    }
+
+
+@router.post("/generate-from-session")
+async def generate_test_from_session(
+    request: TestGenerateFromSessionRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate a test from a multi-document chat session.
+    Uses all documents from the session to create a combined test.
+    """
+    user_uuid = uuid.UUID(current_user.get("sub"))
+
+    check_and_use_query_limit(user_uuid, db)
+
+    session_uuid = uuid.UUID(request.session_id)
+
+    session = db.query(ChatSession).filter(
+        ChatSession.id == session_uuid,
+        ChatSession.user_id == user_uuid
+    ).first()
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    try:
+        content = extract_session_content(db, session_uuid)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if not content:
+        raise HTTPException(status_code=400, detail="Session has no content for test generation")
+
+    try:
+        questions_data = await generate_test_questions(content, request.question_count)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    title = f"{session.title} - Test"
+
+    test = create_test_in_db(
+        db=db,
+        user_id=user_uuid,
+        document_id=None,
         title=title,
         questions_data=questions_data,
         question_count=request.question_count

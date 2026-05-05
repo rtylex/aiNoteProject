@@ -515,11 +515,11 @@ function MultiChatContent() {
                                                     </div>
                                                 </div>
                                             ))}
-                                            {documents.length === 1 && (
+                                            {sessionId && (
                                                 <div className="pt-2 border-t border-indigo-100">
                                                     <CreateTestModal
-                                                        documentId={documents[0].id}
-                                                        documentTitle={documents[0].title}
+                                                        sessionId={sessionId}
+                                                        sessionTitle={sessionTitle}
                                                         suggestedQuestionCount={15}
                                                     />
                                                 </div>
@@ -556,11 +556,11 @@ function MultiChatContent() {
                                         </div>
                                     </div>
                                 ))}
-                                {documents.length === 1 && (
+                                {sessionId && (
                                     <div className="pt-3 border-t border-indigo-100/50">
                                         <CreateTestModal
-                                            documentId={documents[0].id}
-                                            documentTitle={documents[0].title}
+                                            sessionId={sessionId}
+                                            sessionTitle={sessionTitle}
                                             suggestedQuestionCount={15}
                                         />
                                     </div>

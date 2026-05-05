@@ -17,12 +17,14 @@ import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
 
 interface CreateTestModalProps {
-    documentId: string
-    documentTitle: string
+    documentId?: string
+    sessionId?: string
+    documentTitle?: string
+    sessionTitle?: string
     suggestedQuestionCount?: number
 }
 
-export function CreateTestModal({ documentId, documentTitle, suggestedQuestionCount = 15 }: CreateTestModalProps) {
+export function CreateTestModal({ documentId, sessionId, documentTitle, sessionTitle, suggestedQuestionCount = 15 }: CreateTestModalProps) {
     const [open, setOpen] = useState(false)
     const [questionCount, setQuestionCount] = useState(suggestedQuestionCount)
     const [loading, setLoading] = useState(false)
@@ -32,6 +34,8 @@ export function CreateTestModal({ documentId, documentTitle, suggestedQuestionCo
 
     const minCount = 5
     const maxCount = 30
+
+    const title = documentTitle || sessionTitle || "Seçili Döküman"
 
     const handleDecrement = () => {
         if (questionCount > minCount) {
@@ -52,17 +56,35 @@ export function CreateTestModal({ documentId, documentTitle, suggestedQuestionCo
         setError(null)
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/test/generate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify({
-                    document_id: documentId,
-                    question_count: questionCount
+            let response: Response
+
+            if (sessionId) {
+                response = await fetch(`${API_BASE_URL}/api/v1/test/generate-from-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        question_count: questionCount
+                    })
                 })
-            })
+            } else if (documentId) {
+                response = await fetch(`${API_BASE_URL}/api/v1/test/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        document_id: documentId,
+                        question_count: questionCount
+                    })
+                })
+            } else {
+                throw new Error("Neither documentId nor sessionId provided")
+            }
 
             if (!response.ok) {
                 const errorData = await response.json()
@@ -114,7 +136,7 @@ export function CreateTestModal({ documentId, documentTitle, suggestedQuestionCo
                 <div className="py-6">
                     <div className="bg-indigo-50 rounded-lg p-4 mb-6">
                         <p className="text-sm text-gray-500 mb-1">Döküman</p>
-                        <p className="font-semibold text-indigo-900 truncate">{documentTitle}</p>
+                        <p className="font-semibold text-indigo-900 truncate">{title}</p>
                     </div>
 
                     <div className="space-y-4">

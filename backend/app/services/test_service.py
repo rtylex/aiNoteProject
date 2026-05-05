@@ -57,6 +57,34 @@ def extract_document_content(db: Session, document_id: uuid.UUID) -> str:
     return "\n\n".join(content_parts)
 
 
+def extract_session_content(db: Session, session_id: uuid.UUID) -> str:
+    """Extract combined content from all documents in a multi-document session."""
+    from app.models.chat import ChatSession, ChatSessionDocument
+
+    session = db.query(ChatSession).filter(ChatSession.id == session_id).first()
+    if not session:
+        raise ValueError("Session not found")
+
+    session_docs = db.query(ChatSessionDocument).filter(
+        ChatSessionDocument.session_id == session_id
+    ).all()
+
+    if not session_docs:
+        raise ValueError("Session has no documents")
+
+    contents = []
+    for session_doc in session_docs:
+        doc_embeddings = db.query(DocumentEmbedding).filter(
+            DocumentEmbedding.document_id == session_doc.document_id
+        ).order_by(DocumentEmbedding.page_number).all()
+
+        for emb in doc_embeddings:
+            if emb.content:
+                contents.append(emb.content)
+
+    return "\n\n---\n\n".join(contents) if contents else ""
+
+
 def suggest_question_count(document_content: str) -> int:
     """
     Suggest question count based on document length.

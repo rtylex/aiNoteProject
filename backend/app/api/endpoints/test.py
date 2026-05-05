@@ -11,7 +11,6 @@ from app.services.auth import get_current_user
 from app.db.session import get_db
 from app.services.test_service import (
     extract_document_content,
-    suggest_question_count,
     generate_test_questions,
     create_test,
     submit_test,
@@ -78,18 +77,18 @@ async def generate_test(
     if document.status != "completed":
         raise HTTPException(status_code=400, detail="Document is not yet processed")
 
-    content = test_service.extract_document_content(db, doc_uuid)
+    content = extract_document_content(db, doc_uuid)
     if not content:
         raise HTTPException(status_code=400, detail="Document has no content for test generation")
 
     try:
-        questions_data = await test_service.generate_test_questions(content, request.question_count)
+        questions_data = await generate_test_questions(content, request.question_count)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     title = f"{document.title} - Test"
 
-    test = test_service.create_test(
+    test = create_test(
         db=db,
         user_id=user_uuid,
         document_id=doc_uuid,
@@ -123,7 +122,7 @@ async def list_my_tests(
 ):
     """List all tests created by the current user."""
     user_uuid = uuid.UUID(current_user.get("sub"))
-    return test_service.list_user_tests(db, user_uuid, limit, offset)
+    return list_user_tests(db, user_uuid, limit, offset)
 
 
 @router.get("/public")
@@ -133,7 +132,7 @@ async def list_public_tests(
     db: Session = Depends(get_db)
 ):
     """List all public completed tests for community."""
-    return test_service.list_public_tests(db, limit, offset)
+    return list_public_tests(db, limit, offset)
 
 
 @router.get("/{test_id}")
@@ -147,7 +146,7 @@ async def get_test(
     test_uuid = uuid.UUID(test_id)
 
     try:
-        return test_service.get_test_with_questions(db, test_uuid, user_uuid, include_answers=False)
+        return get_test_with_questions(db, test_uuid, user_uuid, include_answers=False)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -164,7 +163,7 @@ async def submit_test(
     test_uuid = uuid.UUID(test_id)
 
     try:
-        return test_service.submit_test(db, test_uuid, user_uuid, request.answers)
+        return submit_test(db, test_uuid, user_uuid, request.answers)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -181,7 +180,7 @@ async def toggle_test_share(
     test_uuid = uuid.UUID(test_id)
 
     try:
-        return test_service.toggle_test_public(db, test_uuid, user_uuid, request.is_public)
+        return toggle_test_public(db, test_uuid, user_uuid, request.is_public)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -197,7 +196,7 @@ async def delete_test(
     test_uuid = uuid.UUID(test_id)
 
     try:
-        test_service.delete_test(db, test_uuid, user_uuid)
+        delete_test(db, test_uuid, user_uuid)
         return {"message": "Test deleted successfully"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

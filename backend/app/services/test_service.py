@@ -211,12 +211,16 @@ def submit_test(
     if test.completed:
         raise ValueError("Test already completed")
 
+    questions = db.query(TestQuestion).filter(
+        TestQuestion.test_id == test_id
+    ).order_by(TestQuestion.order_num).all()
+
     answer_map = {uuid.UUID(a["question_id"]): a["answer"].upper() for a in answers}
 
     score = 0
     questions_with_results = []
 
-    for question in sorted(test.questions, key=lambda q: q.order_num):
+    for question in questions:
         user_answer = answer_map.get(question.id)
         is_correct = user_answer == question.correct_answer.upper() if user_answer else False
 
@@ -238,7 +242,7 @@ def submit_test(
         })
 
     test.score = score
-    test.total_questions = len(test.questions)
+    test.total_questions = len(questions)
     test.completed = True
     test.completed_at = datetime.utcnow()
 
@@ -274,8 +278,12 @@ def get_test_with_questions(
         if not user or user.role != UserRole.ADMIN:
             raise ValueError("Access denied")
 
-    questions = []
-    for q in sorted(test.questions, key=lambda x: x.order_num):
+    questions = db.query(TestQuestion).filter(
+        TestQuestion.test_id == test_id
+    ).order_by(TestQuestion.order_num).all()
+
+    result_questions = []
+    for q in questions:
         q_dict = {
             "id": str(q.id),
             "question_text": q.question_text,
@@ -287,7 +295,7 @@ def get_test_with_questions(
             q_dict["explanation"] = q.explanation
             q_dict["user_answer"] = q.user_answer
             q_dict["is_correct"] = q.is_correct
-        questions.append(q_dict)
+        result_questions.append(q_dict)
 
     return {
         "id": str(test.id),
@@ -300,7 +308,7 @@ def get_test_with_questions(
         "is_public": test.is_public,
         "created_at": test.created_at.isoformat() if test.created_at else None,
         "completed_at": test.completed_at.isoformat() if test.completed_at else None,
-        "questions": questions
+        "questions": result_questions
     }
 
 

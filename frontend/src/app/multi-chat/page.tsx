@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle, Zap, Lightbulb, BookOpen, ListChecks, GraduationCap, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle, Zap, Lightbulb, BookOpen, ListChecks, GraduationCap, HelpCircle, ChevronDown, ChevronUp, ClipboardList } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
+import { CreateTestModal } from '@/components/test/create-test-modal'
 
 interface Message {
     id: number | string
@@ -514,6 +515,15 @@ function MultiChatContent() {
                                                     </div>
                                                 </div>
                                             ))}
+                                            {documents.length === 1 && (
+                                                <div className="pt-2 border-t border-indigo-100">
+                                                    <CreateTestModal
+                                                        documentId={documents[0].id}
+                                                        documentTitle={documents[0].title}
+                                                        suggestedQuestionCount={15}
+                                                    />
+                                                </div>
+                                            )}
                                         </CardContent>
                                     </Card>
                                 </motion.div>
@@ -546,6 +556,15 @@ function MultiChatContent() {
                                         </div>
                                     </div>
                                 ))}
+                                {documents.length === 1 && (
+                                    <div className="pt-3 border-t border-indigo-100/50">
+                                        <CreateTestModal
+                                            documentId={documents[0].id}
+                                            documentTitle={documents[0].title}
+                                            suggestedQuestionCount={15}
+                                        />
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
+import { CreateTestFromLibraryModal } from '@/components/test/create-test-from-library-modal'
 
 import {
     BookOpen,
@@ -24,7 +25,8 @@ import {
     CheckSquare,
     Square,
     X,
-    MessageSquare
+    MessageSquare,
+    ClipboardList
 } from 'lucide-react'
 
 interface Course {
@@ -456,16 +458,24 @@ export default function LibraryPage() {
                     </div>
                 </div>
 
-                {/* Floating Action Button for Multi-Chat */}
-                {isSelectMode && selectedDocIds.size >= 2 && (
-                    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-                        <Button
-                            onClick={handleStartMultiChat}
-                            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-2xl px-8 py-6 text-lg rounded-full flex items-center gap-3"
-                        >
-                            <MessageSquare className="w-6 h-6" />
-                            {selectedDocIds.size} Dökümanla AI Çalışması Başlat
-                        </Button>
+                {/* Floating Action Buttons for Multi-Select */}
+                {isSelectMode && selectedDocIds.size >= 1 && (
+                    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex gap-3">
+                        {selectedDocIds.size >= 2 && (
+                            <Button
+                                onClick={handleStartMultiChat}
+                                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-2xl px-6 py-5 text-base rounded-full flex items-center gap-2"
+                            >
+                                <MessageSquare className="w-5 h-5" />
+                                AI Sohbet
+                            </Button>
+                        )}
+                        {accessToken && (
+                            <CreateTestFromLibraryModal
+                                documentIds={Array.from(selectedDocIds)}
+                                documentTitles={Array.from(selectedDocs.values()).map(v => v.title)}
+                            />
+                        )}
                     </div>
                 )}
 
@@ -493,7 +503,7 @@ export default function LibraryPage() {
                             ))}
                         </div>
                         {selectedDocs.size > 0 && (
-                            <div className="mt-3 pt-3 border-t border-gray-100 flex-shrink-0">
+                            <div className="mt-3 pt-3 border-t border-gray-100 flex-shrink-0 space-y-2">
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -505,6 +515,12 @@ export default function LibraryPage() {
                                 >
                                     Tümünü Temizle
                                 </Button>
+                                {accessToken && (
+                                    <CreateTestFromLibraryModal
+                                        documentIds={Array.from(selectedDocIds)}
+                                        documentTitles={Array.from(selectedDocs.values()).map(v => v.title)}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>

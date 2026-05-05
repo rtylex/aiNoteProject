@@ -15,6 +15,7 @@ from app.models.chat import MultiDocumentSession
 from app.services.test_service import (
     extract_document_content,
     extract_session_content,
+    extract_public_documents_content,
     generate_test_questions,
     create_test as create_test_in_db,
     submit_test as submit_test_answers,
@@ -37,6 +38,11 @@ class TestGenerateRequest(BaseModel):
 
 class TestGenerateFromSessionRequest(BaseModel):
     session_id: str = Field(..., min_length=1)
+    question_count: int = Field(default=15, ge=5, le=30)
+
+
+class TestGenerateFromLibraryRequest(BaseModel):
+    document_ids: list[str] = Field(..., min_length=2, max_length=10)
     question_count: int = Field(default=15, ge=5, le=30)
 
 
@@ -192,6 +198,90 @@ async def generate_test_from_session(
         "test_id": str(test.id),
         "title": test.title,
         "question_count": test.total_questions,
+        "questions": [
+            {
+                "id": str(q.id),
+                "question_text": q.question_text,
+                "options": q.options,
+                "order": q.order_num
+            }
+            for q in db_questions
+        ]
+    }
+
+    if is_partial:
+        response["warning"] = f"{request.question_count} soru istendi ama {len(questions_data)} soru üretilebildi. Kısmi sonuç gösteriliyor."
+
+    return response
+
+
+@router.post("/generate-from-library")
+async def generate_test_from_library(
+    request: TestGenerateFromLibraryRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate a test from multiple public documents selected in the community library.
+    Users can select 2-10 documents and create a combined test from all of them.
+    """
+    user_uuid = uuid.UUID(current_user.get("sub"))
+
+    check_and_use_query_limit(user_uuid, db)
+
+    doc_uuids = [uuid.UUID(doc_id) for doc_id in request.document_ids]
+
+    for doc_uuid in doc_uuids:
+        doc = db.query(Document).filter(
+            Document.id == doc_uuid,
+            Document.visibility == "public",
+            Document.is_approved == True,
+            Document.status == "completed"
+        ).first()
+        if not doc:
+            raise HTTPException(status_code=404, detail=f"Döküman bulunamadı veya erişim yetkiniz yok: {doc_uuid}")
+
+    try:
+        content = extract_public_documents_content(db, doc_uuids)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if not content:
+        raise HTTPException(status_code=400, detail="Seçili dökümanlardan içerik çıkarılamadı")
+
+    try:
+        result = await generate_test_questions(content, request.question_count)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    questions_data = result["questions"]
+    is_partial = result.get("partial", False)
+
+    doc_titles = []
+    for doc_uuid in doc_uuids:
+        doc = db.query(Document).filter(Document.id == doc_uuid).first()
+        if doc:
+            doc_titles.append(doc.title)
+    title = f"Kütüphane - {len(doc_uuids)} Döküman Testi"
+
+    test = create_test_in_db(
+        db=db,
+        user_id=user_uuid,
+        document_id=None,
+        title=title,
+        questions_data=questions_data,
+        question_count=request.question_count
+    )
+
+    db_questions = db.query(TestQuestion).filter(
+        TestQuestion.test_id == test.id
+    ).order_by(TestQuestion.order_num).all()
+
+    response = {
+        "test_id": str(test.id),
+        "title": test.title,
+        "question_count": test.total_questions,
+        "document_titles": doc_titles,
         "questions": [
             {
                 "id": str(q.id),

@@ -398,6 +398,14 @@ export default function LibraryPage() {
                                 })}
                             </span>
                         </div>
+                        {accessToken && (
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                <CreateTestFromLibraryModal
+                                    documentIds={[doc.id]}
+                                    documentTitles={[doc.title]}
+                                />
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </Link>

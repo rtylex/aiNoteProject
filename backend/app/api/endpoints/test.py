@@ -42,7 +42,7 @@ class TestGenerateFromSessionRequest(BaseModel):
 
 
 class TestGenerateFromLibraryRequest(BaseModel):
-    document_ids: list[str] = Field(..., min_length=2, max_length=10)
+    document_ids: list[str] = Field(..., min_length=1, max_length=10)
     question_count: int = Field(default=15, ge=5, le=30)
 
 

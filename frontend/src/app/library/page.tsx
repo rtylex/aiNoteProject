@@ -400,14 +400,10 @@ export default function LibraryPage() {
                         </span>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-100">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50 w-full"
-                        >
-                            <ClipboardList className="w-4 h-4" />
-                            Test Oluştur
-                        </Button>
+                        <CreateTestFromLibraryModal
+                            documentIds={[doc.id]}
+                            documentTitles={[doc.title]}
+                        />
                     </div>
                 </CardContent>
             </Card>

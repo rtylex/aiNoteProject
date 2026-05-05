@@ -9,7 +9,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog'
 import { Minus, Plus, ClipboardList, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -105,125 +104,131 @@ export function CreateTestFromLibraryModal({ documentIds, documentTitles, onSucc
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-                >
-                    <ClipboardList className="w-4 h-4" />
-                    Test Oluştur
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-xl border-none shadow-2xl">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
-                            <ClipboardList className="w-5 h-5 text-white" />
-                        </div>
-                        {isSingleDocument ? 'Dökümandan Test Oluştur' : 'Kütüphaneden Test Oluştur'}
-                    </DialogTitle>
-                    <DialogDescription className="text-gray-500">
-                        {isSingleDocument
-                            ? 'Seçili dökümandan yapay zeka destekli çoktan seçmeli test oluştur'
-                            : 'Seçili dökümanlardan yapay zeka destekli çoktan seçmeli test oluştur'
-                        }
-                    </DialogDescription>
-                </DialogHeader>
+        <>
+            <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50 w-full"
+                onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setOpen(true)
+                }}
+            >
+                <ClipboardList className="w-4 h-4" />
+                Test Oluştur
+            </Button>
 
-                <div className="py-6">
-                    <div className="bg-indigo-50 rounded-lg p-4 mb-6">
-                        <p className="text-sm text-gray-500 mb-2">
-                            {isSingleDocument ? 'Seçili Döküman' : `Seçili Dökümanlar (${documentIds.length})`}
-                        </p>
-                        <div className="space-y-1 max-h-32 overflow-y-auto">
-                            {documentTitles.slice(0, isSingleDocument ? 1 : 5).map((title, index) => (
-                                <p key={index} className="text-sm font-medium text-indigo-900 truncate">
-                                    {isSingleDocument ? title : `${index + 1}. ${title}`}
-                                </p>
-                            ))}
-                            {!isSingleDocument && documentTitles.length > 5 && (
-                                <p className="text-sm text-indigo-600">...ve {documentTitles.length - 5} döküman daha</p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="font-medium text-gray-700">Soru Sayısı</p>
-                                <p className="text-sm text-gray-500">Önerilen: 15</p>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-xl border-none shadow-2xl z-50">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                <ClipboardList className="w-5 h-5 text-white" />
                             </div>
-                            <div className="flex items-center gap-3">
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={handleDecrement}
-                                    disabled={questionCount <= minCount}
-                                    className="w-10 h-10 rounded-full"
-                                >
-                                    <Minus className="w-4 h-4" />
-                                </Button>
-                                <span className="text-2xl font-bold text-indigo-600 w-12 text-center">
-                                    {questionCount}
-                                </span>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={handleIncrement}
-                                    disabled={questionCount >= maxCount}
-                                    className="w-10 h-10 rounded-full"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                </Button>
+                            {isSingleDocument ? 'Dökümandan Test Oluştur' : 'Kütüphaneden Test Oluştur'}
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-500">
+                            {isSingleDocument
+                                ? 'Seçili dökümandan yapay zeka destekli çoktan seçmeli test oluştur'
+                                : 'Seçili dökümanlardan yapay zeka destekli çoktan seçmeli test oluştur'
+                            }
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="py-6">
+                        <div className="bg-indigo-50 rounded-lg p-4 mb-6">
+                            <p className="text-sm text-gray-500 mb-2">
+                                {isSingleDocument ? 'Seçili Döküman' : `Seçili Dökümanlar (${documentIds.length})`}
+                            </p>
+                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                                {documentTitles.slice(0, isSingleDocument ? 1 : 5).map((title, index) => (
+                                    <p key={index} className="text-sm font-medium text-indigo-900 truncate">
+                                        {isSingleDocument ? title : `${index + 1}. ${title}`}
+                                    </p>
+                                ))}
+                                {!isSingleDocument && documentTitles.length > 5 && (
+                                    <p className="text-sm text-indigo-600">...ve {documentTitles.length - 5} döküman daha</p>
+                                )}
                             </div>
                         </div>
-                        <p className="text-xs text-gray-400 text-center">
-                            Min: {minCount}, Max: {maxCount}
-                        </p>
-                    </div>
 
-                    {error && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-sm text-red-600">{error}</p>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium text-gray-700">Soru Sayısı</p>
+                                    <p className="text-sm text-gray-500">Önerilen: 15</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={handleDecrement}
+                                        disabled={questionCount <= minCount}
+                                        className="w-10 h-10 rounded-full"
+                                    >
+                                        <Minus className="w-4 h-4" />
+                                    </Button>
+                                    <span className="text-2xl font-bold text-indigo-600 w-12 text-center">
+                                        {questionCount}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={handleIncrement}
+                                        disabled={questionCount >= maxCount}
+                                        className="w-10 h-10 rounded-full"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-400 text-center">
+                                Min: {minCount}, Max: {maxCount}
+                            </p>
                         </div>
-                    )}
 
-                    {warning && (
-                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                            <p className="text-sm text-amber-700">{warning}</p>
-                        </div>
-                    )}
-                </div>
-
-                <DialogFooter className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => setOpen(false)}
-                        disabled={loading}
-                    >
-                        İptal
-                    </Button>
-                    <Button
-                        onClick={handleCreateTest}
-                        disabled={loading || documentIds.length < 1}
-                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-                    >
-                        {loading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Oluşturuluyor...
-                            </>
-                        ) : (
-                            <>
-                                <ClipboardList className="mr-2 h-4 w-4" />
-                                Testi Oluştur
-                            </>
+                        {error && (
+                            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-sm text-red-600">{error}</p>
+                            </div>
                         )}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+
+                        {warning && (
+                            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                <p className="text-sm text-amber-700">{warning}</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <DialogFooter className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                            disabled={loading}
+                        >
+                            İptal
+                        </Button>
+                        <Button
+                            onClick={handleCreateTest}
+                            disabled={loading || documentIds.length < 1}
+                            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Oluşturuluyor...
+                                </>
+                            ) : (
+                                <>
+                                    <ClipboardList className="mr-2 h-4 w-4" />
+                                    Testi Oluştur
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }

@@ -70,6 +70,7 @@ async def generate_test(
     doc_uuid = uuid.UUID(request.document_id)
 
     from app.models.document import Document
+from app.models.test import Test, TestQuestion
     document = db.query(Document).filter(Document.id == doc_uuid).first()
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -97,6 +98,10 @@ async def generate_test(
         question_count=request.question_count
     )
 
+    db_questions = db.query(TestQuestion).filter(
+        TestQuestion.test_id == test.id
+    ).order_by(TestQuestion.order_num).all()
+
     return {
         "test_id": str(test.id),
         "title": test.title,
@@ -108,7 +113,7 @@ async def generate_test(
                 "options": q.options,
                 "order": q.order_num
             }
-            for q in sorted(test.questions, key=lambda x: x.order_num)
+            for q in db_questions
         ]
     }
 

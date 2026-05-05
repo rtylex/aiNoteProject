@@ -18,7 +18,7 @@ from app.services.test_service import (
     submit_test as submit_test_answers,
     get_test_with_questions,
     list_user_tests,
-    list_public_tests,
+    list_public_tests as get_public_tests,
     delete_test as delete_test_from_db,
     toggle_test_public,
 )
@@ -137,7 +137,7 @@ async def list_public_tests(
     db: Session = Depends(get_db)
 ):
     """List all public completed tests for community."""
-    return list_public_tests(db, limit, offset)
+    return get_public_tests(db, limit, offset)
 
 
 @router.get("/{test_id}")

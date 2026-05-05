@@ -90,9 +90,12 @@ async def generate_test(
         raise HTTPException(status_code=400, detail="Document has no content for test generation")
 
     try:
-        questions_data = await generate_test_questions(content, request.question_count)
+        result = await generate_test_questions(content, request.question_count)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+    questions_data = result["questions"]
+    is_partial = result.get("partial", False)
 
     title = f"{document.title} - Test"
 
@@ -109,7 +112,7 @@ async def generate_test(
         TestQuestion.test_id == test.id
     ).order_by(TestQuestion.order_num).all()
 
-    return {
+    response = {
         "test_id": str(test.id),
         "title": test.title,
         "question_count": test.total_questions,
@@ -123,6 +126,11 @@ async def generate_test(
             for q in db_questions
         ]
     }
+
+    if is_partial:
+        response["warning"] = f"{request.question_count} soru istendi ama {len(questions_data)} soru üretilebildi. Kısmi sonuç gösteriliyor."
+
+    return response
 
 
 @router.post("/generate-from-session")
@@ -158,9 +166,12 @@ async def generate_test_from_session(
         raise HTTPException(status_code=400, detail="Session has no content for test generation")
 
     try:
-        questions_data = await generate_test_questions(content, request.question_count)
+        result = await generate_test_questions(content, request.question_count)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+    questions_data = result["questions"]
+    is_partial = result.get("partial", False)
 
     title = f"{session.title} - Test"
 
@@ -177,7 +188,7 @@ async def generate_test_from_session(
         TestQuestion.test_id == test.id
     ).order_by(TestQuestion.order_num).all()
 
-    return {
+    response = {
         "test_id": str(test.id),
         "title": test.title,
         "question_count": test.total_questions,
@@ -191,6 +202,11 @@ async def generate_test_from_session(
             for q in db_questions
         ]
     }
+
+    if is_partial:
+        response["warning"] = f"{request.question_count} soru istendi ama {len(questions_data)} soru üretilebildi. Kısmi sonuç gösteriliyor."
+
+    return response
 
 
 @router.get("/")

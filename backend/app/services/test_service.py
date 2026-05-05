@@ -104,10 +104,54 @@ def suggest_question_count(document_content: str) -> int:
         return 20
 
 
+def _calculate_max_tokens(question_count: int) -> int:
+    """Calculate max tokens based on question count. Each question needs ~350-400 tokens."""
+    base_tokens = 512
+    per_question_tokens = 400
+    calculated = base_tokens + (question_count * per_question_tokens)
+    return min(max(calculated, 4096), 16384)
+
+
+def _extract_partial_questions(text: str) -> list[dict]:
+    """Extract complete questions from partial/malformed JSON response."""
+    import re
+    questions = []
+    
+    pattern = r'\{[^{}]*"question"\s*:\s*"[^"]*"[^{}]*"options"\s*:\s*\[[^\]]*\][^{}]*"correct_answer"\s*:\s*"[^"]*"[^{}]*"explanation"\s*:\s*"[^"]*"[^{}]*\}'
+    
+    matches = re.findall(pattern, text, re.DOTALL)
+    
+    for match in matches:
+        try:
+            obj = json.loads(match)
+            if all(k in obj for k in ["question", "options", "correct_answer"]):
+                questions.append(obj)
+        except json.JSONDecodeError:
+            continue
+    
+    if not questions:
+        try:
+            questions_block = re.search(r'"questions"\s*:\s*\[(.*)', text, re.DOTALL)
+            if questions_block:
+                partial_json = '{"questions": [' + questions_block.group(1)
+                
+                while partial_json and not partial_json.rstrip().endswith(']}'):
+                    partial_json = partial_json.rstrip()[:-1]
+                
+                if partial_json.rstrip().endswith(']}'):
+                    parsed = json.loads(partial_json)
+                    if "questions" in parsed and isinstance(parsed["questions"], list):
+                        questions = [q for q in parsed["questions"] if isinstance(q, dict) and "question" in q]
+        except (json.JSONDecodeError, Exception):
+            pass
+    
+    return questions
+
+
 async def generate_test_questions(
     document_content: str,
     question_count: int
-) -> list[dict]:
+) -> dict:
     """
     Generate test questions using DeepSeek AI.
 
@@ -116,10 +160,12 @@ async def generate_test_questions(
         question_count: Number of questions to generate
 
     Returns:
-        List of question dictionaries with question_text, options, correct_answer, explanation
+        Dict with 'questions' list and optional 'partial' flag and 'requested_count'
     """
     if not deepseek_service.enabled:
         raise ValueError("DeepSeek service is not enabled")
+
+    max_tokens = _calculate_max_tokens(question_count)
 
     user_prompt = f"""Aşağıdaki ders içeriğinden {question_count} adet çoktan seçmeli soru hazırla:
 
@@ -138,13 +184,13 @@ DERS İÇERİĞİ:
                     {"role": "user", "content": user_prompt}
                 ],
                 temperature=0.7,
-                max_tokens=4096
+                max_tokens=max_tokens
             )
             return response.choices[0].message.content
 
         result = await asyncio.wait_for(
             loop.run_in_executor(None, _generate),
-            timeout=120.0
+            timeout=180.0
         )
 
         if not result:
@@ -158,17 +204,33 @@ DERS İÇERİĞİ:
         if cleaned.endswith("```"):
             cleaned = cleaned[:-3].strip()
 
-        parsed = json.loads(cleaned)
+        try:
+            parsed = json.loads(cleaned)
+        except json.JSONDecodeError:
+            partial_questions = _extract_partial_questions(cleaned)
+            if partial_questions and len(partial_questions) >= 3:
+                return {
+                    "questions": partial_questions,
+                    "partial": True,
+                    "requested_count": question_count,
+                    "generated_count": len(partial_questions)
+                }
+            raise ValueError(f"Invalid JSON from AI and could not extract partial questions")
 
         if "questions" not in parsed or not isinstance(parsed["questions"], list):
             raise ValueError(f"Invalid AI response format: {result[:200]}")
 
-        return parsed["questions"]
+        return {
+            "questions": parsed["questions"],
+            "partial": False,
+            "requested_count": question_count,
+            "generated_count": len(parsed["questions"])
+        }
 
     except asyncio.TimeoutError:
         raise ValueError("AI timeout - test generation took too long")
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON from AI: {e}, response: {result[:500] if result else 'empty'}")
+    except ValueError:
+        raise
     except Exception as e:
         raise ValueError(f"Test generation failed: {str(e)}")
 

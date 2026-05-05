@@ -29,6 +29,7 @@ export function CreateTestModal({ documentId, sessionId, documentTitle, sessionT
     const [questionCount, setQuestionCount] = useState(suggestedQuestionCount)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [warning, setWarning] = useState<string | null>(null)
     const { accessToken } = useAuth()
     const router = useRouter()
 
@@ -54,6 +55,7 @@ export function CreateTestModal({ documentId, sessionId, documentTitle, sessionT
 
         setLoading(true)
         setError(null)
+        setWarning(null)
 
         try {
             let response: Response
@@ -92,6 +94,10 @@ export function CreateTestModal({ documentId, sessionId, documentTitle, sessionT
             }
 
             const result = await response.json()
+
+            if (result.warning) {
+                setWarning(result.warning)
+            }
 
             setOpen(false)
             router.push(`/test/${result.test_id}`)
@@ -177,6 +183,12 @@ export function CreateTestModal({ documentId, sessionId, documentTitle, sessionT
                     {error && (
                         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                             <p className="text-sm text-red-600">{error}</p>
+                        </div>
+                    )}
+
+                    {warning && (
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <p className="text-sm text-amber-700">{warning}</p>
                         </div>
                     )}
                 </div>

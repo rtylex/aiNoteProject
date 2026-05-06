@@ -38,6 +38,7 @@ export function Navbar() {
         ? [
             { href: '/', label: 'Ana Sayfa' },
             { href: '/dashboard', label: 'Kütüphanem' },
+            { href: '/flashcard', label: 'Flashcard' },
             { href: '/library', label: 'Topluluk' }
         ]
         : [
@@ -56,7 +57,7 @@ export function Navbar() {
     }
 
     const getMobileLinkClassName = (href: string) => {
-        const isActive = pathname === href || (href === '/dashboard' && pathname?.startsWith('/dashboard'))
+        const isActive = pathname === href || (href === '/dashboard' && pathname?.startsWith('/dashboard')) || (href === '/flashcard' && pathname?.startsWith('/flashcard'))
         return `flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition-all ${isActive
             ? 'bg-[#d9dff0] text-[#011133]'
             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -67,6 +68,10 @@ export function Navbar() {
         if (user) {
             if (pathname?.startsWith('/dashboard')) {
                 setActiveDesktopHref('/dashboard')
+                return
+            }
+            if (pathname?.startsWith('/flashcard')) {
+                setActiveDesktopHref('/flashcard')
                 return
             }
             if (pathname === '/library') {
@@ -226,6 +231,16 @@ export function Navbar() {
                                 Kütüphanem
                             </Link>
                             <Link
+                                href="/flashcard"
+                                className={getLinkClassName('/flashcard')}
+                                aria-current={activeDesktopHref === '/flashcard' ? 'page' : undefined}
+                                ref={(el) => {
+                                    linkRefs.current['/flashcard'] = el
+                                }}
+                            >
+                                Flashcard
+                            </Link>
+                            <Link
                                 href="/library"
                                 className={getLinkClassName('/library')}
                                 aria-current={activeDesktopHref === '/library' ? 'page' : undefined}
@@ -362,6 +377,14 @@ export function Navbar() {
                                 >
                                     <FolderOpen className="h-5 w-5" />
                                     Kütüphanem
+                                </Link>
+                                <Link
+                                    href="/flashcard"
+                                    className={getMobileLinkClassName('/flashcard')}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <BookOpen className="h-5 w-5" />
+                                    Flashcard
                                 </Link>
                                 <Link
                                     href="/library"

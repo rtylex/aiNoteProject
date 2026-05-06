@@ -74,6 +74,7 @@ class Document(Base):
     embeddings = relationship("DocumentEmbedding", back_populates="document")
     chat_sessions = relationship("ChatSession", back_populates="document")
     tests = relationship("Test", back_populates="document")
+    flashcard_sets = relationship("FlashcardSet", back_populates="document")
 
 from pgvector.sqlalchemy import Vector
 

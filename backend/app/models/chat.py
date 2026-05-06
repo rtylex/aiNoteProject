@@ -52,6 +52,7 @@ class MultiDocumentSession(Base):
     # Many-to-many relationship with documents
     documents = relationship("Document", secondary=multi_session_documents, backref="multi_sessions")
     messages = relationship("MultiSessionMessage", back_populates="session", cascade="all, delete-orphan")
+    flashcard_sets = relationship("FlashcardSet", back_populates="session")
 
 
 class MultiSessionMessage(Base):

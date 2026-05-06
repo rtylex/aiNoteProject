@@ -35,6 +35,7 @@ class Flashcard(Base):
     set_id = Column(UUID(as_uuid=True), ForeignKey("flashcard_sets.id", ondelete="CASCADE"), nullable=False, index=True)
     front = Column(Text, nullable=False)
     back = Column(Text, nullable=False)
+    extra_notes = Column(Text, nullable=True)
     order_num = Column(Integer, default=0)
 
     flashcard_set = relationship("FlashcardSet", back_populates="cards")

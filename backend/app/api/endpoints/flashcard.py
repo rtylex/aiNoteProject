@@ -29,6 +29,7 @@ from app.services.flashcard_service import (
     toggle_set_public,
     list_public_sets,
     get_user_stats,
+    get_difficult_cards,
 )
 from app.services.query_limit import check_and_consume_query
 
@@ -55,11 +56,13 @@ class FlashcardCreateRequest(BaseModel):
 class FlashcardAddCardRequest(BaseModel):
     front: str = Field(..., min_length=1, max_length=2000)
     back: str = Field(..., min_length=1, max_length=5000)
+    extra_notes: str | None = Field(default=None, max_length=5000)
 
 
 class FlashcardUpdateCardRequest(BaseModel):
     front: str | None = Field(default=None, max_length=2000)
     back: str | None = Field(default=None, max_length=5000)
+    extra_notes: str | None = Field(default=None, max_length=5000)
 
 
 class FlashcardReviewRequest(BaseModel):
@@ -301,11 +304,12 @@ async def add_card(
     set_uuid = uuid.UUID(set_id)
 
     try:
-        card = add_card_to_set(db, set_uuid, user_uuid, request.front, request.back)
+        card = add_card_to_set(db, set_uuid, user_uuid, request.front, request.back, request.extra_notes)
         return {
             "id": str(card.id),
             "front": card.front,
             "back": card.back,
+            "extra_notes": card.extra_notes,
             "order": card.order_num
         }
     except ValueError as e:
@@ -324,11 +328,12 @@ async def update_card_endpoint(
     card_uuid = uuid.UUID(card_id)
 
     try:
-        card = update_card(db, card_uuid, user_uuid, request.front, request.back)
+        card = update_card(db, card_uuid, user_uuid, request.front, request.back, request.extra_notes)
         return {
             "id": str(card.id),
             "front": card.front,
             "back": card.back,
+            "extra_notes": card.extra_notes,
             "order": card.order_num
         }
     except ValueError as e:
@@ -427,3 +432,14 @@ async def get_stats(
     """Get user's flashcard study statistics."""
     user_uuid = uuid.UUID(current_user.get("sub"))
     return get_user_stats(db, user_uuid)
+
+
+@router.get("/reviews/difficult")
+async def list_difficult_cards(
+    limit: int = Query(50, le=100),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get cards that the user found difficult (rated 1-2 or low ease factor)."""
+    user_uuid = uuid.UUID(current_user.get("sub"))
+    return get_difficult_cards(db, user_uuid, limit)

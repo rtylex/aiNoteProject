@@ -22,6 +22,7 @@ KURALLAR:
 - Türkçe kartlar hazırla
 - Her kartın önü: Kısa ve net bir soru veya terim
 - Her kartın arkası: Açık ve anlaşılır cevap veya tanım
+- extra_notes: Cevabı destekleyen kısa bir ipucu, formül veya ek açıklama (2-3 cümle)
 - Kartlar birbirinden bağımsız olmalı
 - Zorluk seviyesi: orta
 - Kavramsal sorular ve tanımlar dengeli olmalı
@@ -31,7 +32,8 @@ JSON formatında dön:
   "cards": [
     {
       "front": "Soru/terim buraya",
-      "back": "Cevap/tanım buraya"
+      "back": "Cevap/tanım buraya",
+      "extra_notes": "Ek ipucu/formül/açıklama buraya"
     }
   ]
 }"""
@@ -293,6 +295,7 @@ def create_flashcard_set(
                 set_id=flashcard_set.id,
                 front=card_data["front"],
                 back=card_data["back"],
+                extra_notes=card_data.get("extra_notes"),
                 order_num=idx + 1
             )
             db.add(card)
@@ -402,6 +405,7 @@ def get_set_with_cards(
             "id": str(card.id),
             "front": card.front,
             "back": card.back,
+            "extra_notes": card.extra_notes,
             "order": card.order_num,
             "status": prog.status if prog else "new",
             "next_review": prog.next_review.isoformat() if prog and prog.next_review else None,
@@ -455,6 +459,7 @@ def get_study_cards(
                 "id": str(card.id),
                 "front": card.front,
                 "back": card.back,
+                "extra_notes": card.extra_notes,
                 "order": card.order_num,
                 "status": prog.status if prog else FlashcardStatus.NEW.value,
                 "interval": prog.interval if prog else 0,
@@ -519,7 +524,8 @@ def add_card_to_set(
     set_id: uuid.UUID,
     user_id: uuid.UUID,
     front: str,
-    back: str
+    back: str,
+    extra_notes: str | None = None
 ) -> Flashcard:
     """Add a new card to an existing set."""
     flashcard_set = db.query(FlashcardSet).filter(FlashcardSet.id == set_id).first()
@@ -536,6 +542,7 @@ def add_card_to_set(
         set_id=set_id,
         front=front,
         back=back,
+        extra_notes=extra_notes,
         order_num=max_order + 1
     )
     db.add(card)
@@ -563,7 +570,8 @@ def update_card(
     card_id: uuid.UUID,
     user_id: uuid.UUID,
     front: str | None,
-    back: str | None
+    back: str | None,
+    extra_notes: str | None = None
 ) -> Flashcard:
     """Update a flashcard's front or back."""
     card = db.query(Flashcard).filter(Flashcard.id == card_id).first()
@@ -578,6 +586,8 @@ def update_card(
         card.front = front
     if back is not None:
         card.back = back
+    if extra_notes is not None:
+        card.extra_notes = extra_notes
 
     db.commit()
     db.refresh(card)
@@ -690,3 +700,33 @@ def get_user_stats(db: Session, user_id: uuid.UUID) -> dict:
         "status_counts": status_counts,
         "completion_percentage": completion_pct
     }
+
+
+def get_difficult_cards(db: Session, user_id: uuid.UUID, limit: int = 50) -> list[dict]:
+    """Get cards where user last rated 1-2 (difficult cards for review)."""
+    from sqlalchemy import func
+
+    # Find cards where the most recent review had quality <= 2
+    # We look at cards with progress status 'learning' and low ease_factor
+    difficult_progs = db.query(FlashcardProgress).join(Flashcard).join(FlashcardSet).filter(
+        FlashcardSet.user_id == user_id,
+        FlashcardProgress.ease_factor <= 2.0,
+        FlashcardProgress.repetitions <= 2
+    ).order_by(FlashcardProgress.last_reviewed.desc()).limit(limit).all()
+
+    result = []
+    for prog in difficult_progs:
+        card = prog.flashcard
+        set_title = card.flashcard_set.title if card.flashcard_set else ""
+        result.append({
+            "id": str(card.id),
+            "front": card.front,
+            "back": card.back,
+            "extra_notes": card.extra_notes,
+            "set_id": str(card.set_id),
+            "set_title": set_title,
+            "ease_factor": prog.ease_factor,
+            "last_reviewed": prog.last_reviewed.isoformat() if prog.last_reviewed else None,
+        })
+
+    return result

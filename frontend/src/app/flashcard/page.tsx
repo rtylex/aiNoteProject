@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { BookOpen, Play, Edit, Loader2, Brain, AlertTriangle, ChevronRight, RotateCcw } from 'lucide-react'
+import { BookOpen, Play, Edit, Loader2, Brain, AlertTriangle, ChevronRight, RotateCcw, Flame, TrendingDown, Clock } from 'lucide-react'
 import { DeleteFlashcardDialog } from '@/components/flashcard/delete-flashcard-dialog'
+import { DifficultStudyMode } from '@/components/flashcard/difficult-study-mode'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface FlashcardSet {
@@ -37,6 +38,7 @@ export default function FlashcardPage() {
   const [difficultCards, setDifficultCards] = useState<DifficultCard[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingDifficult, setLoadingDifficult] = useState(false)
+  const [isStudyingDifficult, setIsStudyingDifficult] = useState(false)
   const { accessToken } = useAuth()
   const router = useRouter()
 
@@ -191,51 +193,101 @@ export default function FlashcardPage() {
 
           {/* Difficult Cards Tab */}
           <TabsContent value="difficult">
-            {loadingDifficult ? (
+            {isStudyingDifficult ? (
+              <DifficultStudyMode 
+                cards={difficultCards} 
+                onExit={() => { setIsStudyingDifficult(false); fetchDifficult(); }} 
+              />
+            ) : loadingDifficult ? (
               <div className="flex justify-center items-center py-20">
                 <Loader2 className="w-10 h-10 animate-spin text-[#f4f1e0]" />
               </div>
             ) : difficultCards.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="w-20 h-20 bg-[#f4f1e0]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Brain className="w-10 h-10 text-[#f4f1e0]/60" />
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-20">
+                <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                  <Brain className="w-10 h-10 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-[#f4f1e0] mb-2">Harika!</h3>
+                <h3 className="text-2xl font-bold text-[#f4f1e0] mb-2">Harika!</h3>
                 <p className="text-[#f4f1e0]/60 max-w-md mx-auto">Şu anda zorlandığınız bir kart yok. Tüm kartları iyi biliyorsunuz.</p>
-              </div>
+              </motion.div>
             ) : (
-              <div className="max-w-3xl mx-auto space-y-4">
-                {difficultCards.map((card, idx) => (
-                  <motion.div
-                    key={card.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.06 }}
-                    className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.06)] hover:shadow-[0_4px_30px_rgb(0,0,0,0.1)] transition-all group border-l-4 border-[#011133]"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xs font-bold text-[#23335c]/60 bg-[#011133]/5 px-2.5 py-1 rounded-full">{card.set_title}</span>
-                          {card.last_reviewed && (
-                            <span className="text-xs text-gray-400">Son tekrar: {new Date(card.last_reviewed).toLocaleDateString('tr-TR')}</span>
-                          )}
-                        </div>
-                        <p className="text-[#011133] font-semibold text-lg mb-2">{card.front}</p>
-                        <p className="text-gray-500 text-sm mb-3">{card.back}</p>
-                        {card.extra_notes && (
-                          <p className="text-xs text-gray-400 bg-gray-50 p-3 rounded-xl">{card.extra_notes}</p>
-                        )}
+              <div className="max-w-3xl mx-auto">
+                {/* Summary */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }} 
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-r from-[#1d2f5e]/80 to-[#23335c]/80 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-[#f4f1e0]/10"
+                >
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-[#f4f1e0]/10 flex items-center justify-center">
+                        <Flame className="w-6 h-6 text-orange-400" />
                       </div>
-                      <Button
-                        onClick={() => router.push(`/flashcard/${card.set_id}?mode=study`)}
-                        className="bg-gradient-to-r from-[#011133] to-[#23335c] text-[#f4f1e0] hover:from-[#0b1f4d] hover:to-[#2d3e6b] rounded-xl h-10 px-5 shrink-0"
-                      >
-                        <Play className="w-4 h-4 mr-1.5" /> Tekrar Et
-                      </Button>
+                      <div>
+                        <p className="text-[#f4f1e0] font-bold text-xl">{difficultCards.length} zor kart</p>
+                        <p className="text-[#f4f1e0]/60 text-sm">Tekrar etmeyi bekliyor</p>
+                      </div>
                     </div>
-                  </motion.div>
-                ))}
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="flex items-center gap-2 text-[#f4f1e0]/70">
+                        <TrendingDown className="w-4 h-4" />
+                        <span>Ort. zorluk: {(difficultCards.reduce((acc, c) => acc + c.ease_factor, 0) / difficultCards.length).toFixed(1)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[#f4f1e0]/70">
+                        <Clock className="w-4 h-4" />
+                        <span>{new Set(difficultCards.map(c => c.set_id)).size} farklı set</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Big CTA Button */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8">
+                  <Button 
+                    onClick={() => setIsStudyingDifficult(true)}
+                    className="w-full h-16 bg-gradient-to-r from-orange-500 via-red-500 to-rose-600 hover:from-orange-600 hover:via-red-600 hover:to-rose-700 text-white rounded-2xl text-lg font-bold shadow-xl shadow-red-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <Flame className="w-6 h-6 mr-3" />
+                    Zor Kartları Çalışmaya Başla
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </motion.div>
+
+                {/* Preview List */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-[#f4f1e0]/60 uppercase tracking-wider mb-4">Zorlandığınız Kartlar</h3>
+                  {difficultCards.map((card, idx) => (
+                    <motion.div
+                      key={card.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.04 }}
+                      className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.06)] hover:shadow-[0_4px_30px_rgb(0,0,0,0.1)] transition-all border-l-4 border-orange-400 hover:translate-x-1"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-bold text-[#23335c]/60 bg-[#011133]/5 px-2.5 py-1 rounded-full">{card.set_title}</span>
+                            {card.last_reviewed && (
+                              <span className="text-xs text-gray-400">{new Date(card.last_reviewed).toLocaleDateString('tr-TR')}</span>
+                            )}
+                          </div>
+                          <p className="text-[#011133] font-semibold mb-1 truncate">{card.front}</p>
+                          <p className="text-gray-500 text-sm truncate">{card.back}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                            card.ease_factor <= 1.5 ? 'bg-red-100 text-red-700' :
+                            card.ease_factor <= 2.0 ? 'bg-orange-100 text-orange-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            Zorluk: {card.ease_factor.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             )}
           </TabsContent>

@@ -341,6 +341,9 @@ async def get_test(
     db: Session = Depends(get_db)
 ):
     """Get test details with questions (without correct answers for taking)."""
+    if test_id == "stats":
+        return await get_user_test_stats(current_user, db)
+        
     user_uuid = uuid.UUID(current_user.get("sub"))
     test_uuid = uuid.UUID(test_id)
 

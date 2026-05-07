@@ -492,7 +492,7 @@ export default function LibraryPage() {
                                 </div>
                             ))}
                         </div>
-                        {selectedDocs.size > 0 && (
+                                {selectedDocs.size > 0 && (
                             <div className="mt-3 pt-3 border-t border-gray-100 flex-shrink-0 space-y-2">
                                 <Button
                                     variant="ghost"
@@ -504,6 +504,16 @@ export default function LibraryPage() {
                                     className="w-full text-gray-600 hover:text-red-600"
                                 >
                                     Tümünü Temizle
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleStartMultiChat}
+                                    disabled={selectedDocIds.size < 2}
+                                    className="w-full border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    Chatbot ile Çalış
                                 </Button>
                                 {accessToken && (
                                     <CreateTestFromLibraryModal

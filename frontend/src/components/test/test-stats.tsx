@@ -13,14 +13,17 @@ interface TestStatsProps {
 }
 
 export function TestStats({ stats }: TestStatsProps) {
+  if (!stats) return null;
+
   const radius = 36
   const circumference = 2 * Math.PI * radius
-  const offset = circumference - (stats.average_percentage / 100) * circumference
+  const average_percentage = stats.average_percentage || 0
+  const offset = circumference - (average_percentage / 100) * circumference
 
-  const totalAnswered = stats.total_correct + stats.total_wrong + stats.total_empty
-  const correctPct = totalAnswered > 0 ? (stats.total_correct / totalAnswered) * 100 : 0
-  const wrongPct = totalAnswered > 0 ? (stats.total_wrong / totalAnswered) * 100 : 0
-  const emptyPct = totalAnswered > 0 ? (stats.total_empty / totalAnswered) * 100 : 0
+  const totalAnswered = (stats.total_correct || 0) + (stats.total_wrong || 0) + (stats.total_empty || 0)
+  const correctPct = totalAnswered > 0 ? ((stats.total_correct || 0) / totalAnswered) * 100 : 0
+  const wrongPct = totalAnswered > 0 ? ((stats.total_wrong || 0) / totalAnswered) * 100 : 0
+  const emptyPct = totalAnswered > 0 ? ((stats.total_empty || 0) / totalAnswered) * 100 : 0
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

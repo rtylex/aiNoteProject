@@ -324,6 +324,16 @@ async def list_public_tests(
     return get_public_tests(db, limit, offset)
 
 
+@router.get("/stats")
+async def get_user_test_stats(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get comprehensive test statistics for the current user."""
+    user_uuid = uuid.UUID(current_user.get("sub"))
+    return get_test_stats(db, user_uuid)
+
+
 @router.get("/{test_id}")
 async def get_test(
     test_id: str,
@@ -401,14 +411,6 @@ class TestExplainRequest(BaseModel):
     user_answer: str | None = Field(default=None)
 
 
-@router.get("/stats")
-async def get_user_test_stats(
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get comprehensive test statistics for the current user."""
-    user_uuid = uuid.UUID(current_user.get("sub"))
-    return get_test_stats(db, user_uuid)
 
 
 @router.get("/{test_id}/attempts")

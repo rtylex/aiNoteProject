@@ -119,7 +119,7 @@ export default function TestsPage() {
         ) : (
           <>
             {/* Stats */}
-            {stats && (
+            {stats && stats.total_tests > 0 && (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
                 <TestStats stats={stats} />
               </motion.div>
@@ -140,13 +140,13 @@ export default function TestsPage() {
               </TabsList>
 
               <TabsContent value="all">
-                <TestGrid tests={tests} onDelete={fetchTests} />
+                <TestGrid key="grid-all" tests={tests} onDelete={fetchTests} />
               </TabsContent>
               <TabsContent value="inprogress">
-                <TestGrid tests={inProgressTests} onDelete={fetchTests} />
+                <TestGrid key="grid-inprogress" tests={inProgressTests} onDelete={fetchTests} />
               </TabsContent>
               <TabsContent value="completed">
-                <TestGrid tests={completedTests} onDelete={fetchTests} />
+                <TestGrid key="grid-completed" tests={completedTests} onDelete={fetchTests} />
               </TabsContent>
             </Tabs>
           </>
@@ -159,7 +159,7 @@ export default function TestsPage() {
 function TestGrid({ tests, onDelete }: { tests: TestItem[]; onDelete: () => void }) {
   const router = useRouter()
 
-  if (tests.length === 0) {
+  if (!tests || tests.length === 0) {
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
         <Card className="max-w-lg mx-auto border-dashed border-2 border-[#f4f1e0]/20 bg-transparent">

@@ -58,7 +58,10 @@ export function PDFViewer({ documentId, onHide, onLoadComplete }: PDFViewerProps
             }
 
             const data = await res.json()
-            setFileUrl(data.file_url)
+            const fullUrl = data.file_url.startsWith('http') 
+                ? data.file_url 
+                : `${API_BASE_URL}${data.file_url}`;
+            setFileUrl(fullUrl)
             setError(null)
         } catch (err) {
             // Don't set error if request was aborted

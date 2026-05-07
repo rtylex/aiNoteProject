@@ -1079,7 +1079,9 @@ export default function AdminPage() {
                     <div className="flex-1 h-full min-h-0">
                         {previewDoc && (
                             <iframe
-                                src={`${previewDoc.file_url}#toolbar=0`}
+                                src={previewDoc.file_url.startsWith('http') 
+                                    ? `${previewDoc.file_url}#toolbar=0` 
+                                    : `${API_BASE_URL}${previewDoc.file_url}#toolbar=0`}
                                 className="w-full h-[60vh] rounded-lg border"
                                 title="PDF Preview"
                             />

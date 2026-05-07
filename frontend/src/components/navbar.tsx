@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { BookOpen, LogOut, Library, Shield, Menu, X, Home, FolderOpen, Users } from 'lucide-react'
+import { BookOpen, LogOut, Library, Shield, Menu, X, Home, FolderOpen, Users, ClipboardList } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
     DropdownMenu,
@@ -39,6 +39,7 @@ export function Navbar() {
             { href: '/', label: 'Ana Sayfa' },
             { href: '/dashboard', label: 'Kütüphanem' },
             { href: '/flashcard', label: 'Flashcard' },
+            { href: '/test', label: 'Testlerim' },
             { href: '/library', label: 'Topluluk' }
         ]
         : [
@@ -57,7 +58,7 @@ export function Navbar() {
     }
 
     const getMobileLinkClassName = (href: string) => {
-        const isActive = pathname === href || (href === '/dashboard' && pathname?.startsWith('/dashboard')) || (href === '/flashcard' && pathname?.startsWith('/flashcard'))
+        const isActive = pathname === href || (href === '/dashboard' && pathname?.startsWith('/dashboard')) || (href === '/flashcard' && pathname?.startsWith('/flashcard')) || (href === '/test' && pathname?.startsWith('/test'))
         return `flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition-all ${isActive
             ? 'bg-[#d9dff0] text-[#011133]'
             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -72,6 +73,10 @@ export function Navbar() {
             }
             if (pathname?.startsWith('/flashcard')) {
                 setActiveDesktopHref('/flashcard')
+                return
+            }
+            if (pathname?.startsWith('/test')) {
+                setActiveDesktopHref('/test')
                 return
             }
             if (pathname === '/library') {
@@ -241,6 +246,16 @@ export function Navbar() {
                                 Flashcard
                             </Link>
                             <Link
+                                href="/test"
+                                className={getLinkClassName('/test')}
+                                aria-current={activeDesktopHref === '/test' ? 'page' : undefined}
+                                ref={(el) => {
+                                    linkRefs.current['/test'] = el
+                                }}
+                            >
+                                Testlerim
+                            </Link>
+                            <Link
                                 href="/library"
                                 className={getLinkClassName('/library')}
                                 aria-current={activeDesktopHref === '/library' ? 'page' : undefined}
@@ -385,6 +400,14 @@ export function Navbar() {
                                 >
                                     <BookOpen className="h-5 w-5" />
                                     Flashcard
+                                </Link>
+                                <Link
+                                    href="/test"
+                                    className={getMobileLinkClassName('/test')}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    <ClipboardList className="h-5 w-5" />
+                                    Testlerim
                                 </Link>
                                 <Link
                                     href="/library"

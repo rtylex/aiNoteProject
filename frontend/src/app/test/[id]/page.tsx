@@ -4,10 +4,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { QuestionCard } from '@/components/test/question-card'
-import { TestResult } from '@/components/test/test-result'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { Loader2, ArrowLeft, ClipboardList, Play, RotateCcw, Share2, Brain, Lightbulb, Clock, TrendingUp, ChevronRight } from 'lucide-react'
+import { Loader2, ArrowLeft, ClipboardList, Play, RotateCcw, Share2, Brain, Lightbulb, Clock, TrendingUp, ChevronRight, CheckCircle, XCircle } from 'lucide-react'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
 import { TestStats } from '@/components/test/test-stats'
@@ -240,54 +239,198 @@ export default function TestPage() {
 
   // RESULT VIEW
   if (submitResult) {
+    const wrongQuestions = submitResult.questions.filter(q => !q.is_correct)
+    const correctQuestions = submitResult.questions.filter(q => q.is_correct)
+    const percentage = submitResult.percentage
+    const getGradeEmoji = (pct: number) => {
+      if (pct >= 90) return '🌟'
+      if (pct >= 80) return '🎉'
+      if (pct >= 70) return '👏'
+      if (pct >= 60) return '💪'
+      return '📚'
+    }
+    const getGradeText = (pct: number) => {
+      if (pct >= 90) return 'Mükemmel!'
+      if (pct >= 80) return 'Çok İyi!'
+      if (pct >= 70) return 'İyi!'
+      if (pct >= 60) return 'Başarılı'
+      return 'Geliştirilmeli'
+    }
+
     return (
       <div className="min-h-screen w-full bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
         <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(244,241,224,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(244,241,224,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-        <div className="relative container mx-auto py-10 px-4 max-w-5xl">
-          <Button variant="ghost" onClick={() => router.push('/test')} className="gap-2 mb-6 text-[#f4f1e0]/70 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10">
+        <div className="relative container mx-auto py-10 px-4 max-w-6xl">
+          {/* Back Button */}
+          <Button variant="ghost" onClick={() => router.push('/test')} className="gap-2 mb-8 text-[#f4f1e0]/70 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10 rounded-full">
             <ArrowLeft className="w-4 h-4" /> Testlerime Dön
           </Button>
 
-          <TestResult
-            testId={submitResult.test_id}
-            score={submitResult.score}
-            total={submitResult.total}
-            percentage={submitResult.percentage}
-            questions={submitResult.questions}
-          />
+          {/* Hero Banner with Score */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative bg-gradient-to-r from-[#1d2f5e] to-[#23335c] rounded-3xl p-8 md:p-12 mb-10 border border-[#f4f1e0]/10 shadow-2xl overflow-hidden text-center"
+          >
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[#f4f1e0]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#f4f1e0]/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+            <div className="relative z-10">
+              <div className="text-6xl md:text-7xl mb-4">{getGradeEmoji(percentage)}</div>
+              <h1 className="text-3xl md:text-4xl font-bold text-[#f4f1e0] mb-2">Test Tamamlandı!</h1>
+              <p className="text-xl text-[#f4f1e0]/60 mb-8">{getGradeText(percentage)}</p>
 
-          {/* AI Explanation for wrong answers */}
-          <div className="mt-12 max-w-3xl mx-auto">
-            <h2 className="text-xl font-bold text-[#011133] mb-6 flex items-center gap-2">
-              <Brain className="w-5 h-5 text-[#011133]/60" /> AI Detaylı Analiz
-            </h2>
-            <div className="space-y-4">
-              {submitResult.questions.filter(q => !q.is_correct).map((q) => (
-                <motion.div
-                  key={q.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.06)] border-l-4 border-red-400"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs font-bold text-red-600 bg-red-100 px-2.5 py-1 rounded-full">Soru {q.order_num}</span>
-                    <span className="text-xs text-gray-400">Doğru: {q.correct_answer} | Siz: {q.user_answer || 'Boş'}</span>
-                  </div>
-                  <p className="text-[#011133] font-medium mb-4">{q.question_text}</p>
-                  <AiExplanationPanel testId={testId} questionId={q.id} userAnswer={q.user_answer} />
-                </motion.div>
-              ))}
-              {submitResult.questions.filter(q => !q.is_correct).length === 0 && (
-                <div className="text-center py-10">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Brain className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-[#011133]">Tebrikler!</h3>
-                  <p className="text-gray-500">Tüm soruları doğru cevapladınız. AI analizi gerekmiyor.</p>
+              {/* Score Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+                <div className="bg-[#f4f1e0]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#f4f1e0]/10">
+                  <div className="text-3xl md:text-4xl font-bold text-[#f4f1e0]">{submitResult.score}</div>
+                  <div className="text-sm text-[#f4f1e0]/60 mt-1">Doğru</div>
                 </div>
-              )}
+                <div className="bg-[#f4f1e0]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#f4f1e0]/10">
+                  <div className="text-3xl md:text-4xl font-bold text-red-400">{submitResult.total - submitResult.score}</div>
+                  <div className="text-sm text-[#f4f1e0]/60 mt-1">Yanlış</div>
+                </div>
+                <div className="bg-[#f4f1e0]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#f4f1e0]/10">
+                  <div className="text-3xl md:text-4xl font-bold text-[#f4f1e0]">{submitResult.total}</div>
+                  <div className="text-sm text-[#f4f1e0]/60 mt-1">Toplam</div>
+                </div>
+                <div className="bg-gradient-to-br from-[#f4f1e0] to-[#e7d9a8] rounded-2xl p-5 shadow-lg">
+                  <div className="text-3xl md:text-4xl font-bold text-[#011133]">%{percentage}</div>
+                  <div className="text-sm text-[#011133]/60 mt-1">Başarı</div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-center mt-8 flex-wrap">
+                <Link href={`/test/${testId}?retry=true`}>
+                  <Button className="bg-[#f4f1e0] text-[#011133] hover:bg-[#e7d9a8] rounded-full px-6 h-11 font-semibold">
+                    <RotateCcw className="w-4 h-4 mr-2" /> Testi Tekrar Çöz
+                  </Button>
+                </Link>
+                <Button variant="outline" className="border-[#f4f1e0]/20 text-[#f4f1e0] hover:bg-[#f4f1e0]/10 rounded-full px-6 h-11">
+                  <Share2 className="w-4 h-4 mr-2" /> Paylaş
+                </Button>
+              </div>
             </div>
+          </motion.div>
+
+          {/* Questions Detail */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-[#f4f1e0] mb-2 flex items-center gap-2">
+              <Lightbulb className="w-6 h-6 text-[#f4f1e0]/60" /> Soru Detayları
+            </h2>
+            <p className="text-[#f4f1e0]/50">Her sorunun cevabını ve açıklamasını inceleyin</p>
           </div>
+
+          <div className="space-y-6">
+            {submitResult.questions.map((q, idx) => (
+              <motion.div
+                key={q.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className={`bg-white/95 backdrop-blur-sm rounded-3xl border-0 shadow-[0_8px_30px_rgb(0,0,0,0.08)] overflow-hidden ${
+                  q.is_correct ? 'border-l-[6px] border-green-500' : 'border-l-[6px] border-red-500'
+                }`}
+              >
+                {/* Card Header */}
+                <div className={`px-6 py-4 flex items-center justify-between ${
+                  q.is_correct ? 'bg-green-50/50' : 'bg-red-50/50'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      q.is_correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                    }`}>
+                      {q.is_correct ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                    </div>
+                    <div>
+                      <span className="text-sm font-bold text-[#011133]">Soru {q.order_num}</span>
+                      <span className={`ml-3 text-xs px-2.5 py-1 rounded-full font-medium ${
+                        q.is_correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {q.is_correct ? 'Doğru' : q.user_answer ? 'Yanlış' : 'Boş'}
+                      </span>
+                    </div>
+                  </div>
+                  {!q.is_correct && (
+                    <div className="text-sm text-gray-500">
+                      Doğru: <span className="font-bold text-green-600">{q.correct_answer}</span>
+                      {q.user_answer && <span className="ml-3">Siz: <span className="font-bold text-red-500">{q.user_answer}</span></span>}
+                    </div>
+                  )}
+                </div>
+
+                {/* Card Body */}
+                <div className="p-6">
+                  <p className="text-[#011133] font-semibold text-lg mb-4 leading-relaxed">{q.question_text}</p>
+
+                  {/* Options */}
+                  <div className="space-y-2 mb-5">
+                    {q.options.map((opt, optIdx) => {
+                      const letter = String.fromCharCode(65 + optIdx)
+                      const isCorrect = letter === q.correct_answer
+                      const isUserWrong = letter === q.user_answer && !q.is_correct
+                      return (
+                        <div
+                          key={letter}
+                          className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
+                            isCorrect ? 'border-green-500 bg-green-50' :
+                            isUserWrong ? 'border-red-400 bg-red-50' :
+                            'border-gray-100 bg-gray-50/50'
+                          }`}
+                        >
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
+                            isCorrect ? 'bg-green-500 text-white' :
+                            isUserWrong ? 'bg-red-500 text-white' :
+                            'bg-gray-200 text-gray-600'
+                          }`}>
+                            {letter}
+                          </div>
+                          <span className={`flex-1 ${
+                            isCorrect ? 'text-green-800 font-medium' :
+                            isUserWrong ? 'text-red-800' :
+                            'text-gray-600'
+                          }`}>
+                            {opt.replace(/^[A-D]\)\s*/, '')}
+                          </span>
+                          {isCorrect && <CheckCircle className="w-5 h-5 text-green-500" />}
+                          {isUserWrong && <XCircle className="w-5 h-5 text-red-500" />}
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Explanation */}
+                  {q.explanation && (
+                    <div className={`p-4 rounded-xl mb-4 ${
+                      q.is_correct ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+                    }`}>
+                      <span className="font-semibold">Açıklama: </span>{q.explanation}
+                    </div>
+                  )}
+
+                  {/* AI Explanation Button for wrong answers */}
+                  {!q.is_correct && (
+                    <AiExplanationPanel testId={testId} questionId={q.id} userAnswer={q.user_answer} />
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Empty State if all correct */}
+          {wrongQuestions.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-16"
+            >
+              <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                <Brain className="w-12 h-12 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#f4f1e0] mb-2">Mükemmel Performans!</h3>
+              <p className="text-[#f4f1e0]/60 max-w-md mx-auto">Tüm soruları doğru cevapladınız. AI analizi gerekmiyor, harika iş çıkardınız!</p>
+            </motion.div>
+          )}
         </div>
       </div>
     )

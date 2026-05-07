@@ -14,6 +14,7 @@ import remarkGfm from 'remark-gfm'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
 import { CreateTestModal } from '@/components/test/create-test-modal'
+import { CreateFlashcardModal } from '@/components/flashcard/create-flashcard-modal'
 
 interface Message {
     id: number | string
@@ -515,23 +516,27 @@ function MultiChatContent() {
                                                     </div>
                                                 </div>
                                             ))}
-                                            {sessionId && (
-                                                <div className="pt-2 border-t border-indigo-100">
-                                                    <CreateTestModal
-                                                        sessionId={sessionId}
-                                                        sessionTitle={sessionTitle}
-                                                        suggestedQuestionCount={15}
-                                                    />
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                                {sessionId && (
+                                    <div className="pt-2 border-t border-indigo-100 flex flex-col gap-2">
+                                        <CreateTestModal
+                                            sessionId={sessionId}
+                                            sessionTitle={sessionTitle}
+                                            suggestedQuestionCount={15}
+                                        />
+                                        <CreateFlashcardModal
+                                            sessionId={sessionId}
+                                            sessionTitle={sessionTitle}
+                                        />
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
 
-                    {/* Sidebar - Selected Documents (Desktop) */}
+        {/* Sidebar - Selected Documents (Desktop) */}
                     <div className="hidden lg:block lg:col-span-1">
                         <Card className="sticky top-24 bg-white/80 backdrop-blur-xl border-white/50 shadow-lg">
                             <CardHeader className="pb-3">
@@ -557,11 +562,15 @@ function MultiChatContent() {
                                     </div>
                                 ))}
                                 {sessionId && (
-                                    <div className="pt-3 border-t border-indigo-100/50">
+                                    <div className="pt-3 border-t border-indigo-100/50 flex flex-col gap-2">
                                         <CreateTestModal
                                             sessionId={sessionId}
                                             sessionTitle={sessionTitle}
                                             suggestedQuestionCount={15}
+                                        />
+                                        <CreateFlashcardModal
+                                            sessionId={sessionId}
+                                            sessionTitle={sessionTitle}
                                         />
                                     </div>
                                 )}

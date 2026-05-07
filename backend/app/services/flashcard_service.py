@@ -86,6 +86,32 @@ def extract_session_content(db: Session, session_id: uuid.UUID) -> str:
     return "\n\n---\n\n".join(contents) if contents else ""
 
 
+def extract_public_documents_content(db: Session, document_ids: list[uuid.UUID]) -> str:
+    """Extract combined content from multiple public documents (for library multi-select)."""
+    from app.models.document import Document
+
+    contents = []
+
+    for doc_id in document_ids:
+        doc = db.query(Document).filter(Document.id == doc_id).first()
+        if not doc:
+            continue
+
+        doc_embeddings = db.query(DocumentEmbedding).filter(
+            DocumentEmbedding.document_id == doc_id
+        ).order_by(DocumentEmbedding.page_number).all()
+
+        content_parts = []
+        for emb in doc_embeddings:
+            if emb.content:
+                content_parts.append(emb.content)
+
+        if content_parts:
+            contents.append(f"--- {doc.title} ---\n\n" + "\n\n".join(content_parts))
+
+    return "\n\n---\n\n".join(contents) if contents else ""
+
+
 def suggest_card_count(document_content: str) -> int:
     """Suggest card count based on document length. Min: 5, Max: 50."""
     char_count = len(document_content)

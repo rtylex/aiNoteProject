@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
 import { CreateTestFromLibraryModal } from '@/components/test/create-test-from-library-modal'
+import { CreateFlashcardFromLibraryModal } from '@/components/flashcard/create-flashcard-from-library-modal'
 
 import {
     BookOpen,
@@ -399,8 +400,12 @@ export default function LibraryPage() {
                             })}
                         </span>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-2">
                         <CreateTestFromLibraryModal
+                            documentIds={[doc.id]}
+                            documentTitles={[doc.title]}
+                        />
+                        <CreateFlashcardFromLibraryModal
                             documentIds={[doc.id]}
                             documentTitles={[doc.title]}
                         />
@@ -482,6 +487,12 @@ export default function LibraryPage() {
                                 documentTitles={Array.from(selectedDocs.values()).map(v => v.title)}
                             />
                         )}
+                        {accessToken && (
+                            <CreateFlashcardFromLibraryModal
+                                documentIds={Array.from(selectedDocIds)}
+                                documentTitles={Array.from(selectedDocs.values()).map(v => v.title)}
+                            />
+                        )}
                     </div>
                 )}
 
@@ -523,6 +534,12 @@ export default function LibraryPage() {
                                 </Button>
                                 {accessToken && (
                                     <CreateTestFromLibraryModal
+                                        documentIds={Array.from(selectedDocIds)}
+                                        documentTitles={Array.from(selectedDocs.values()).map(v => v.title)}
+                                    />
+                                )}
+                                {accessToken && (
+                                    <CreateFlashcardFromLibraryModal
                                         documentIds={Array.from(selectedDocIds)}
                                         documentTitles={Array.from(selectedDocs.values()).map(v => v.title)}
                                     />

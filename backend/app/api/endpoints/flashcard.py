@@ -16,6 +16,7 @@ from app.models.flashcard import FlashcardSet
 from app.services.flashcard_service import (
     extract_document_content,
     extract_session_content,
+    extract_public_documents_content,
     generate_flashcards,
     create_flashcard_set,
     list_user_sets,
@@ -45,6 +46,11 @@ class FlashcardGenerateRequest(BaseModel):
 class FlashcardGenerateFromSessionRequest(BaseModel):
     session_id: str = Field(..., min_length=1)
     card_count: int = Field(default=25, ge=5, le=50)
+
+
+class FlashcardGenerateFromLibraryRequest(BaseModel):
+    document_ids: list[str] = Field(..., min_length=1, max_length=10)
+    card_count: int = Field(default=20, ge=5, le=50)
 
 
 class FlashcardCreateRequest(BaseModel):
@@ -190,6 +196,78 @@ async def generate_flashcards_from_session(
         user_id=user_uuid,
         document_id=None,
         session_id=session_uuid,
+        title=title,
+        description=None,
+        cards_data=cards_data
+    )
+
+    response = {
+        "set_id": str(flashcard_set.id),
+        "title": flashcard_set.title,
+        "card_count": flashcard_set.card_count,
+        "cards": [
+            {
+                "id": str(card.id),
+                "front": card.front,
+                "back": card.back,
+                "order": card.order_num
+            }
+            for card in flashcard_set.cards
+        ]
+    }
+
+    if is_partial:
+        response["warning"] = f"{request.card_count} kart istendi ama {len(cards_data)} kart üretilebildi. Kısmi sonuç gösteriliyor."
+
+    return response
+
+
+@router.post("/generate-from-library")
+async def generate_flashcards_from_library(
+    request: FlashcardGenerateFromLibraryRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate flashcards from multiple public documents selected in the community library."""
+    user_uuid = uuid.UUID(current_user.get("sub"))
+
+    check_and_use_query_limit(user_uuid, db)
+
+    doc_uuids = [uuid.UUID(doc_id) for doc_id in request.document_ids]
+
+    for doc_uuid in doc_uuids:
+        doc = db.query(Document).filter(
+            Document.id == doc_uuid,
+            Document.visibility == "public",
+            Document.is_approved == True,
+            Document.status == "completed"
+        ).first()
+        if not doc:
+            raise HTTPException(status_code=404, detail=f"Döküman bulunamadı veya erişim yetkiniz yok: {doc_uuid}")
+
+    try:
+        content = extract_public_documents_content(db, doc_uuids)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if not content:
+        raise HTTPException(status_code=400, detail="Seçili dökümanlardan içerik çıkarılamadı")
+
+    try:
+        result = await generate_flashcards(content, request.card_count)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    cards_data = result["cards"]
+    is_partial = result.get("partial", False)
+
+    title = f"Kütüphane - {len(doc_uuids)} Döküman Flashcard"
+
+    flashcard_set = create_flashcard_set(
+        db=db,
+        user_id=user_uuid,
+        document_id=None,
+        session_id=None,
         title=title,
         description=None,
         cards_data=cards_data

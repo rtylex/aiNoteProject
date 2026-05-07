@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { QuestionCard } from '@/components/test/question-card'
 import { Button } from '@/components/ui/button'

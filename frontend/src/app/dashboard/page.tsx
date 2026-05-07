@@ -462,8 +462,9 @@ export default function DashboardPage() {
                                                 </div>
                                             </CardContent>
                                         </Link>
-                                        <div className="px-6 pb-4">
+                                        <div className="px-6 pb-4 flex flex-col gap-2">
                                             <CreateFlashcardModal sessionId={session.id} sessionTitle={session.title} />
+                                            <CreateTestModal sessionId={session.id} sessionTitle={session.title} suggestedQuestionCount={15} />
                                         </div>
                                         <Button
                                             variant="ghost"

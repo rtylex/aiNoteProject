@@ -6,14 +6,10 @@ import Link from 'next/link'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { QuestionCard } from '@/components/test/question-card'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { Loader2, ArrowLeft, ClipboardList, Play, RotateCcw, Share2, Brain, Lightbulb, Clock, TrendingUp, ChevronRight, CheckCircle, XCircle } from 'lucide-react'
+import { Loader2, ArrowLeft, ClipboardList, RotateCcw, Share2, Lightbulb, ChevronRight, CheckCircle, XCircle, ChevronDown } from 'lucide-react'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
-import { TestStats } from '@/components/test/test-stats'
-import { TestAttemptHistory } from '@/components/test/test-attempt-history'
 import { AiExplanationPanel } from '@/components/test/ai-explanation-panel'
-import { DeleteTestDialog } from '@/components/test/delete-test-dialog'
 
 interface Question {
   id: string
@@ -240,9 +236,16 @@ export default function TestPage() {
 
   // RESULT VIEW
   if (submitResult) {
+    const [activeTab, setActiveTab] = useState<'all' | 'correct' | 'wrong'>('wrong')
+    const [openQuestionId, setOpenQuestionId] = useState<string | null>(null)
     const wrongQuestions = submitResult.questions.filter(q => !q.is_correct)
     const correctQuestions = submitResult.questions.filter(q => q.is_correct)
     const percentage = submitResult.percentage
+
+    const filteredQuestions = activeTab === 'all' ? submitResult.questions :
+      activeTab === 'correct' ? correctQuestions :
+      wrongQuestions
+
     const getGradeEmoji = (pct: number) => {
       if (pct >= 90) return '🌟'
       if (pct >= 80) return '🎉'
@@ -256,6 +259,10 @@ export default function TestPage() {
       if (pct >= 70) return 'İyi!'
       if (pct >= 60) return 'Başarılı'
       return 'Geliştirilmeli'
+    }
+
+    const toggleQuestion = (questionId: string) => {
+      setOpenQuestionId(prev => prev === questionId ? null : questionId)
     }
 
     return (
@@ -314,124 +321,167 @@ export default function TestPage() {
             </div>
           </motion.div>
 
-          {/* Questions Detail */}
+          {/* Questions Detail with Tabs + Accordion */}
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-[#f4f1e0] mb-2 flex items-center gap-2">
               <Lightbulb className="w-6 h-6 text-[#f4f1e0]/60" /> Soru Detayları
             </h2>
-            <p className="text-[#f4f1e0]/50">Her sorunun cevabını ve açıklamasını inceleyin</p>
+            <p className="text-[#f4f1e0]/50">İncelemek istediğiniz soruyu seçin</p>
           </div>
 
-          <div className="space-y-6">
-            {submitResult.questions.map((q, idx) => (
-              <motion.div
-                key={q.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className={`bg-white/95 backdrop-blur-sm rounded-3xl border-0 shadow-[0_8px_30px_rgb(0,0,0,0.08)] overflow-hidden ${
-                  q.is_correct ? 'border-l-[6px] border-green-500' : 'border-l-[6px] border-red-500'
+          {/* Tabs */}
+          <div className="flex gap-2 mb-8 bg-[#f4f1e0]/10 backdrop-blur-sm rounded-full p-1.5 w-fit border border-[#f4f1e0]/10">
+            {[
+              { key: 'all', label: 'Tümü', count: submitResult.questions.length },
+              { key: 'correct', label: 'Doğru', count: correctQuestions.length },
+              { key: 'wrong', label: 'Yanlış', count: wrongQuestions.length }
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => { setActiveTab(tab.key as any); setOpenQuestionId(null) }}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+                  activeTab === tab.key
+                    ? 'bg-[#f4f1e0] text-[#011133] shadow-lg'
+                    : 'text-[#f4f1e0]/70 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10'
                 }`}
               >
-                {/* Card Header */}
-                <div className={`px-6 py-4 flex items-center justify-between ${
-                  q.is_correct ? 'bg-green-50/50' : 'bg-red-50/50'
+                {tab.label}
+                <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${
+                  activeTab === tab.key ? 'bg-[#011133]/10 text-[#011133]' : 'bg-[#f4f1e0]/10 text-[#f4f1e0]'
                 }`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      q.is_correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                    }`}>
-                      {q.is_correct ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-                    </div>
-                    <div>
-                      <span className="text-sm font-bold text-[#011133]">Soru {q.order_num}</span>
-                      <span className={`ml-3 text-xs px-2.5 py-1 rounded-full font-medium ${
-                        q.is_correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {q.is_correct ? 'Doğru' : q.user_answer ? 'Yanlış' : 'Boş'}
-                      </span>
-                    </div>
-                  </div>
-                  {!q.is_correct && (
-                    <div className="text-sm text-gray-500">
-                      Doğru: <span className="font-bold text-green-600">{q.correct_answer}</span>
-                      {q.user_answer && <span className="ml-3">Siz: <span className="font-bold text-red-500">{q.user_answer}</span></span>}
-                    </div>
-                  )}
-                </div>
-
-                {/* Card Body */}
-                <div className="p-6">
-                  <p className="text-[#011133] font-semibold text-lg mb-4 leading-relaxed">{q.question_text}</p>
-
-                  {/* Options */}
-                  <div className="space-y-2 mb-5">
-                    {q.options.map((opt, optIdx) => {
-                      const letter = String.fromCharCode(65 + optIdx)
-                      const isCorrect = letter === q.correct_answer
-                      const isUserWrong = letter === q.user_answer && !q.is_correct
-                      return (
-                        <div
-                          key={letter}
-                          className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
-                            isCorrect ? 'border-green-500 bg-green-50' :
-                            isUserWrong ? 'border-red-400 bg-red-50' :
-                            'border-gray-100 bg-gray-50/50'
-                          }`}
-                        >
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
-                            isCorrect ? 'bg-green-500 text-white' :
-                            isUserWrong ? 'bg-red-500 text-white' :
-                            'bg-gray-200 text-gray-600'
-                          }`}>
-                            {letter}
-                          </div>
-                          <span className={`flex-1 ${
-                            isCorrect ? 'text-green-800 font-medium' :
-                            isUserWrong ? 'text-red-800' :
-                            'text-gray-600'
-                          }`}>
-                            {opt.replace(/^[A-D]\)\s*/, '')}
-                          </span>
-                          {isCorrect && <CheckCircle className="w-5 h-5 text-green-500" />}
-                          {isUserWrong && <XCircle className="w-5 h-5 text-red-500" />}
-                        </div>
-                      )
-                    })}
-                  </div>
-
-                  {/* Explanation */}
-                  {q.explanation && (
-                    <div className={`p-4 rounded-xl mb-4 ${
-                      q.is_correct ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
-                    }`}>
-                      <span className="font-semibold">Açıklama: </span>{q.explanation}
-                    </div>
-                  )}
-
-                  {/* AI Explanation Button for wrong answers */}
-                  {!q.is_correct && (
-                    <AiExplanationPanel testId={testId} questionId={q.id} userAnswer={q.user_answer} />
-                  )}
-                </div>
-              </motion.div>
+                  {tab.count}
+                </span>
+              </button>
             ))}
           </div>
 
-          {/* Empty State if all correct */}
-          {wrongQuestions.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-16"
-            >
-              <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                <Brain className="w-12 h-12 text-white" />
+          {/* Accordion List */}
+          <div className="space-y-3">
+            {filteredQuestions.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
+                  <CheckCircle className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-[#f4f1e0] mb-2">
+                  {activeTab === 'wrong' ? 'Harika! Yanlış Soru Yok' : 'Bu Sekmede Soru Yok'}
+                </h3>
+                <p className="text-[#f4f1e0]/60">
+                  {activeTab === 'wrong' ? 'Tüm soruları doğru cevapladınız!' : 'Başka bir sekme seçin.'}
+                </p>
               </div>
-              <h3 className="text-2xl font-bold text-[#f4f1e0] mb-2">Mükemmel Performans!</h3>
-              <p className="text-[#f4f1e0]/60 max-w-md mx-auto">Tüm soruları doğru cevapladınız. AI analizi gerekmiyor, harika iş çıkardınız!</p>
-            </motion.div>
-          )}
+            ) : (
+              filteredQuestions.map((q) => {
+                const isOpen = openQuestionId === q.id
+                return (
+                  <motion.div
+                    key={q.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`bg-white/95 backdrop-blur-sm rounded-2xl border-0 shadow-[0_4px_20px_rgb(0,0,0,0.06)] overflow-hidden ${
+                      q.is_correct ? 'border-l-[5px] border-green-500' : 'border-l-[5px] border-red-500'
+                    }`}
+                  >
+                    {/* Accordion Header */}
+                    <button
+                      onClick={() => toggleQuestion(q.id)}
+                      className={`w-full px-5 py-4 flex items-center justify-between text-left transition-colors ${
+                        isOpen ? (q.is_correct ? 'bg-green-50/50' : 'bg-red-50/50') : 'hover:bg-gray-50/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          q.is_correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                        }`}>
+                          {q.is_correct ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <span className="text-sm font-bold text-[#011133]">Soru {q.order_num}</span>
+                          <span className={`ml-2 text-xs px-2 py-0.5 rounded-full font-medium ${
+                            q.is_correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {q.is_correct ? 'Doğru' : q.user_answer ? 'Yanlış' : 'Boş'}
+                          </span>
+                          {!q.is_correct && (
+                            <span className="ml-2 text-xs text-gray-400">
+                              Doğru: <span className="font-semibold text-green-600">{q.correct_answer}</span>
+                              {q.user_answer && <span> | Siz: <span className="font-semibold text-red-500">{q.user_answer}</span></span>}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                      </div>
+                    </button>
+
+                    {/* Accordion Content */}
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                        className="px-5 pb-5"
+                      >
+                        <div className="pt-2 border-t border-gray-100">
+                          <p className="text-[#011133] font-semibold text-base mb-4 mt-4 leading-relaxed">{q.question_text}</p>
+
+                          {/* Options */}
+                          <div className="space-y-2 mb-4">
+                            {q.options.map((opt, optIdx) => {
+                              const letter = String.fromCharCode(65 + optIdx)
+                              const isCorrect = letter === q.correct_answer
+                              const isUserWrong = letter === q.user_answer && !q.is_correct
+                              return (
+                                <div
+                                  key={letter}
+                                  className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
+                                    isCorrect ? 'border-green-500 bg-green-50' :
+                                    isUserWrong ? 'border-red-400 bg-red-50' :
+                                    'border-gray-100 bg-gray-50/50'
+                                  }`}
+                                >
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
+                                    isCorrect ? 'bg-green-500 text-white' :
+                                    isUserWrong ? 'bg-red-500 text-white' :
+                                    'bg-gray-200 text-gray-600'
+                                  }`}>
+                                    {letter}
+                                  </div>
+                                  <span className={`flex-1 text-sm ${
+                                    isCorrect ? 'text-green-800 font-medium' :
+                                    isUserWrong ? 'text-red-800' :
+                                    'text-gray-600'
+                                  }`}>
+                                    {opt.replace(/^[A-D]\)\s*/, '')}
+                                  </span>
+                                  {isCorrect && <CheckCircle className="w-4 h-4 text-green-500" />}
+                                  {isUserWrong && <XCircle className="w-4 h-4 text-red-500" />}
+                                </div>
+                              )
+                            })}
+                          </div>
+
+                          {/* Explanation */}
+                          {q.explanation && (
+                            <div className={`p-3 rounded-xl mb-3 text-sm ${
+                              q.is_correct ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+                            }`}>
+                              <span className="font-semibold">Açıklama: </span>{q.explanation}
+                            </div>
+                          )}
+
+                          {/* AI Explanation for wrong answers */}
+                          {!q.is_correct && (
+                            <AiExplanationPanel testId={testId} questionId={q.id} userAnswer={q.user_answer} />
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )
+              })
+            )}
+          </div>
         </div>
       </div>
     )

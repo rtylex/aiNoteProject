@@ -469,33 +469,6 @@ export default function LibraryPage() {
                     </div>
                 </div>
 
-                {/* Floating Action Buttons for Multi-Select */}
-                {isSelectMode && selectedDocIds.size >= 1 && (
-                    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex gap-3">
-                        {selectedDocIds.size >= 2 && (
-                            <Button
-                                onClick={handleStartMultiChat}
-                                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-2xl px-6 py-5 text-base rounded-full flex items-center gap-2"
-                            >
-                                <MessageSquare className="w-5 h-5" />
-                                AI Sohbet
-                            </Button>
-                        )}
-                        {accessToken && (
-                            <CreateTestFromLibraryModal
-                                documentIds={Array.from(selectedDocIds)}
-                                documentTitles={Array.from(selectedDocs.values()).map(v => v.title)}
-                            />
-                        )}
-                        {accessToken && (
-                            <CreateFlashcardFromLibraryModal
-                                documentIds={Array.from(selectedDocIds)}
-                                documentTitles={Array.from(selectedDocs.values()).map(v => v.title)}
-                            />
-                        )}
-                    </div>
-                )}
-
                 {/* Sticky Panel for Selected Documents */}
                 {isSelectMode && selectedDocs.size > 0 && (
                     <div className="fixed right-4 top-24 w-80 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-indigo-100 p-4 z-40 max-h-[60vh] overflow-hidden flex flex-col">

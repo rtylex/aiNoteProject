@@ -6,15 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle, Zap, Lightbulb, BookOpen, ListChecks, GraduationCap, HelpCircle, ChevronDown, ChevronUp, ClipboardList } from 'lucide-react'
+import { Send, Loader2, FileText, ArrowLeft, Sparkles, Edit2, Check, X, AlertCircle, Zap, Lightbulb, BookOpen, ListChecks, GraduationCap, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
-import { CreateTestModal } from '@/components/test/create-test-modal'
-import { CreateFlashcardModal } from '@/components/flashcard/create-flashcard-modal'
 
 interface Message {
     id: number | string
@@ -516,19 +514,6 @@ function MultiChatContent() {
                                                     </div>
                                                 </div>
                                             ))}
-                                {sessionId && (
-                                    <div className="pt-2 border-t border-indigo-100 flex flex-col gap-2">
-                                        <CreateTestModal
-                                            sessionId={sessionId}
-                                            sessionTitle={sessionTitle}
-                                            suggestedQuestionCount={15}
-                                        />
-                                        <CreateFlashcardModal
-                                            sessionId={sessionId}
-                                            sessionTitle={sessionTitle}
-                                        />
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
                     </motion.div>
@@ -561,19 +546,6 @@ function MultiChatContent() {
                                         </div>
                                     </div>
                                 ))}
-                                {sessionId && (
-                                    <div className="pt-3 border-t border-indigo-100/50 flex flex-col gap-2">
-                                        <CreateTestModal
-                                            sessionId={sessionId}
-                                            sessionTitle={sessionTitle}
-                                            suggestedQuestionCount={15}
-                                        />
-                                        <CreateFlashcardModal
-                                            sessionId={sessionId}
-                                            sessionTitle={sessionTitle}
-                                        />
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
                     </div>

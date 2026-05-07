@@ -87,6 +87,8 @@ export default function TestPage() {
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
+  const [activeTab, setActiveTab] = useState<'all' | 'correct' | 'wrong'>('wrong')
+  const [openQuestionId, setOpenQuestionId] = useState<string | null>(null)
 
   const fetchTest = useCallback(async () => {
     if (!accessToken || !testId) return
@@ -236,8 +238,6 @@ export default function TestPage() {
 
   // RESULT VIEW
   if (submitResult) {
-    const [activeTab, setActiveTab] = useState<'all' | 'correct' | 'wrong'>('wrong')
-    const [openQuestionId, setOpenQuestionId] = useState<string | null>(null)
     const wrongQuestions = submitResult.questions.filter(q => !q.is_correct)
     const correctQuestions = submitResult.questions.filter(q => q.is_correct)
     const percentage = submitResult.percentage

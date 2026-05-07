@@ -10,7 +10,7 @@ import uuid
 import json
 from datetime import datetime
 from sqlalchemy.orm import Session
-from app.models.test import Test, TestQuestion
+from app.models.test import Test, TestQuestion, TestAttempt
 from app.models.document import Document, DocumentEmbedding
 from app.services.deepseek_service import deepseek_service
 
@@ -370,6 +370,27 @@ def submit_test(
 
     percentage = int((score / test.total_questions) * 100) if test.total_questions > 0 else 0
 
+    # Save attempt history
+    attempt = TestAttempt(
+        id=uuid.uuid4(),
+        test_id=test_id,
+        user_id=user_id,
+        score=score,
+        total_questions=test.total_questions,
+        percentage=percentage,
+        answers_snapshot=[
+            {
+                "question_id": str(q.id),
+                "user_answer": q.user_answer,
+                "is_correct": q.is_correct,
+                "correct_answer": q.correct_answer
+            }
+            for q in questions
+        ]
+    )
+    db.add(attempt)
+    db.commit()
+
     return {
         "test_id": str(test.id),
         "score": score,
@@ -526,3 +547,164 @@ def toggle_test_public(
         "id": str(test.id),
         "is_public": test.is_public
     }
+
+
+def get_test_stats(db: Session, user_id: uuid.UUID) -> dict:
+    """Get comprehensive test statistics for a user."""
+    from sqlalchemy import func
+
+    total_tests = db.query(Test).filter(Test.user_id == user_id).count()
+    completed_tests = db.query(Test).filter(
+        Test.user_id == user_id,
+        Test.completed == True
+    ).count()
+
+    attempts = db.query(TestAttempt).filter(TestAttempt.user_id == user_id).all()
+
+    total_questions_answered = 0
+    total_correct = 0
+    total_wrong = 0
+    total_empty = 0
+    percentages = []
+
+    for attempt in attempts:
+        total_questions_answered += attempt.total_questions
+        for ans in attempt.answers_snapshot or []:
+            if ans.get("is_correct") is True:
+                total_correct += 1
+            elif ans.get("user_answer") is None:
+                total_empty += 1
+            else:
+                total_wrong += 1
+        percentages.append(attempt.percentage)
+
+    avg_percentage = round(sum(percentages) / len(percentages)) if percentages else 0
+
+    # Recent attempts for trend (last 10)
+    recent_attempts = db.query(TestAttempt).filter(
+        TestAttempt.user_id == user_id
+    ).order_by(TestAttempt.created_at.desc()).limit(10).all()
+
+    trend = []
+    for att in reversed(recent_attempts):
+        trend.append({
+            "test_title": att.test.title if att.test else "",
+            "percentage": att.percentage,
+            "created_at": att.created_at.isoformat() if att.created_at else None
+        })
+
+    return {
+        "total_tests": total_tests,
+        "completed_tests": completed_tests,
+        "total_questions_answered": total_questions_answered,
+        "total_correct": total_correct,
+        "total_wrong": total_wrong,
+        "total_empty": total_empty,
+        "average_percentage": avg_percentage,
+        "trend": trend
+    }
+
+
+def get_test_attempts(db: Session, test_id: uuid.UUID, user_id: uuid.UUID) -> list[dict]:
+    """Get all attempts for a specific test."""
+    test = db.query(Test).filter(Test.id == test_id).first()
+    if not test:
+        raise ValueError("Test not found")
+
+    if test.user_id != user_id and not test.is_public:
+        raise ValueError("Access denied")
+
+    attempts = db.query(TestAttempt).filter(
+        TestAttempt.test_id == test_id,
+        TestAttempt.user_id == user_id
+    ).order_by(TestAttempt.created_at.desc()).all()
+
+    return [
+        {
+            "id": str(a.id),
+            "score": a.score,
+            "total_questions": a.total_questions,
+            "percentage": a.percentage,
+            "created_at": a.created_at.isoformat() if a.created_at else None
+        }
+        for a in attempts
+    ]
+
+
+EXPLAIN_SYSTEM_PROMPT = """Sen bir akademik eğitmen ve test analiz uzmanısın. Öğrencinin yanlış cevapladığı bir soruyu detaylı bir şekilde açıklıyorsun.
+
+KURALLAR:
+- Türkçe açıklama yap
+- Öğrencinin verdiği cevabın neden yanlış olduğunu belirt
+- Doğru cevabın neden doğru olduğunu belgedeki/konudaki bilgilerle destekle
+- Konuyu tam olarak anlaması için ek bilgiler ver
+- Gerekirse benzer örnekler ver
+- Açıklama 3-5 cümle olmalı, net ve anlaşılır
+- Markdown formatında yaz (kalın metinler, maddeler kullanabilirsin)"""
+
+
+async def explain_question_with_ai(
+    question_text: str,
+    options: list[str],
+    correct_answer: str,
+    user_answer: str | None,
+    explanation: str | None,
+    document_content: str | None
+) -> str:
+    """Generate a detailed AI explanation for a test question."""
+    if not deepseek_service.enabled:
+        raise ValueError("DeepSeek service is not enabled")
+
+    context = f"""SORU: {question_text}
+
+SEÇENEKLER:
+{chr(10).join(options)}
+
+DOĞRU CEVAP: {correct_answer}
+
+ÖĞRENCİNİN CEVABI: {user_answer or "Boş bırakıldı"}
+
+MEVCUT AÇIKLAMA: {explanation or "Yok"}
+"""
+
+    if document_content:
+        context += f"\n\nKAYNAK İÇERİK:\n{document_content[:8000]}"
+
+    user_prompt = f"""Aşağıdaki soruyu öğrenciye detaylı bir şekilde açıkla. Öğrenci bu soruyu yanlış cevapladı (veya boş bıraktı).
+
+{context}
+
+Lütfen şu başlıklar altında açıkla:
+1. **Doğru Cevap Neden Doğru?** — Doğru şıkkın neden doğru olduğunu detaylı anlat.
+2. **Öğrencinin Cevabı Neden Yanlış?** — Öğrencinin işaretlediği şıkkın neden yanlış olduğunu anlat.
+3. **Önemli Noktalar** — Bu konuyu tam anlaması için bilmesi gereken kritik noktalar.
+
+Markdown formatında, başlıkları kalın (**Başlık**) olarak yaz."""
+
+    try:
+        import asyncio
+        loop = asyncio.get_event_loop()
+
+        def _generate():
+            response = deepseek_service.client.chat.completions.create(
+                model=deepseek_service.model,
+                messages=[
+                    {"role": "system", "content": EXPLAIN_SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=2048
+            )
+            return response.choices[0].message.content
+
+        result = await asyncio.wait_for(
+            loop.run_in_executor(None, _generate),
+            timeout=120.0
+        )
+
+        return result or "Açıklama oluşturulamadı."
+
+    except asyncio.TimeoutError:
+        raise ValueError("AI açıklama oluşturma zaman aşımına uğradı")
+    except Exception as e:
+        raise ValueError(f"AI açıklama oluşturulamadı: {str(e)}")

@@ -23,6 +23,7 @@ class Test(Base):
 
     document = relationship("Document", back_populates="tests")
     questions = relationship("TestQuestion", back_populates="test", cascade="all, delete-orphan")
+    attempts = relationship("TestAttempt", back_populates="test", cascade="all, delete-orphan", order_by="TestAttempt.created_at.desc()")
 
 
 class TestQuestion(Base):
@@ -39,3 +40,18 @@ class TestQuestion(Base):
     order_num = Column(Integer, nullable=False)
 
     test = relationship("Test", back_populates="questions")
+
+
+class TestAttempt(Base):
+    __tablename__ = "test_attempts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    test_id = Column(UUID(as_uuid=True), ForeignKey("tests.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), index=True, nullable=False)
+    score = Column(Integer, default=0)
+    total_questions = Column(Integer, default=0)
+    percentage = Column(Integer, default=0)
+    answers_snapshot = Column(JSON, default=list)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    test = relationship("Test", back_populates="attempts")

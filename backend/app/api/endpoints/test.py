@@ -24,6 +24,9 @@ from app.services.test_service import (
     list_public_tests as get_public_tests,
     delete_test as delete_test_from_db,
     toggle_test_public,
+    get_test_stats,
+    get_test_attempts,
+    explain_question_with_ai,
 )
 from app.services.query_limit import check_and_consume_query
 
@@ -391,3 +394,80 @@ async def delete_test(
         return {"message": "Test deleted successfully"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+class TestExplainRequest(BaseModel):
+    question_id: str = Field(..., min_length=1)
+    user_answer: str | None = Field(default=None)
+
+
+@router.get("/stats")
+async def get_user_test_stats(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get comprehensive test statistics for the current user."""
+    user_uuid = uuid.UUID(current_user.get("sub"))
+    return get_test_stats(db, user_uuid)
+
+
+@router.get("/{test_id}/attempts")
+async def list_test_attempts(
+    test_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all attempt history for a specific test."""
+    user_uuid = uuid.UUID(current_user.get("sub"))
+    test_uuid = uuid.UUID(test_id)
+
+    try:
+        return get_test_attempts(db, test_uuid, user_uuid)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/{test_id}/explain")
+async def explain_question(
+    test_id: str,
+    request: TestExplainRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get AI-powered detailed explanation for a question."""
+    user_uuid = uuid.UUID(current_user.get("sub"))
+    test_uuid = uuid.UUID(test_id)
+
+    test = db.query(Test).filter(Test.id == test_uuid).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+
+    if test.user_id != user_uuid and not test.is_public:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    question_uuid = uuid.UUID(request.question_id)
+    question = db.query(TestQuestion).filter(
+        TestQuestion.id == question_uuid,
+        TestQuestion.test_id == test_uuid
+    ).first()
+
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    # Try to get document content if available
+    document_content = None
+    if test.document_id:
+        document_content = extract_document_content(db, test.document_id)
+
+    try:
+        explanation = await explain_question_with_ai(
+            question_text=question.question_text,
+            options=question.options,
+            correct_answer=question.correct_answer,
+            user_answer=request.user_answer,
+            explanation=question.explanation,
+            document_content=document_content
+        )
+        return {"explanation": explanation}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))

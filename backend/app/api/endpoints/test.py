@@ -330,8 +330,13 @@ async def get_user_test_stats(
     db: Session = Depends(get_db)
 ):
     """Get comprehensive test statistics for the current user."""
-    user_uuid = uuid.UUID(current_user.get("sub"))
-    return get_test_stats(db, user_uuid)
+    try:
+        user_uuid = uuid.UUID(current_user.get("sub"))
+        return get_test_stats(db, user_uuid)
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Stats Error: {str(e)}")
 
 
 @router.get("/{test_id}")

@@ -34,6 +34,11 @@ export function Navbar() {
         opacity: 0
     })
 
+    // Scroll-aware navbar state
+    const [isVisible, setIsVisible] = useState(true)
+    const [isScrolled, setIsScrolled] = useState(false)
+    const lastScrollY = useRef(0)
+
     const desktopLinks = user
         ? [
             { href: '/', label: 'Ana Sayfa' },
@@ -139,6 +144,30 @@ export function Navbar() {
         checkRole()
     }, [user, accessToken])
 
+    // Scroll-aware navbar: hide on scroll down, show on scroll up
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY
+
+            // Track if page is scrolled past threshold
+            setIsScrolled(currentScrollY > 10)
+
+            // Determine scroll direction
+            if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+                // Scrolling down and past 80px — hide navbar
+                setIsVisible(false)
+            } else {
+                // Scrolling up or near top — show navbar
+                setIsVisible(true)
+            }
+
+            lastScrollY.current = currentScrollY
+        }
+
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
+
     // Close mobile menu on route change
     useEffect(() => {
         setMobileMenuOpen(false)
@@ -174,9 +203,9 @@ export function Navbar() {
     }
 
     return (
-        <header className="sticky top-0 z-[999] w-full transition-all duration-300">
-            {/* backdrop-blur only on top bar — if it wraps the header, fixed mobile menu collapses (zero height CB) */}
-            <div className="border-b border-gray-200/50 dark:border-white/10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl">
+        <header className={`sticky top-0 z-[999] w-full transition-transform duration-500 ease-out will-change-transform ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+            {/* Glassmorphism bar — dynamic opacity & shadow based on scroll */}
+            <div className={`border-b dark:border-white/10 backdrop-blur-xl transition-all duration-300 ${isScrolled ? 'bg-white/95 dark:bg-slate-950/95 border-gray-200/80 shadow-lg shadow-black/5' : 'bg-white/70 dark:bg-slate-950/70 border-gray-200/30'}`}>
             <div className="container mx-auto px-4 h-16 flex justify-between items-center">
                 {/* Logo - Sol */}
                 <Link href="/" className="flex items-center group">

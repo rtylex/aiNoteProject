@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -15,9 +15,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useAuth } from '@/lib/auth-context'
 import { API_BASE_URL } from '@/lib/api-config'
+
+type NavbarMode = 'full' | 'hidden' | 'compact'
 
 export function Navbar() {
     const { user, accessToken, logout } = useAuth()
@@ -34,10 +36,10 @@ export function Navbar() {
         opacity: 0
     })
 
-    // Scroll-aware navbar state
-    const [isVisible, setIsVisible] = useState(true)
-    const [isScrolled, setIsScrolled] = useState(false)
+    // 3-State Navbar
+    const [navbarMode, setNavbarMode] = useState<NavbarMode>('full')
     const lastScrollY = useRef(0)
+    const ticking = useRef(false)
 
     const desktopLinks = user
         ? [
@@ -53,7 +55,6 @@ export function Navbar() {
             { href: '#how-it-works', label: 'Nasıl Çalışır' }
         ]
 
-    // Desktop link stilini belirle
     const getLinkClassName = (href: string) => {
         const isActive = activeDesktopHref === href
         return `relative z-10 px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${isActive
@@ -92,7 +93,6 @@ export function Navbar() {
             return
         }
 
-        // Landing sayfasında hash linkler de aktif görünsün
         if (pathname === '/' && typeof window !== 'undefined') {
             const hash = window.location.hash
             if (hash === '#features' || hash === '#how-it-works') {
@@ -144,24 +144,37 @@ export function Navbar() {
         checkRole()
     }, [user, accessToken])
 
-    // Scroll-aware navbar: hide on scroll down, show on scroll up
+    // 3-State Scroll Handler with RAF throttle & 10px threshold
     useEffect(() => {
         const handleScroll = () => {
-            const currentScrollY = window.scrollY
+            if (ticking.current) return
 
-            // Track if page is scrolled past threshold
-            setIsScrolled(currentScrollY > 10)
+            ticking.current = true
+            requestAnimationFrame(() => {
+                const currentScrollY = window.scrollY
+                const delta = currentScrollY - lastScrollY.current
 
-            // Determine scroll direction
-            if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
-                // Scrolling down and past 80px — hide navbar
-                setIsVisible(false)
-            } else {
-                // Scrolling up or near top — show navbar
-                setIsVisible(true)
-            }
+                // 10px threshold: ignore micro-jitter
+                if (Math.abs(delta) < 10) {
+                    ticking.current = false
+                    return
+                }
 
-            lastScrollY.current = currentScrollY
+                // Determine mode based on scroll position and direction
+                if (currentScrollY < 10) {
+                    // Near top: always full
+                    setNavbarMode('full')
+                } else if (delta > 0 && currentScrollY > 80) {
+                    // Scrolling down past 80px: hide
+                    setNavbarMode('hidden')
+                } else if (delta < 0) {
+                    // Scrolling up: compact mode (show only pill)
+                    setNavbarMode('compact')
+                }
+
+                lastScrollY.current = currentScrollY
+                ticking.current = false
+            })
         }
 
         window.addEventListener('scroll', handleScroll, { passive: true })
@@ -202,203 +215,126 @@ export function Navbar() {
         router.refresh()
     }
 
+    // Pill Links Component (reused in full & compact)
+    const PillLinks = useCallback(() => (
+        <nav
+            ref={navRef}
+            aria-label="Ana navigasyon"
+            className="hidden md:flex relative items-center bg-gray-50/80 backdrop-blur-sm rounded-full px-2 py-1.5 border border-gray-200/60 shadow-sm"
+        >
+            <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1.5 bottom-1.5 rounded-full bg-[#d9dff0] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 ease-out motion-reduce:transition-none"
+                style={{
+                    width: `${desktopIndicator.width}px`,
+                    transform: `translateX(${desktopIndicator.left}px)`,
+                    opacity: desktopIndicator.opacity
+                }}
+            />
+            {user ? (
+                <>
+                    <Link href="/" className={getLinkClassName('/')} ref={(el) => { linkRefs.current['/'] = el }}>Ana Sayfa</Link>
+                    <Link href="/dashboard" className={getLinkClassName('/dashboard')} ref={(el) => { linkRefs.current['/dashboard'] = el }}>Kütüphanem</Link>
+                    <Link href="/flashcard" className={getLinkClassName('/flashcard')} ref={(el) => { linkRefs.current['/flashcard'] = el }}>Flashcard</Link>
+                    <Link href="/test" className={getLinkClassName('/test')} ref={(el) => { linkRefs.current['/test'] = el }}>Testlerim</Link>
+                    <Link href="/library" className={getLinkClassName('/library')} ref={(el) => { linkRefs.current['/library'] = el }}>Topluluk</Link>
+                </>
+            ) : (
+                <>
+                    <Link href="/" className={getLinkClassName('/')} ref={(el) => { linkRefs.current['/'] = el }} onClick={() => setActiveDesktopHref('/')}>Ana Sayfa</Link>
+                    <Link href="#features" className={getLinkClassName('#features')} ref={(el) => { linkRefs.current['#features'] = el }} onClick={() => setActiveDesktopHref('#features')}>Özellikler</Link>
+                    <Link href="#how-it-works" className={getLinkClassName('#how-it-works')} ref={(el) => { linkRefs.current['#how-it-works'] = el }} onClick={() => setActiveDesktopHref('#how-it-works')}>Nasıl Çalışır</Link>
+                </>
+            )}
+        </nav>
+    ), [user, activeDesktopHref, desktopIndicator])
+
     return (
-        <header className={`sticky top-0 z-[999] w-full transition-transform duration-500 ease-out will-change-transform ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-            {/* Glassmorphism bar — dynamic opacity & shadow based on scroll */}
-            <div className={`border-b dark:border-white/10 backdrop-blur-xl transition-all duration-300 ${isScrolled ? 'bg-white/95 dark:bg-slate-950/95 border-gray-200/80 shadow-lg shadow-black/5' : 'bg-white/70 dark:bg-slate-950/70 border-gray-200/30'}`}>
-            <div className="container mx-auto px-4 h-16 flex justify-between items-center">
-                {/* Logo - Sol */}
-                <Link href="/" className="flex items-center group">
-                    <Image
-                        src="/bitigAcikTema.png"
-                        alt="YirikAI Logo"
-                        width={140}
-                        height={45}
-                        className="block dark:hidden group-hover:scale-105 transition-transform object-contain"
-                        priority
-                    />
-                    <Image
-                        src="/bitigKapali (2).png"
-                        alt="YirikAI Logo"
-                        width={140}
-                        height={45}
-                        className="hidden dark:block group-hover:scale-105 transition-transform object-contain"
-                        priority
-                    />
-                </Link>
-
-                {/* Orta Menü - Pill şeklinde (Desktop) */}
-                <nav
-                    ref={navRef}
-                    aria-label="Ana navigasyon"
-                    className="hidden md:flex relative items-center bg-gray-50/50 backdrop-blur-sm rounded-full px-2 py-1.5 border border-gray-200/50 shadow-sm"
-                >
-                    <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute top-1.5 bottom-1.5 rounded-full bg-[#d9dff0] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 ease-out motion-reduce:transition-none"
-                        style={{
-                            width: `${desktopIndicator.width}px`,
-                            transform: `translateX(${desktopIndicator.left}px)`,
-                            opacity: desktopIndicator.opacity
-                        }}
-                    />
-                    {user ? (
-                        <>
-                            <Link
-                                href="/"
-                                className={getLinkClassName('/')}
-                                aria-current={activeDesktopHref === '/' ? 'page' : undefined}
-                                ref={(el) => {
-                                    linkRefs.current['/'] = el
-                                }}
-                            >
-                                Ana Sayfa
-                            </Link>
-                            <Link
-                                href="/dashboard"
-                                className={getLinkClassName('/dashboard')}
-                                aria-current={activeDesktopHref === '/dashboard' ? 'page' : undefined}
-                                ref={(el) => {
-                                    linkRefs.current['/dashboard'] = el
-                                }}
-                            >
-                                Kütüphanem
-                            </Link>
-                            <Link
-                                href="/flashcard"
-                                className={getLinkClassName('/flashcard')}
-                                aria-current={activeDesktopHref === '/flashcard' ? 'page' : undefined}
-                                ref={(el) => {
-                                    linkRefs.current['/flashcard'] = el
-                                }}
-                            >
-                                Flashcard
-                            </Link>
-                            <Link
-                                href="/test"
-                                className={getLinkClassName('/test')}
-                                aria-current={activeDesktopHref === '/test' ? 'page' : undefined}
-                                ref={(el) => {
-                                    linkRefs.current['/test'] = el
-                                }}
-                            >
-                                Testlerim
-                            </Link>
-                            <Link
-                                href="/library"
-                                className={getLinkClassName('/library')}
-                                aria-current={activeDesktopHref === '/library' ? 'page' : undefined}
-                                ref={(el) => {
-                                    linkRefs.current['/library'] = el
-                                }}
-                            >
-                                Topluluk
-                            </Link>
-                        </>
-                    ) : (
-                        <>
-                            <Link
-                                href="/"
-                                className={getLinkClassName('/')}
-                                aria-current={activeDesktopHref === '/' ? 'page' : undefined}
-                                ref={(el) => {
-                                    linkRefs.current['/'] = el
-                                }}
-                                onClick={() => setActiveDesktopHref('/')}
-                            >
-                                Ana Sayfa
-                            </Link>
-                            <Link
-                                href="#features"
-                                className={getLinkClassName('#features')}
-                                ref={(el) => {
-                                    linkRefs.current['#features'] = el
-                                }}
-                                onClick={() => setActiveDesktopHref('#features')}
-                            >
-                                Özellikler
-                            </Link>
-                            <Link
-                                href="#how-it-works"
-                                className={getLinkClassName('#how-it-works')}
-                                ref={(el) => {
-                                    linkRefs.current['#how-it-works'] = el
-                                }}
-                                onClick={() => setActiveDesktopHref('#how-it-works')}
-                            >
-                                Nasıl Çalışır
-                            </Link>
-                        </>
-                    )}
-                </nav>
-
-                {/* Sağ Taraf - Profil veya Giriş Yap */}
-                <div className="flex items-center gap-3">
-                    {/* Mobile Menu Button */}
-                    <button
-                        className="md:hidden relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors z-[1100]"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        aria-label="Menü"
-                    >
-                        {mobileMenuOpen ? (
-                            <X className="h-6 w-6" />
-                        ) : (
-                            <Menu className="h-6 w-6" />
-                        )}
-                    </button>
-
-                    {user ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-[#d9dff0] transition-all">
-                                    <Avatar className="h-10 w-10 border-2 border-white shadow-md">
-                                        <AvatarFallback className="bg-gradient-to-br from-[#011133] to-[#23335c] text-[#f4f1e0] text-sm font-medium">
-                                            {user.email?.charAt(0).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end" forceMount>
-                                <DropdownMenuLabel className="font-normal">
-                                    <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{user.full_name || 'Kullanıcı'}</p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                            {user.email}
-                                        </p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link href="/library" className="cursor-pointer">
-                                        <Library className="mr-2 h-4 w-4" />
-                                        <span>Topluluk Kütüphanesi</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                {isAdmin && (
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/admin" className="cursor-pointer">
-                                            <Shield className="mr-2 h-4 w-4" />
-                                            <span>Admin Paneli</span>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Çıkış Yap</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    ) : (
-                        <Link href="/login" className="hidden sm:block">
-                            <Button className="bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] px-6 h-10 text-sm font-medium shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-full">
-                                Giriş Yap
-                            </Button>
+        <>
+            {/* ========== FULL NAVBAR ========== */}
+            <header
+                className={`fixed top-0 left-0 right-0 z-[999] transition-all duration-500 ease-out will-change-transform ${
+                    navbarMode === 'full' ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
+                }`}
+            >
+                <div className="border-b border-gray-200/30 dark:border-white/10 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl">
+                    <div className="container mx-auto px-4 h-16 flex justify-between items-center">
+                        {/* Logo */}
+                        <Link href="/" className="flex items-center group">
+                            <Image src="/bitigAcikTema.png" alt="YirikAI Logo" width={140} height={45} className="block dark:hidden group-hover:scale-105 transition-transform object-contain" priority />
+                            <Image src="/bitigKapali (2).png" alt="YirikAI Logo" width={140} height={45} className="hidden dark:block group-hover:scale-105 transition-transform object-contain" priority />
                         </Link>
-                    )}
+
+                        {/* Pill Menu */}
+                        <PillLinks />
+
+                        {/* Right Side */}
+                        <div className="flex items-center gap-3">
+                            <button
+                                className="md:hidden relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors z-[1100]"
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                aria-label="Menü"
+                            >
+                                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                            </button>
+
+                            {user ? (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-[#d9dff0] transition-all">
+                                            <Avatar className="h-10 w-10 border-2 border-white shadow-md">
+                                                <AvatarFallback className="bg-gradient-to-br from-[#011133] to-[#23335c] text-[#f4f1e0] text-sm font-medium">
+                                                    {user.email?.charAt(0).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                                        <DropdownMenuLabel className="font-normal">
+                                            <div className="flex flex-col space-y-1">
+                                                <p className="text-sm font-medium leading-none">{user.full_name || 'Kullanıcı'}</p>
+                                                <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                                            </div>
+                                        </DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/library" className="cursor-pointer"><Library className="mr-2 h-4 w-4" /><span>Topluluk Kütüphanesi</span></Link>
+                                        </DropdownMenuItem>
+                                        {isAdmin && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/admin" className="cursor-pointer"><Shield className="mr-2 h-4 w-4" /><span>Admin Paneli</span></Link>
+                                            </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                                            <LogOut className="mr-2 h-4 w-4" /><span>Çıkış Yap</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            ) : (
+                                <Link href="/login" className="hidden sm:block">
+                                    <Button className="bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] px-6 h-10 text-sm font-medium shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-full">
+                                        Giriş Yap
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
+                    </div>
                 </div>
-            </div>
-            </div>
+            </header>
+
+            {/* ========== COMPACT NAVBAR (Floating Pill) ========== */}
+            <header
+                className={`fixed top-3 left-1/2 z-[998] transition-all duration-500 ease-out will-change-transform ${
+                    navbarMode === 'compact'
+                        ? '-translate-x-1/2 translate-y-0 opacity-100'
+                        : '-translate-x-1/2 -translate-y-24 opacity-0 pointer-events-none'
+                }`}
+            >
+                <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-white/10 rounded-full px-2 py-1.5 shadow-xl shadow-black/10">
+                    <PillLinks />
+                </div>
+            </header>
 
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
@@ -406,108 +342,31 @@ export function Navbar() {
                     <nav className="container mx-auto px-4 py-6 flex flex-col gap-2">
                         {user ? (
                             <>
-                                <Link
-                                    href="/"
-                                    className={getMobileLinkClassName('/')}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    <Home className="h-5 w-5" />
-                                    Ana Sayfa
-                                </Link>
-                                <Link
-                                    href="/dashboard"
-                                    className={getMobileLinkClassName('/dashboard')}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    <FolderOpen className="h-5 w-5" />
-                                    Kütüphanem
-                                </Link>
-                                <Link
-                                    href="/flashcard"
-                                    className={getMobileLinkClassName('/flashcard')}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    <BookOpen className="h-5 w-5" />
-                                    Flashcard
-                                </Link>
-                                <Link
-                                    href="/test"
-                                    className={getMobileLinkClassName('/test')}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    <ClipboardList className="h-5 w-5" />
-                                    Testlerim
-                                </Link>
-                                <Link
-                                    href="/library"
-                                    className={getMobileLinkClassName('/library')}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    <Users className="h-5 w-5" />
-                                    Topluluk
-                                </Link>
-                                {isAdmin && (
-                                    <Link
-                                        href="/admin"
-                                        className={getMobileLinkClassName('/admin')}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        <Shield className="h-5 w-5" />
-                                        Admin Paneli
-                                    </Link>
-                                )}
+                                <Link href="/" className={getMobileLinkClassName('/')} onClick={() => setMobileMenuOpen(false)}><Home className="h-5 w-5" />Ana Sayfa</Link>
+                                <Link href="/dashboard" className={getMobileLinkClassName('/dashboard')} onClick={() => setMobileMenuOpen(false)}><FolderOpen className="h-5 w-5" />Kütüphanem</Link>
+                                <Link href="/flashcard" className={getMobileLinkClassName('/flashcard')} onClick={() => setMobileMenuOpen(false)}><BookOpen className="h-5 w-5" />Flashcard</Link>
+                                <Link href="/test" className={getMobileLinkClassName('/test')} onClick={() => setMobileMenuOpen(false)}><ClipboardList className="h-5 w-5" />Testlerim</Link>
+                                <Link href="/library" className={getMobileLinkClassName('/library')} onClick={() => setMobileMenuOpen(false)}><Users className="h-5 w-5" />Topluluk</Link>
+                                {isAdmin && <Link href="/admin" className={getMobileLinkClassName('/admin')} onClick={() => setMobileMenuOpen(false)}><Shield className="h-5 w-5" />Admin Paneli</Link>}
                                 <div className="border-t border-gray-100 my-4" />
-                                <button
-                                    onClick={() => {
-                                        handleLogout()
-                                        setMobileMenuOpen(false)
-                                    }}
-                                    className="flex items-center gap-3 px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                >
-                                    <LogOut className="h-5 w-5" />
-                                    Çıkış Yap
+                                <button onClick={() => { handleLogout(); setMobileMenuOpen(false) }} className="flex items-center gap-3 px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                                    <LogOut className="h-5 w-5" />Çıkış Yap
                                 </button>
                             </>
                         ) : (
                             <>
-                                <Link
-                                    href="/"
-                                    className={getMobileLinkClassName('/')}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    <Home className="h-5 w-5" />
-                                    Ana Sayfa
-                                </Link>
-                                <Link
-                                    href="#features"
-                                    className={getMobileLinkClassName('#features')}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Özellikler
-                                </Link>
-                                <Link
-                                    href="#how-it-works"
-                                    className={getMobileLinkClassName('#how-it-works')}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Nasıl Çalışır
-                                </Link>
+                                <Link href="/" className={getMobileLinkClassName('/')} onClick={() => setMobileMenuOpen(false)}><Home className="h-5 w-5" />Ana Sayfa</Link>
+                                <Link href="#features" className={getMobileLinkClassName('#features')} onClick={() => setMobileMenuOpen(false)}>Özellikler</Link>
+                                <Link href="#how-it-works" className={getMobileLinkClassName('#how-it-works')} onClick={() => setMobileMenuOpen(false)}>Nasıl Çalışır</Link>
                                 <div className="border-t border-gray-100 my-4" />
-                                <Link
-                                    href="/login"
-                                    className="w-full"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    <Button className="w-full bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] h-12 text-base font-medium shadow-md rounded-xl">
-                                        Giriş Yap
-                                    </Button>
+                                <Link href="/login" className="w-full" onClick={() => setMobileMenuOpen(false)}>
+                                    <Button className="w-full bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] h-12 text-base font-medium shadow-md rounded-xl">Giriş Yap</Button>
                                 </Link>
                             </>
                         )}
                     </nav>
                 </div>
             )}
-        </header>
+        </>
     )
 }
-

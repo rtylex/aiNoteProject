@@ -308,7 +308,7 @@ function MultiChatContent() {
     // Name Modal
     if (showNameModal) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
+            <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
                 <Card className="max-w-md w-full mx-4">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -351,7 +351,7 @@ function MultiChatContent() {
 
     if (isLoadingDocs) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
+            <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
                 <div className="text-center">
                     <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
                     <p className="text-gray-600">Yükleniyor...</p>
@@ -362,7 +362,7 @@ function MultiChatContent() {
 
     if (documents.length < 2) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
+            <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
                 <Card className="max-w-md w-full mx-4">
                     <CardHeader>
                         <CardTitle className="text-red-600">Hata</CardTitle>
@@ -381,7 +381,7 @@ function MultiChatContent() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
+        <div className="min-h-screen pt-16 bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
             {/* Limit Warning Modal */}
             {showLimitModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -697,7 +697,7 @@ function MultiChatContent() {
 export default function MultiChatPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
+            <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
                 <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
             </div>
         }>

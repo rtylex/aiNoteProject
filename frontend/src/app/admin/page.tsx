@@ -475,7 +475,7 @@ export default function AdminPage() {
     // Loading state
     if (accessState === 'loading') {
         return (
-            <div className="min-h-screen w-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
+            <div className="min-h-screen w-full pt-16 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
 
                 <div className="flex justify-center items-center py-40">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -487,7 +487,7 @@ export default function AdminPage() {
     // Setup needed state
     if (accessState === 'setup_needed') {
         return (
-            <div className="min-h-screen w-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
+            <div className="min-h-screen w-full pt-16 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
 
                 <div className="container mx-auto py-20 px-4">
                     <Card className="max-w-md mx-auto bg-white/80 backdrop-blur-sm">
@@ -528,7 +528,7 @@ export default function AdminPage() {
     // Access denied state
     if (accessState === 'denied') {
         return (
-            <div className="min-h-screen w-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
+            <div className="min-h-screen w-full pt-16 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
 
                 <div className="container mx-auto py-20 px-4">
                     <Card className="max-w-md mx-auto bg-white/80 backdrop-blur-sm">
@@ -551,7 +551,7 @@ export default function AdminPage() {
 
     // Admin dashboard
     return (
-        <div className="min-h-screen w-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
+        <div className="min-h-screen w-full pt-16 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
             <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
 
 

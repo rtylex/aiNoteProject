@@ -78,7 +78,7 @@ export default function FlashcardDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
+      <div className="min-h-screen pt-16 flex justify-center items-center bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
         <Loader2 className="w-10 h-10 animate-spin text-[#f4f1e0]" />
       </div>
     )
@@ -86,7 +86,7 @@ export default function FlashcardDetailPage() {
 
   if (!setDetail) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
+      <div className="min-h-screen pt-16 flex justify-center items-center bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
         <p className="text-[#f4f1e0]/60">Set bulunamadı.</p>
       </div>
     )
@@ -94,7 +94,7 @@ export default function FlashcardDetailPage() {
 
   if (isStudyMode) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c] py-10 px-4">
+      <div className="min-h-screen w-full pt-16 bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c] py-10 px-4">
         <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(244,241,224,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(244,241,224,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
         <div className="relative container mx-auto max-w-6xl">
           <div className="flex items-center gap-4 mb-8">
@@ -110,7 +110,7 @@ export default function FlashcardDetailPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
+    <div className="min-h-screen w-full pt-16 bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
       <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(244,241,224,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(244,241,224,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
       
       <div className="relative container mx-auto py-10 px-4 max-w-5xl">

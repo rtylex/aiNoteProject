@@ -419,7 +419,7 @@ export default function LibraryPage() {
     const showMultiSelectButton = true
 
     return (
-        <div className="min-h-screen w-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
+        <div className="min-h-screen w-full pt-16 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200 via-purple-100 to-white">
             <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
 
             <div className="container mx-auto py-10 px-4">

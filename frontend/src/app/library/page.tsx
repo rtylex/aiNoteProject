@@ -559,7 +559,7 @@ export default function LibraryPage() {
 
                 {/* Tabs */}
                 <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
-                    <TabsList className="bg-white/50">
+                    <TabsList className="bg-white/50 w-full overflow-x-auto flex-nowrap scrollbar-hide">
                         <TabsTrigger value="courses" className="flex items-center gap-2">
                             <GraduationCap className="w-4 h-4" />
                             Ders Dökümanları
@@ -611,7 +611,7 @@ export default function LibraryPage() {
                             <>
                                 {/* Courses View */}
                                 {viewMode === 'courses' && (
-                                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                    <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
                                         {filteredCourses.length === 0 ? (
                                             <Card className="col-span-full border-dashed border-2 bg-white/50 backdrop-blur-sm">
                                                 <CardHeader className="text-center py-10">
@@ -669,7 +669,7 @@ export default function LibraryPage() {
 
                                 {/* Topics View */}
                                 {viewMode === 'topics' && (
-                                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                    <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
                                         {filteredTopics.length === 0 ? (
                                             <Card className="col-span-full border-dashed border-2 bg-white/50 backdrop-blur-sm">
                                                 <CardHeader className="text-center py-10">
@@ -708,7 +708,7 @@ export default function LibraryPage() {
 
                                 {/* Documents View */}
                                 {viewMode === 'documents' && (
-                                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                    <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
                                         {filteredDocuments.length === 0 ? (
                                             <Card className="col-span-full border-dashed border-2 bg-white/50 backdrop-blur-sm">
                                                 <CardHeader className="text-center py-10">
@@ -747,7 +747,7 @@ export default function LibraryPage() {
                             </div>
                         ) : !selectedCategory ? (
                             /* Categories View */
-                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {filteredCategories.length === 0 ? (
                                     <Card className="col-span-full border-dashed border-2 bg-white/50 backdrop-blur-sm">
                                         <CardHeader className="text-center py-10">
@@ -797,7 +797,7 @@ export default function LibraryPage() {
                             </div>
                         ) : (
                             /* Non-Course Documents View */
-                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {filteredNonCourseDocuments.length === 0 ? (
                                     <Card className="col-span-full border-dashed border-2 bg-white/50 backdrop-blur-sm">
                                         <CardHeader className="text-center py-10">

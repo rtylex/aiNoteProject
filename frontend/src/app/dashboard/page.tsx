@@ -252,7 +252,7 @@ export default function DashboardPage() {
                 </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <TabsList className="bg-white/50">
+                    <TabsList className="bg-white/50 w-full overflow-x-auto flex-nowrap scrollbar-hide">
                         <TabsTrigger value="documents" className="flex items-center gap-2">
                             <FileText className="w-4 h-4" />
                             Dökümanlarım
@@ -330,7 +330,7 @@ export default function DashboardPage() {
                             </div>
                         )}
 
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {loading ? (
                                 <div className="col-span-full flex justify-center items-center py-20">
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -410,7 +410,7 @@ export default function DashboardPage() {
 
                     {/* Multi-Sessions Tab */}
                     <TabsContent value="multi-sessions">
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {loadingSessions ? (
                                 <div className="col-span-full flex justify-center items-center py-20">
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -486,7 +486,7 @@ export default function DashboardPage() {
 
                     {/* Tests Tab */}
                     <TabsContent value="tests">
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {loadingTests ? (
                                 <div className="col-span-full flex justify-center items-center py-20">
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -588,7 +588,7 @@ export default function DashboardPage() {
 
                     {/* Flashcards Tab */}
                     <TabsContent value="flashcards">
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {loadingFlashcards ? (
                                 <div className="col-span-full flex justify-center items-center py-20">
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>

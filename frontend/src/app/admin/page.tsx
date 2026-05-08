@@ -566,7 +566,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-10">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
                     <Card className="bg-white/80 backdrop-blur-sm border-white/20">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-gray-500">
@@ -629,7 +629,7 @@ export default function AdminPage() {
 
                 {/* Tabs for Documents and Users */}
                 <Tabs defaultValue="documents" className="space-y-4">
-                    <TabsList className="bg-white/50">
+                    <TabsList className="bg-white/50 w-full overflow-x-auto flex-nowrap scrollbar-hide">
                         <TabsTrigger value="documents">
                             <FileText className="w-4 h-4 mr-2" />
                             Onay Kuyruğu
@@ -687,17 +687,17 @@ export default function AdminPage() {
                                         {pendingDocs.map((doc) => (
                                             <div
                                                 key={doc.id}
-                                                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-3"
                                             >
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                                <div className="flex items-center gap-4 min-w-0">
+                                                    <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
                                                         <FileText className="w-5 h-5 text-indigo-600" />
                                                     </div>
-                                                    <div>
+                                                    <div className="min-w-0">
                                                         <h3 className="font-medium text-gray-800 line-clamp-1">
                                                             {doc.title}
                                                         </h3>
-                                                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                                                        <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
                                                             {doc.course_name && (
                                                                 <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-xs">
                                                                     {doc.course_name}
@@ -714,7 +714,7 @@ export default function AdminPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 flex-wrap">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
@@ -796,13 +796,13 @@ export default function AdminPage() {
                                         {communityDocs.map((doc) => (
                                             <div
                                                 key={doc.id}
-                                                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-3"
                                             >
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                                <div className="flex items-center gap-4 min-w-0">
+                                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
                                                         <Globe className="w-5 h-5 text-green-600" />
                                                     </div>
-                                                    <div>
+                                                    <div className="min-w-0">
                                                         <h3 className="font-medium text-gray-800 line-clamp-1">
                                                             {doc.title}
                                                         </h3>
@@ -813,7 +813,7 @@ export default function AdminPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 flex-wrap">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
@@ -895,18 +895,18 @@ export default function AdminPage() {
                                         {categories.map((category) => (
                                             <div
                                                 key={category.id}
-                                                className={`flex items-center justify-between p-4 rounded-lg transition-colors ${category.is_active
+                                                className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg transition-colors gap-3 ${category.is_active
                                                     ? 'bg-gray-50 hover:bg-gray-100'
                                                     : 'bg-gray-100/50 opacity-60'
                                                     }`}
                                             >
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${category.is_active ? 'bg-indigo-100' : 'bg-gray-200'
+                                                <div className="flex items-center gap-4 min-w-0">
+                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${category.is_active ? 'bg-indigo-100' : 'bg-gray-200'
                                                         }`}>
                                                         <Tags className={`w-5 h-5 ${category.is_active ? 'text-indigo-600' : 'text-gray-400'
                                                             }`} />
                                                     </div>
-                                                    <div>
+                                                    <div className="min-w-0">
                                                         <h3 className="font-medium text-gray-800">
                                                             {category.name}
                                                             {!category.is_active && (
@@ -925,7 +925,7 @@ export default function AdminPage() {
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 flex-wrap">
                                                     <div className="flex items-center gap-2 mr-4">
                                                         <Switch
                                                             checked={category.is_active}
@@ -993,10 +993,10 @@ export default function AdminPage() {
                                         {users.map((user) => (
                                             <div
                                                 key={user.id}
-                                                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                                                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg gap-3"
                                             >
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${user.role === 'admin' ? 'bg-purple-100' :
+                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${user.role === 'admin' ? 'bg-purple-100' :
                                                         user.role === 'teacher' ? 'bg-blue-100' :
                                                             'bg-gray-100'
                                                         }`}>
@@ -1008,16 +1008,16 @@ export default function AdminPage() {
                                                             <Users className="w-5 h-5 text-gray-600" />
                                                         )}
                                                     </div>
-                                                    <div>
-                                                        <h3 className="font-medium text-gray-800">
+                                                    <div className="min-w-0">
+                                                        <h3 className="font-medium text-gray-800 truncate">
                                                             {user.full_name || 'İsimsiz Kullanıcı'}
                                                         </h3>
-                                                        <p className="text-xs text-gray-400">
+                                                        <p className="text-xs text-gray-400 truncate">
                                                             {user.email || 'E-posta yok'} • {new Date(user.created_at).toLocaleDateString('tr-TR')}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                                                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${user.role === 'admin'
                                                         ? 'bg-purple-100 text-purple-700'
                                                         : user.role === 'teacher'
@@ -1030,29 +1030,30 @@ export default function AdminPage() {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
+                                                            className="text-xs h-8 px-2"
                                                             onClick={() => handleRoleChange(user.user_id, 'user')}
                                                         >
-                                                            Kullanıcı Yap
+                                                            Kullanıcı
                                                         </Button>
                                                     )}
                                                     {user.role !== 'teacher' && (
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs h-8 px-2"
                                                             onClick={() => handleRoleChange(user.user_id, 'teacher')}
                                                         >
-                                                            Öğretmen Yap
+                                                            Öğretmen
                                                         </Button>
                                                     )}
                                                     {user.role !== 'admin' && (
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                                            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 text-xs h-8 px-2"
                                                             onClick={() => handleRoleChange(user.user_id, 'admin')}
                                                         >
-                                                            Admin Yap
+                                                            Admin
                                                         </Button>
                                                     )}
                                                 </div>

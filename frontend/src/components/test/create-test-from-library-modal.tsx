@@ -27,7 +27,7 @@ export function CreateTestFromLibraryModal({ documentIds, documentTitles, onSucc
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [warning, setWarning] = useState<string | null>(null)
-    const { accessToken } = useAuth()
+    const { accessToken, preferredModel } = useAuth()
     const router = useRouter()
 
     const minCount = 5
@@ -66,8 +66,8 @@ export function CreateTestFromLibraryModal({ documentIds, documentTitles, onSucc
                     },
                     body: JSON.stringify(
                         isSingleDocument
-                            ? { document_id: documentIds[0], question_count: questionCount }
-                            : { document_ids: documentIds, question_count: questionCount }
+                            ? { document_id: documentIds[0], question_count: questionCount, model: preferredModel }
+                            : { document_ids: documentIds, question_count: questionCount, model: preferredModel }
                     )
                 }
             )

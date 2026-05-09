@@ -6,6 +6,7 @@ Handles test creation from PDF documents, quiz taking, submission and history.
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from typing import Literal
 from sqlalchemy.orm import Session
 from app.services.auth import get_current_user
 from app.db.session import get_db
@@ -37,16 +38,19 @@ router = APIRouter()
 class TestGenerateRequest(BaseModel):
     document_id: str = Field(..., min_length=1)
     question_count: int = Field(default=15, ge=5, le=30)
+    model: Literal["deepseek", "gemma"] = "deepseek"
 
 
 class TestGenerateFromSessionRequest(BaseModel):
     session_id: str = Field(..., min_length=1)
     question_count: int = Field(default=15, ge=5, le=30)
+    model: Literal["deepseek", "gemma"] = "deepseek"
 
 
 class TestGenerateFromLibraryRequest(BaseModel):
     document_ids: list[str] = Field(..., min_length=1, max_length=10)
     question_count: int = Field(default=15, ge=5, le=30)
+    model: Literal["deepseek", "gemma"] = "deepseek"
 
 
 class TestSubmitRequest(BaseModel):
@@ -99,7 +103,7 @@ async def generate_test(
         raise HTTPException(status_code=400, detail="Document has no content for test generation")
 
     try:
-        result = await generate_test_questions(content, request.question_count)
+        result = await generate_test_questions(content, request.question_count, request.model)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -175,7 +179,7 @@ async def generate_test_from_session(
         raise HTTPException(status_code=400, detail="Session has no content for test generation")
 
     try:
-        result = await generate_test_questions(content, request.question_count)
+        result = await generate_test_questions(content, request.question_count, request.model)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -253,7 +257,7 @@ async def generate_test_from_library(
         raise HTTPException(status_code=400, detail="Seçili dökümanlardan içerik çıkarılamadı")
 
     try:
-        result = await generate_test_questions(content, request.question_count)
+        result = await generate_test_questions(content, request.question_count, request.model)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -417,6 +421,7 @@ async def delete_test(
 class TestExplainRequest(BaseModel):
     question_id: str = Field(..., min_length=1)
     user_answer: str | None = Field(default=None)
+    model: Literal["deepseek", "gemma"] = "deepseek"
 
 
 
@@ -476,7 +481,8 @@ async def explain_question(
             correct_answer=question.correct_answer,
             user_answer=request.user_answer,
             explanation=question.explanation,
-            document_content=document_content
+            document_content=document_content,
+            model=request.model
         )
         return {"explanation": explanation}
     except ValueError as e:

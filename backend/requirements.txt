@@ -5,6 +5,7 @@ alembic
 pydantic
 pydantic-settings
 google-generativeai
+google-genai
 openai
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1

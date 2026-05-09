@@ -30,7 +30,7 @@ export function CreateTestModal({ documentId, sessionId, documentTitle, sessionT
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [warning, setWarning] = useState<string | null>(null)
-    const { accessToken } = useAuth()
+    const { accessToken, preferredModel } = useAuth()
     const router = useRouter()
 
     const minCount = 5
@@ -69,7 +69,8 @@ export function CreateTestModal({ documentId, sessionId, documentTitle, sessionT
                     },
                     body: JSON.stringify({
                         session_id: sessionId,
-                        question_count: questionCount
+                        question_count: questionCount,
+                        model: preferredModel
                     })
                 })
             } else if (documentId) {
@@ -81,7 +82,8 @@ export function CreateTestModal({ documentId, sessionId, documentTitle, sessionT
                     },
                     body: JSON.stringify({
                         document_id: documentId,
-                        question_count: questionCount
+                        question_count: questionCount,
+                        model: preferredModel
                     })
                 })
             } else {

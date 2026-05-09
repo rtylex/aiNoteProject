@@ -22,7 +22,7 @@ import { API_BASE_URL } from '@/lib/api-config'
 type NavbarMode = 'full' | 'hidden' | 'compact'
 
 export function Navbar() {
-    const { user, accessToken, logout } = useAuth()
+    const { user, accessToken, logout, preferredModel, setPreferredModel } = useAuth()
     const router = useRouter()
     const pathname = usePathname()
     const [isAdmin, setIsAdmin] = useState(false)
@@ -305,6 +305,26 @@ export function Navbar() {
                                                 <Link href="/admin" className="cursor-pointer"><Shield className="mr-2 h-4 w-4" /><span>Admin Paneli</span></Link>
                                             </DropdownMenuItem>
                                         )}
+                                        <DropdownMenuSeparator />
+                                        <div className="px-2 py-2">
+                                            <p className="text-xs font-semibold text-gray-500 mb-2">AI Modeli</p>
+                                            <div className="flex bg-gray-100 rounded-lg p-1">
+                                                <button
+                                                    type="button"
+                                                    className={`flex-1 text-xs py-1.5 rounded-md transition-all ${preferredModel === 'deepseek' ? 'bg-white shadow-sm font-medium text-[#011133]' : 'text-gray-500 hover:bg-gray-200/50'}`}
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreferredModel('deepseek'); }}
+                                                >
+                                                    Basic
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={`flex-1 text-xs py-1.5 rounded-md transition-all ${preferredModel === 'gemma' ? 'bg-white shadow-sm font-medium text-purple-600' : 'text-gray-500 hover:bg-gray-200/50'}`}
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreferredModel('gemma'); }}
+                                                >
+                                                    Premium
+                                                </button>
+                                            </div>
+                                        </div>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
                                             <LogOut className="mr-2 h-4 w-4" /><span>Çıkış Yap</span>

@@ -27,7 +27,7 @@ export function CreateFlashcardFromLibraryModal({ documentIds, documentTitles, o
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [warning, setWarning] = useState<string | null>(null)
-    const { accessToken } = useAuth()
+    const { accessToken, preferredModel } = useAuth()
     const router = useRouter()
 
     const minCount = 5
@@ -64,7 +64,8 @@ export function CreateFlashcardFromLibraryModal({ documentIds, documentTitles, o
                     },
                     body: JSON.stringify({
                         document_ids: documentIds,
-                        card_count: cardCount
+                        card_count: cardCount,
+                        model: preferredModel
                     })
                 }
             )

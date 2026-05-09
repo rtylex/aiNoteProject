@@ -7,6 +7,7 @@ study mode with spaced repetition, and CRUD operations.
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from typing import Literal
 from sqlalchemy.orm import Session
 from app.services.auth import get_current_user
 from app.db.session import get_db
@@ -41,16 +42,19 @@ router = APIRouter()
 class FlashcardGenerateRequest(BaseModel):
     document_id: str = Field(..., min_length=1)
     card_count: int = Field(default=20, ge=5, le=50)
+    model: Literal["deepseek", "gemma"] = "deepseek"
 
 
 class FlashcardGenerateFromSessionRequest(BaseModel):
     session_id: str = Field(..., min_length=1)
     card_count: int = Field(default=25, ge=5, le=50)
+    model: Literal["deepseek", "gemma"] = "deepseek"
 
 
 class FlashcardGenerateFromLibraryRequest(BaseModel):
     document_ids: list[str] = Field(..., min_length=1, max_length=10)
     card_count: int = Field(default=20, ge=5, le=50)
+    model: Literal["deepseek", "gemma"] = "deepseek"
 
 
 class FlashcardCreateRequest(BaseModel):
@@ -112,7 +116,7 @@ async def generate_flashcards_from_document(
         raise HTTPException(status_code=400, detail="Document has no content for flashcard generation")
 
     try:
-        result = await generate_flashcards(content, request.card_count)
+        result = await generate_flashcards(content, request.card_count, request.model)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -182,7 +186,7 @@ async def generate_flashcards_from_session(
         raise HTTPException(status_code=400, detail="Session has no content for flashcard generation")
 
     try:
-        result = await generate_flashcards(content, request.card_count)
+        result = await generate_flashcards(content, request.card_count, request.model)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -254,7 +258,7 @@ async def generate_flashcards_from_library(
         raise HTTPException(status_code=400, detail="Seçili dökümanlardan içerik çıkarılamadı")
 
     try:
-        result = await generate_flashcards(content, request.card_count)
+        result = await generate_flashcards(content, request.card_count, request.model)
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
 

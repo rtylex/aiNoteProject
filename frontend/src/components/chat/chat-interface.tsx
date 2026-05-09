@@ -142,7 +142,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
     const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(sessionId)
     const [documentStatus, setDocumentStatus] = useState<DocumentStatus>('completed')
     const bottomRef = useRef<HTMLDivElement>(null)
-    const { accessToken } = useAuth()
+    const { accessToken, preferredModel } = useAuth()
 
     // Limit modal state
     const [showLimitModal, setShowLimitModal] = useState(false)
@@ -155,9 +155,6 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
     // Template dropdown state
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
     const templateDropdownRef = useRef<HTMLDivElement>(null)
-
-    // AI Model - always use DeepSeek
-    const selectedModel = 'deepseek'
 
 
 
@@ -273,7 +270,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                     document_id: documentId,
                     message: sentMessage,
                     session_id: currentSessionId,
-                    model: selectedModel
+                    model: preferredModel
                 })
             })
 
@@ -295,7 +292,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                 // Model unavailable - show error modal
                 const errorData = await res.json()
                 setModelError({
-                    model: errorData.detail?.model || selectedModel,
+                    model: errorData.detail?.model || preferredModel,
                     message: errorData.detail?.message || 'Bu model şu anda kullanılamıyor'
                 })
                 setShowModelError(true)
@@ -562,10 +559,10 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                     ) : (
                         <>
                             <form onSubmit={(e) => { e.preventDefault(); handleSend() }} className="relative flex items-center gap-2">
-                                {/* DeepSeek Model Indicator */}
+                                {/* AI Model Indicator */}
                                 <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-background/80 px-3 py-2 text-sm font-medium text-foreground/80">
-                                    <Zap className="w-4 h-4 text-emerald-500" />
-                                    <span className="hidden sm:inline">DeepSeek</span>
+                                    <Zap className={`w-4 h-4 ${preferredModel === 'gemma' ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                    <span className="hidden sm:inline">{preferredModel === 'deepseek' ? 'DeepSeek' : 'Gemma'}</span>
                                 </div>
 
                                 {/* Template Dropdown Button */}

@@ -21,7 +21,7 @@ export function CreateFlashcardModal({ documentId, documentTitle, sessionId, ses
   const [open, setOpen] = useState(false)
   const [cardCount, setCardCount] = useState(20)
   const [loading, setLoading] = useState(false)
-  const { accessToken } = useAuth()
+  const { accessToken, preferredModel } = useAuth()
   const router = useRouter()
 
   const handleCreate = async () => {
@@ -31,8 +31,8 @@ export function CreateFlashcardModal({ documentId, documentTitle, sessionId, ses
     const isDocument = !!documentId
     const url = `${API_BASE_URL}/api/v1/flashcard/${isDocument ? 'generate' : 'generate-from-session'}`
     const body = isDocument 
-      ? { document_id: documentId, card_count: cardCount }
-      : { session_id: sessionId, card_count: cardCount }
+      ? { document_id: documentId, card_count: cardCount, model: preferredModel }
+      : { session_id: sessionId, card_count: cardCount, model: preferredModel }
 
     try {
       const res = await fetch(url, {

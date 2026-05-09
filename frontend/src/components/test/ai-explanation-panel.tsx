@@ -19,7 +19,7 @@ export function AiExplanationPanel({ testId, questionId, userAnswer }: AiExplana
   const [loading, setLoading] = useState(false)
   const [explanation, setExplanation] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const { accessToken } = useAuth()
+    const { accessToken, preferredModel } = useAuth()
 
   const handleExplain = async () => {
     if (!accessToken || explanation) {
@@ -37,7 +37,7 @@ export function AiExplanationPanel({ testId, questionId, userAnswer }: AiExplana
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ question_id: questionId, user_answer: userAnswer })
+        body: JSON.stringify({ question_id: questionId, user_answer: userAnswer, model: preferredModel })
       })
 
       if (!res.ok) {

@@ -14,6 +14,8 @@ import { API_BASE_URL } from '@/lib/api-config'
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+export type AiModel = 'deepseek' | 'gemma'
+
 interface User {
     id: string
     email: string
@@ -25,12 +27,15 @@ interface AuthContextValue {
     user: User | null
     accessToken: string | null
     loading: boolean
+    preferredModel: AiModel
+    setPreferredModel: (model: AiModel) => void
     login: (email: string, password: string) => Promise<{ error?: string }>
     register: (email: string, password: string, fullName: string) => Promise<{ error?: string }>
     logout: () => void
 }
 
 const TOKEN_KEY = 'ainote_token'
+const MODEL_KEY = 'preferredModel'
 
 // ---------------------------------------------------------------------------
 // Context
@@ -41,6 +46,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [accessToken, setAccessToken] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
+    const [preferredModel, setPreferredModel] = useState<AiModel>('deepseek')
+
+    // On mount — check localStorage for saved model preference
+    useEffect(() => {
+        const saved = localStorage.getItem(MODEL_KEY) as AiModel
+        if (saved === 'deepseek' || saved === 'gemma') {
+            setPreferredModel(saved)
+        }
+    }, [])
 
     // On mount — check localStorage for an existing token and validate it
     useEffect(() => {
@@ -137,14 +151,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null)
     }, [])
 
+    // ------------------------------------------------------------------
+    // model preference
+    // ------------------------------------------------------------------
+    const handleSetModel = useCallback((model: AiModel) => {
+        setPreferredModel(model)
+        localStorage.setItem(MODEL_KEY, model)
+    }, [])
+
     const value = useMemo<AuthContextValue>(() => ({
         user,
         accessToken,
         loading,
+        preferredModel,
+        setPreferredModel: handleSetModel,
         login,
         register,
         logout,
-    }), [user, accessToken, loading, login, register, logout])
+    }), [user, accessToken, loading, preferredModel, handleSetModel, login, register, logout])
 
     return (
         <AuthContext.Provider value={value}>

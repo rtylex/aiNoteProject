@@ -39,7 +39,7 @@ class AIService:
         Args:
             question: User's question
             context: Retrieved context from documents
-            model: "gemini" or "deepseek" (default: deepseek)
+            model: "gemma", "gemini", or "deepseek" (default: deepseek)
         
         Returns:
             AI-generated answer
@@ -56,12 +56,12 @@ class AIService:
                 print(f"[AIService] DeepSeek failed: {e}")
                 raise ModelUnavailableError("DeepSeek", str(e))
         
-        # Gemini
+        # Gemma / Gemini
         try:
-            return await self.gemini.generate_answer(question, context)
+            return await self.gemini.generate_chat_answer(question, context)
         except Exception as e:
-            print(f"[AIService] Gemini failed: {e}")
-            raise ModelUnavailableError("Gemini", str(e))
+            print(f"[AIService] Gemma failed: {e}")
+            raise ModelUnavailableError("Gemma", str(e))
     
     async def generate_answer_simple(self, prompt: str, model: str = "deepseek") -> str:
         """
@@ -69,7 +69,7 @@ class AIService:
         
         Args:
             prompt: Pre-formatted prompt
-            model: "gemini" or "deepseek" (default: deepseek)
+            model: "gemma", "gemini", or "deepseek" (default: deepseek)
         
         Returns:
             AI-generated response
@@ -86,12 +86,12 @@ class AIService:
                 print(f"[AIService] DeepSeek failed: {e}")
                 raise ModelUnavailableError("DeepSeek", str(e))
         
-        # Gemini
+        # Gemma / Gemini
         try:
-            return await self.gemini.generate_answer_simple(prompt)
+            return await self.gemini.generate_chat_answer_simple(prompt)
         except Exception as e:
-            print(f"[AIService] Gemini failed: {e}")
-            raise ModelUnavailableError("Gemini", str(e))
+            print(f"[AIService] Gemma failed: {e}")
+            raise ModelUnavailableError("Gemma", str(e))
     
     async def generate_answer_multi_doc(
         self, 
@@ -109,7 +109,7 @@ class AIService:
         Args:
             question: User's question
             combined_context: Combined context from all documents
-            model: "gemini" or "deepseek" (default: deepseek)
+            model: "gemma", "gemini", or "deepseek" (default: deepseek)
         
         Returns:
             AI-generated response
@@ -127,18 +127,12 @@ class AIService:
                 print(f"[AIService] DeepSeek failed: {e}")
                 raise ModelUnavailableError("DeepSeek", str(e))
         
-        # Gemini - fallback to simple method (no prefix caching)
+        # Gemma / Gemini
         try:
-            prompt = f"""Kaynak Materyalleri:
-{combined_context}
-
-Kullanıcı Sorusu: {question}
-
-Yanıt:"""
-            return await self.gemini.generate_answer_simple(prompt)
+            return await self.gemini.generate_chat_answer_multi_doc(question, combined_context)
         except Exception as e:
-            print(f"[AIService] Gemini failed: {e}")
-            raise ModelUnavailableError("Gemini", str(e))
+            print(f"[AIService] Gemma failed: {e}")
+            raise ModelUnavailableError("Gemma", str(e))
 
 
 # Singleton instance

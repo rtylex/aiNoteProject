@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.models.test import Test, TestQuestion, TestAttempt
 from app.models.document import Document, DocumentEmbedding
 from app.services.deepseek_service import deepseek_service
+from app.services.gemini_service import gemini_service
 
 
 TEST_SYSTEM_PROMPT = """Sen akademik soru hazırlama uzmanısın. Aşağıdaki ders içeriğinden çoktan seçmeli soru hazırlıyorsun.
@@ -174,21 +175,20 @@ def _extract_partial_questions(text: str) -> list[dict]:
 
 async def generate_test_questions(
     document_content: str,
-    question_count: int
+    question_count: int,
+    model: str = "deepseek"
 ) -> dict:
     """
-    Generate test questions using DeepSeek AI.
+    Generate test questions using AI.
 
     Args:
         document_content: Full text content from document
         question_count: Number of questions to generate
+        model: "deepseek" or "gemma" (default: deepseek)
 
     Returns:
         Dict with 'questions' list and optional 'partial' flag and 'requested_count'
     """
-    if not deepseek_service.enabled:
-        raise ValueError("DeepSeek service is not enabled")
-
     max_tokens = _calculate_max_tokens(question_count)
 
     user_prompt = f"""Aşağıdaki ders içeriğinden {question_count} adet çoktan seçmeli soru hazırla:
@@ -196,26 +196,38 @@ async def generate_test_questions(
 DERS İÇERİĞİ:
 {document_content[:15000]}"""
 
+    result = None
+
     try:
         import asyncio
         loop = asyncio.get_event_loop()
 
-        def _generate():
-            response = deepseek_service.client.chat.completions.create(
-                model=deepseek_service.model,
-                messages=[
-                    {"role": "system", "content": TEST_SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.7,
+        if model == "gemma" or model == "gemini":
+            result = await gemini_service.generate_structured_content(
+                system_prompt=TEST_SYSTEM_PROMPT,
+                user_prompt=user_prompt,
                 max_tokens=max_tokens
             )
-            return response.choices[0].message.content
+        else:
+            if not deepseek_service.enabled:
+                raise ValueError("DeepSeek service is not enabled")
 
-        result = await asyncio.wait_for(
-            loop.run_in_executor(None, _generate),
-            timeout=180.0
-        )
+            def _generate():
+                response = deepseek_service.client.chat.completions.create(
+                    model=deepseek_service.model,
+                    messages=[
+                        {"role": "system", "content": TEST_SYSTEM_PROMPT},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=max_tokens
+                )
+                return response.choices[0].message.content
+
+            result = await asyncio.wait_for(
+                loop.run_in_executor(None, _generate),
+                timeout=180.0
+            )
 
         if not result:
             raise ValueError("Empty response from AI")
@@ -649,12 +661,10 @@ async def explain_question_with_ai(
     correct_answer: str,
     user_answer: str | None,
     explanation: str | None,
-    document_content: str | None
+    document_content: str | None,
+    model: str = "deepseek"
 ) -> str:
     """Generate a detailed AI explanation for a test question."""
-    if not deepseek_service.enabled:
-        raise ValueError("DeepSeek service is not enabled")
-
     context = f"""SORU: {question_text}
 
 SEÇENEKLER:
@@ -684,6 +694,17 @@ Markdown formatında, başlıkları kalın (**Başlık**) olarak yaz."""
     try:
         import asyncio
         loop = asyncio.get_event_loop()
+
+        if model == "gemma" or model == "gemini":
+            result = await gemini_service.generate_structured_content(
+                system_prompt=EXPLAIN_SYSTEM_PROMPT,
+                user_prompt=user_prompt,
+                max_tokens=2048
+            )
+            return result or "Açıklama oluşturulamadı."
+
+        if not deepseek_service.enabled:
+            raise ValueError("DeepSeek service is not enabled")
 
         def _generate():
             response = deepseek_service.client.chat.completions.create(

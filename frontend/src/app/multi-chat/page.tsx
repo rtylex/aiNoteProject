@@ -54,7 +54,7 @@ function MultiChatContent() {
     const [isLoading, setIsLoading] = useState(false)
     const [isLoadingDocs, setIsLoadingDocs] = useState(true)
     const scrollRef = useRef<HTMLDivElement>(null)
-    const { accessToken } = useAuth()
+    const { accessToken, preferredModel } = useAuth()
 
     // Session state
     const [sessionId, setSessionId] = useState<string | null>(null)
@@ -75,9 +75,6 @@ function MultiChatContent() {
     // Template dropdown state
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
     const templateDropdownRef = useRef<HTMLDivElement>(null)
-
-    // AI Model - always use DeepSeek
-    const selectedModel = 'deepseek'
 
     // Mobile docs toggle state
     const [showMobileDocs, setShowMobileDocs] = useState(false)
@@ -238,7 +235,7 @@ function MultiChatContent() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${accessToken}`
                 },
-                body: JSON.stringify({ message: sentMessage, model: selectedModel })
+                body: JSON.stringify({ message: sentMessage, model: preferredModel })
             })
 
             if (response.ok) {
@@ -264,7 +261,7 @@ function MultiChatContent() {
                 // Model unavailable - show error modal
                 const errorData = await response.json()
                 setModelError({
-                    model: errorData.detail?.model || selectedModel,
+                    model: errorData.detail?.model || preferredModel,
                     message: errorData.detail?.message || 'Bu model şu anda kullanılamıyor'
                 })
                 setShowModelError(true)
@@ -616,10 +613,10 @@ function MultiChatContent() {
                             {/* Input Area */}
                             <div className="border-t p-4 bg-white/50">
                                 <div className="flex gap-2 items-center">
-                                    {/* DeepSeek Model Indicator */}
+                                    {/* AI Model Indicator */}
                                     <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-background/80 px-3 py-2 text-sm font-medium text-foreground/80">
-                                        <Zap className="w-4 h-4 text-emerald-500" />
-                                        <span className="hidden sm:inline">DeepSeek</span>
+                                        <Zap className={`w-4 h-4 ${preferredModel === 'gemma' ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                        <span className="hidden sm:inline">{preferredModel === 'deepseek' ? 'DeepSeek' : 'Gemma'}</span>
                                     </div>
 
                                     {/* Template Dropdown Button */}

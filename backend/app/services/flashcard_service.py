@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.models.flashcard import FlashcardSet, Flashcard, FlashcardProgress, FlashcardStatus
 from app.models.document import Document, DocumentEmbedding
 from app.services.deepseek_service import deepseek_service
+from app.services.gemini_service import gemini_service
 
 
 FLASHCARD_SYSTEM_PROMPT = """Sen akademik flashcard hazırlama uzmanısın. Aşağıdaki ders içeriğinden çalışma kartı hazırlıyorsun.
@@ -172,21 +173,20 @@ def _extract_partial_cards(text: str) -> list[dict]:
 
 async def generate_flashcards(
     document_content: str,
-    card_count: int
+    card_count: int,
+    model: str = "deepseek"
 ) -> dict:
     """
-    Generate flashcards using DeepSeek AI.
+    Generate flashcards using AI.
 
     Args:
         document_content: Full text content from document
         card_count: Number of cards to generate
+        model: "deepseek" or "gemma" (default: deepseek)
 
     Returns:
         Dict with 'cards' list and optional 'partial' flag
     """
-    if not deepseek_service.enabled:
-        raise ValueError("DeepSeek service is not enabled")
-
     max_tokens = _calculate_max_tokens(card_count)
 
     user_prompt = f"""Aşağıdaki ders içeriğinden {card_count} adet çalışma kartı hazırla:
@@ -194,26 +194,38 @@ async def generate_flashcards(
 DERS İÇERİĞİ:
 {document_content[:15000]}"""
 
+    result = None
+
     try:
         import asyncio
         loop = asyncio.get_event_loop()
 
-        def _generate():
-            response = deepseek_service.client.chat.completions.create(
-                model=deepseek_service.model,
-                messages=[
-                    {"role": "system", "content": FLASHCARD_SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.7,
+        if model == "gemma" or model == "gemini":
+            result = await gemini_service.generate_structured_content(
+                system_prompt=FLASHCARD_SYSTEM_PROMPT,
+                user_prompt=user_prompt,
                 max_tokens=max_tokens
             )
-            return response.choices[0].message.content
+        else:
+            if not deepseek_service.enabled:
+                raise ValueError("DeepSeek service is not enabled")
 
-        result = await asyncio.wait_for(
-            loop.run_in_executor(None, _generate),
-            timeout=180.0
-        )
+            def _generate():
+                response = deepseek_service.client.chat.completions.create(
+                    model=deepseek_service.model,
+                    messages=[
+                        {"role": "system", "content": FLASHCARD_SYSTEM_PROMPT},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=max_tokens
+                )
+                return response.choices[0].message.content
+
+            result = await asyncio.wait_for(
+                loop.run_in_executor(None, _generate),
+                timeout=180.0
+            )
 
         if not result:
             raise ValueError("Empty response from AI")

@@ -20,7 +20,7 @@ class ChatRequest(BaseModel):
     document_id: str
     message: str
     session_id: str | None = None
-    model: Literal["gemini", "deepseek"] = "deepseek"  # Default: DeepSeek (economic)
+    model: Literal["deepseek", "gemma"] = "deepseek"  # Default: DeepSeek (economic)
 
 
 class MultiDocumentChatRequest(BaseModel):
@@ -28,7 +28,7 @@ class MultiDocumentChatRequest(BaseModel):
     document_ids: list[str]
     message: str
     session_id: str | None = None
-    model: Literal["gemini", "deepseek"] = "deepseek"  # Default: DeepSeek (economic)
+    model: Literal["deepseek", "gemma"] = "deepseek"  # Default: DeepSeek (economic)
 
 
 # Multi-Document Session Schemas
@@ -46,7 +46,7 @@ class UpdateMultiSessionRequest(BaseModel):
 class MultiSessionMessageRequest(BaseModel):
     """Send a message in a multi-document session."""
     message: str = Field(..., min_length=1)
-    model: Literal["gemini", "deepseek"] = "deepseek"  # Default: DeepSeek (economic)
+    model: Literal["deepseek", "gemma"] = "deepseek"  # Default: DeepSeek (economic)
 
 
 def _parse_uuid(value: str | None, field_name: str) -> uuid.UUID:
@@ -64,7 +64,7 @@ def _parse_uuid(value: str | None, field_name: str) -> uuid.UUID:
 # RAG mode: semantic search for relevant chunks (for large documents)
 TOKEN_THRESHOLDS = {
     "deepseek": 25000,   # ~100 pages - DeepSeek V3 has 64K context
-    "gemini": 100000     # ~400 pages - Gemini has 1M context
+    "gemma": 100000     # ~400 pages - Gemma-4 has large context
 }
 
 
@@ -457,7 +457,7 @@ async def multi_document_chat(
         combined_context = "\n---\n".join(all_contexts)
         
         # Apply model-based character limit (safety limit even in full mode)
-        max_chars = 120000 if request.model == "gemini" else 50000
+        max_chars = 120000 if request.model == "gemma" else 50000
         combined_context = combined_context[:max_chars]
         
         # Use cache-optimized method for DeepSeek
@@ -732,7 +732,7 @@ async def send_multi_session_message(
     combined_context = "\n---\n".join(all_contexts)
     
     # Apply model-based character limit
-    max_chars = 120000 if request.model == "gemini" else 50000
+    max_chars = 120000 if request.model == "gemma" else 50000
     combined_context = combined_context[:max_chars]
 
     # Use cache-optimized method for DeepSeek

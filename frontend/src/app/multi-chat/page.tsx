@@ -381,7 +381,7 @@ function MultiChatContent() {
         <div className="min-h-screen pt-16 bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
             {/* Limit Warning Modal */}
             {showLimitModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
                     <Card className="max-w-md w-full animate-in fade-in zoom-in duration-200">
                         <CardHeader className="text-center pb-2">
                             <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -549,7 +549,7 @@ function MultiChatContent() {
 
                     {/* Main Chat Area */}
                     <div className="lg:col-span-3">
-                        <Card className="h-[calc(100vh-180px)] flex flex-col overflow-hidden">
+                        <Card className="h-[calc(100dvh-180px)] flex flex-col overflow-hidden">
                             {/* Messages */}
                             <ScrollArea className="flex-1 p-4 min-h-0" ref={scrollRef}>
                                 {messages.length === 0 ? (

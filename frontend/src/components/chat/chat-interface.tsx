@@ -329,7 +329,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
         <div className="flex flex-col h-full bg-background min-w-0">
             {/* Limit Warning Modal */}
             {showLimitModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
                     <Card className="max-w-md w-full animate-in fade-in zoom-in duration-200">
                         <CardHeader className="text-center pb-2">
                             <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -362,7 +362,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
 
             {/* Model Error Modal */}
             {showModelError && modelError && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
                     <Card className="max-w-md w-full animate-in fade-in zoom-in duration-200">
                         <CardHeader className="text-center pb-2">
                             <div className="w-16 h-16 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">

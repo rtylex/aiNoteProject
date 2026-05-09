@@ -40,7 +40,7 @@ export function ChatLayout({ documentId }: ChatLayoutProps) {
     }, [])
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-background">
+        <div className="flex h-[calc(100dvh-4rem)] pt-16 overflow-hidden bg-background">
             {/* PDF Viewer Section - Mobilde tamamen gizli, masaüstünde kontrollü */}
             <div className={`transition-all duration-300 ease-in-out ${showPdf ? 'md:w-1/2 border-r' : 'w-0'} overflow-hidden relative min-w-0 hidden md:block`}>
                 <div className="h-full w-full">

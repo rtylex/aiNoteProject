@@ -56,7 +56,13 @@ export function CreateFlashcardModal({ documentId, documentTitle, sessionId, ses
             msg = err.detail || JSON.stringify(err)
           } else {
             const text = await res.text()
-            msg = text ? `Sunucu hatası (${res.status}): ${text.substring(0, 200)}` : `Sunucu hatası (${res.status})`
+            if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+              msg = 'Sunucu yanıtı okunamadı. İşlem çok uzun sürdü veya sunucu meşgul. Lütfen daha az kart deneyin veya daha sonra tekrar deneyin.'
+            } else if (text) {
+              msg = `Sunucu hatası (${res.status}): ${text.substring(0, 200)}`
+            } else {
+              msg = `Sunucu hatası (${res.status})`
+            }
           }
         } catch { msg = `Sunucu hatası (${res.status})` }
         alert(msg)

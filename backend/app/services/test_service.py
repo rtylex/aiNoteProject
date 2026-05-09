@@ -173,25 +173,21 @@ def _extract_partial_questions(text: str) -> list[dict]:
     return questions
 
 
-async def generate_test_questions(
+async def _generate_test_batch(
     document_content: str,
     question_count: int,
-    model: str = "deepseek"
+    model: str,
+    batch_index: int,
+    total_batches: int
 ) -> dict:
-    """
-    Generate test questions using AI.
-
-    Args:
-        document_content: Full text content from document
-        question_count: Number of questions to generate
-        model: "deepseek" or "gemma" (default: deepseek)
-
-    Returns:
-        Dict with 'questions' list and optional 'partial' flag and 'requested_count'
-    """
+    """Generate a single batch of test questions."""
     max_tokens = _calculate_max_tokens(question_count)
 
-    user_prompt = f"""Aşağıdaki ders içeriğinden {question_count} adet çoktan seçmeli soru hazırla:
+    batch_hint = ""
+    if total_batches > 1:
+        batch_hint = f" Bu {batch_index + 1}. batch (toplam {total_batches} batch). Lütfen farklı konulardan soru üret."
+
+    user_prompt = f"""Aşağıdaki ders içeriğinden {question_count} adet çoktan seçmeli soru hazırla:{batch_hint}
 
 DERS İÇERİĞİ:
 {document_content[:15000]}"""
@@ -269,6 +265,59 @@ DERS İÇERİĞİ:
         raise
     except Exception as e:
         raise ValueError(f"Test generation failed: {str(e)}")
+
+
+async def generate_test_questions(
+    document_content: str,
+    question_count: int,
+    model: str = "deepseek"
+) -> dict:
+    """
+    Generate test questions using AI.
+    For 15+ questions, splits into 2 parallel batches for speed.
+
+    Args:
+        document_content: Full text content from document
+        question_count: Number of questions to generate
+        model: "deepseek" or "gemma" (default: deepseek)
+
+    Returns:
+        Dict with 'questions' list and optional 'partial' flag and 'requested_count'
+    """
+    # Single batch for small requests
+    if question_count <= 15:
+        return await _generate_test_batch(document_content, question_count, model, 0, 1)
+
+    # Split into 2 parallel batches for speed
+    batch_size_1 = question_count // 2
+    batch_size_2 = question_count - batch_size_1
+
+    import asyncio
+
+    results = await asyncio.gather(
+        _generate_test_batch(document_content, batch_size_1, model, 0, 2),
+        _generate_test_batch(document_content, batch_size_2, model, 1, 2),
+        return_exceptions=True
+    )
+
+    all_questions = []
+    is_partial = False
+    total_generated = 0
+
+    for result in results:
+        if isinstance(result, Exception):
+            raise ValueError(f"Batch failed: {str(result)}")
+        all_questions.extend(result["questions"])
+        if result.get("partial"):
+            is_partial = True
+        total_generated += result.get("generated_count", len(result["questions"]))
+
+    return {
+        "questions": all_questions,
+        "partial": is_partial,
+        "requested_count": question_count,
+        "generated_count": total_generated
+    }
 
 
 def create_test(

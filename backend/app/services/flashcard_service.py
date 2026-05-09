@@ -171,25 +171,21 @@ def _extract_partial_cards(text: str) -> list[dict]:
     return cards
 
 
-async def generate_flashcards(
+async def _generate_flashcard_batch(
     document_content: str,
     card_count: int,
-    model: str = "deepseek"
+    model: str,
+    batch_index: int,
+    total_batches: int
 ) -> dict:
-    """
-    Generate flashcards using AI.
-
-    Args:
-        document_content: Full text content from document
-        card_count: Number of cards to generate
-        model: "deepseek" or "gemma" (default: deepseek)
-
-    Returns:
-        Dict with 'cards' list and optional 'partial' flag
-    """
+    """Generate a single batch of flashcards."""
     max_tokens = _calculate_max_tokens(card_count)
 
-    user_prompt = f"""Aşağıdaki ders içeriğinden {card_count} adet çalışma kartı hazırla:
+    batch_hint = ""
+    if total_batches > 1:
+        batch_hint = f" Bu {batch_index + 1}. batch (toplam {total_batches} batch). Lütfen farklı konulardan kart üret."
+
+    user_prompt = f"""Aşağıdaki ders içeriğinden {card_count} adet çalışma kartı hazırla:{batch_hint}
 
 DERS İÇERİĞİ:
 {document_content[:15000]}"""
@@ -267,6 +263,59 @@ DERS İÇERİĞİ:
         raise
     except Exception as e:
         raise ValueError(f"Flashcard generation failed: {str(e)}")
+
+
+async def generate_flashcards(
+    document_content: str,
+    card_count: int,
+    model: str = "deepseek"
+) -> dict:
+    """
+    Generate flashcards using AI.
+    For 15+ cards, splits into 2 parallel batches for speed.
+
+    Args:
+        document_content: Full text content from document
+        card_count: Number of cards to generate
+        model: "deepseek" or "gemma" (default: deepseek)
+
+    Returns:
+        Dict with 'cards' list and optional 'partial' flag
+    """
+    # Single batch for small requests
+    if card_count <= 15:
+        return await _generate_flashcard_batch(document_content, card_count, model, 0, 1)
+
+    # Split into 2 parallel batches for speed
+    batch_size_1 = card_count // 2
+    batch_size_2 = card_count - batch_size_1
+
+    import asyncio
+
+    results = await asyncio.gather(
+        _generate_flashcard_batch(document_content, batch_size_1, model, 0, 2),
+        _generate_flashcard_batch(document_content, batch_size_2, model, 1, 2),
+        return_exceptions=True
+    )
+
+    all_cards = []
+    is_partial = False
+    total_generated = 0
+
+    for result in results:
+        if isinstance(result, Exception):
+            raise ValueError(f"Batch failed: {str(result)}")
+        all_cards.extend(result["cards"])
+        if result.get("partial"):
+            is_partial = True
+        total_generated += result.get("generated_count", len(result["cards"]))
+
+    return {
+        "cards": all_cards,
+        "partial": is_partial,
+        "requested_count": card_count,
+        "generated_count": total_generated
+    }
 
 
 def calculate_sm2(quality: int, progress: FlashcardProgress):

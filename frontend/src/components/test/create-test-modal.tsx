@@ -91,8 +91,20 @@ export function CreateTestModal({ documentId, sessionId, documentTitle, sessionT
             }
 
             if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.detail || 'Test oluşturulamadı')
+                const contentType = response.headers.get('content-type')
+                let errorMessage = 'Test oluşturulamadı'
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json()
+                    errorMessage = errorData.detail || errorMessage
+                } else {
+                    const text = await response.text()
+                    if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                        errorMessage = 'Sunucu yanıtı okunamadı. İşlem çok uzun sürdü veya sunucu meşgul. Lütfen daha az soru deneyin veya daha sonra tekrar deneyin.'
+                    } else if (text) {
+                        errorMessage = text.substring(0, 200)
+                    }
+                }
+                throw new Error(errorMessage)
             }
 
             const result = await response.json()

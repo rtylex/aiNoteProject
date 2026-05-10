@@ -91,7 +91,7 @@ export function StudyMode({ setId }: StudyModeProps) {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <Loader2 className="w-10 h-10 animate-spin text-[#f4f1e0]" />
+        <Loader2 className="w-10 h-10 animate-spin text-ink" />
       </div>
     )
   }
@@ -103,19 +103,19 @@ export function StudyMode({ setId }: StudyModeProps) {
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', damping: 12 }}
-          className="w-24 h-24 bg-gradient-to-br from-[#f4f1e0] to-[#e7d9a8] rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-[#011133]/30"
+          className="w-24 h-24 bg-gold rounded-full flex items-center justify-center mx-auto paper-shadow-lg"
         >
-          <Sparkles className="w-12 h-12 text-[#011133]" />
+          <Sparkles className="w-12 h-12 text-ink" />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <h2 className="text-4xl font-bold text-[#f4f1e0] mb-3">Çalışma Tamamlandı!</h2>
-          <p className="text-[#f4f1e0]/70 text-lg">Bugünlük tekrar edilecek kartların hepsini bitirdiniz.</p>
+          <h2 className="text-4xl font-bold text-ink mb-3 font-display">Çalışma Tamamlandı!</h2>
+          <p className="text-ink-light text-lg font-body">Bugünlük tekrar edilecek kartların hepsini bitirdiniz.</p>
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex justify-center gap-4">
-          <Button variant="outline" onClick={() => router.push('/flashcard')} className="border-[#f4f1e0]/30 text-[#f4f1e0] hover:bg-[#f4f1e0]/10 hover:text-[#f4f1e0] rounded-full px-8 h-12">
+          <Button variant="outline" onClick={() => router.push('/flashcard')} className="border-ink/20 text-ink hover:bg-parchment hover:text-ink rounded-sm px-8 h-12 font-mono-ui">
             Flashcard'larıma Dön
           </Button>
-          <Button onClick={() => { setCurrentIndex(0); setFinished(false); setIsFlipped(false); fetchStudyCards(); }} className="bg-[#f4f1e0] text-[#011133] hover:bg-[#e7d9a8] rounded-full px-8 h-12 font-semibold">
+          <Button onClick={() => { setCurrentIndex(0); setFinished(false); setIsFlipped(false); fetchStudyCards(); }} className="bg-ink text-paper hover:bg-ink/90 rounded-sm px-8 h-12 font-semibold paper-shadow font-mono-ui">
             <RotateCcw className="w-5 h-5 mr-2" /> Tekrar Başla
           </Button>
         </motion.div>
@@ -126,8 +126,8 @@ export function StudyMode({ setId }: StudyModeProps) {
   if (cards.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-[#f4f1e0]/70">Şu anda tekrar edilecek kart yok. Kartları öğrenmeye başlayın!</p>
-        <Button variant="outline" className="mt-4 border-[#f4f1e0]/30 text-[#f4f1e0] hover:bg-[#f4f1e0]/10" onClick={() => router.push(`/flashcard/${setId}`)}>Sete Dön</Button>
+        <p className="text-ink-light font-body">Şu anda tekrar edilecek kart yok. Kartları öğrenmeye başlayın!</p>
+        <Button variant="outline" className="mt-4 border-ink/20 text-ink hover:bg-parchment rounded-sm" onClick={() => router.push(`/flashcard/${setId}`)}>Sete Dön</Button>
       </div>
     )
   }
@@ -150,7 +150,7 @@ export function StudyMode({ setId }: StudyModeProps) {
               {cards.slice(0, Math.min(cards.length, 6)).map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute inset-0 rounded-2xl border-2 border-[#f4f1e0]/20 bg-gradient-to-br from-[#1d2f5e] to-[#23335c] shadow-2xl"
+                  className="absolute inset-0 rounded-sm border-2 border-parchment bg-paper-dark paper-shadow"
                   initial={{ x: 0, y: 0, rotate: 0, scale: 1 }}
                   animate={{
                     x: [0, (i % 2 === 0 ? -120 : 120), 0],
@@ -172,8 +172,8 @@ export function StudyMode({ setId }: StudyModeProps) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
               >
-                <span className="text-[#f4f1e0] font-bold text-lg flex items-center gap-2">
-                  <Brain className="w-6 h-6" /> Kartlar Hazırlanıyor...
+                <span className="text-ink font-bold text-lg flex items-center gap-2 font-display">
+                  <Brain className="w-6 h-6 text-terracotta" /> Kartlar Hazırlanıyor...
                 </span>
               </motion.div>
             </div>
@@ -184,13 +184,13 @@ export function StudyMode({ setId }: StudyModeProps) {
       <div className={`transition-opacity duration-500 ${shuffling ? 'opacity-0' : 'opacity-100'}`}>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <span className="text-sm font-medium text-[#f4f1e0]/60">
-            Kart <span className="text-[#f4f1e0] font-bold text-lg">{currentIndex + 1}</span> / {cards.length}
+          <span className="text-sm font-medium text-ink-light font-mono-ui">
+            Kart <span className="text-ink font-bold text-lg font-display">{currentIndex + 1}</span> / {cards.length}
           </span>
           <div className="flex items-center gap-3">
-            <div className="w-40 h-2 bg-[#f4f1e0]/10 rounded-full overflow-hidden">
+            <div className="w-40 h-2 bg-parchment rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-r from-[#f4f1e0] to-[#e7d9a8]"
+                className="h-full bg-terracotta"
                 initial={{ width: 0 }}
                 animate={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
                 transition={{ duration: 0.4 }}
@@ -199,28 +199,28 @@ export function StudyMode({ setId }: StudyModeProps) {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-[220px_1fr] gap-8">
+        <div className="grid lg:grid-cols-[240px_1fr] gap-8">
           {/* Left: Mini Card List */}
-          <div className="hidden lg:flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2">
+          <div className="hidden lg:flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
             {cards.map((card, idx) => (
               <motion.button
                 key={card.id}
                 onClick={() => { if (!isFlipped) { setCurrentIndex(idx); setIsFlipped(false); } }}
-                className={`text-left p-3 rounded-xl border transition-all text-sm ${
+                className={`text-left p-3 rounded-sm border transition-all text-sm cursor-pointer ${
                   idx === currentIndex
-                    ? 'bg-[#f4f1e0]/15 border-[#f4f1e0]/40 text-[#f4f1e0] shadow-lg'
+                    ? 'bg-paper border-terracotta/40 text-ink paper-shadow'
                     : idx < currentIndex
-                    ? 'bg-[#f4f1e0]/5 border-[#f4f1e0]/10 text-[#f4f1e0]/40'
-                    : 'bg-[#f4f1e0]/5 border-[#f4f1e0]/10 text-[#f4f1e0]/60 hover:bg-[#f4f1e0]/10'
+                    ? 'bg-paper-dark border-parchment text-ink-light/50'
+                    : 'bg-paper-dark border-parchment text-ink-light hover:bg-parchment hover:text-ink'
                 }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                    idx === currentIndex ? 'bg-[#f4f1e0] text-[#011133]' : 'bg-[#f4f1e0]/20 text-[#f4f1e0]/60'
+                  <span className={`w-5 h-5 rounded-sm flex items-center justify-center text-[10px] font-bold font-mono-ui ${
+                    idx === currentIndex ? 'bg-terracotta text-paper' : 'bg-parchment text-ink-light'
                   }`}>{idx + 1}</span>
-                  <span className="truncate font-medium">{card.front.substring(0, 30)}...</span>
+                  <span className="truncate font-medium font-body">{card.front.substring(0, 30)}...</span>
                 </div>
               </motion.button>
             ))}
@@ -231,7 +231,7 @@ export function StudyMode({ setId }: StudyModeProps) {
             {/* Big Card */}
             <div className="relative mx-auto max-w-xl">
               {/* Glow effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#23335c] via-[#3d4f7f] to-[#23335c] rounded-[2rem] blur opacity-30" />
+              <div className="absolute -inset-1 bg-terracotta/10 rounded-sm blur opacity-30" />
               
               <div className="relative [perspective:1200px] h-[420px]">
                 <motion.div
@@ -242,13 +242,13 @@ export function StudyMode({ setId }: StudyModeProps) {
                 >
                   {/* Front */}
                   <div className="absolute inset-0 [backface-visibility:hidden]">
-                    <div className="w-full h-full flex flex-col items-center justify-center p-10 bg-gradient-to-br from-[#e7ecf8] to-[#dce2f1] rounded-[1.5rem] shadow-2xl border border-white/50">
-                      <span className="absolute top-5 left-5 bg-[#011133] text-[#f4f1e0] px-3 py-1 rounded-full text-xs font-bold tracking-wide">
+                    <div className="w-full h-full flex flex-col items-center justify-center p-10 bg-paper rounded-sm paper-shadow-lg border border-parchment">
+                      <span className="absolute top-5 left-5 bg-ink text-paper px-3 py-1 rounded-sm text-xs font-bold tracking-wide font-mono-ui">
                         KART #{currentIndex + 1}
                       </span>
-                      <Brain className="w-8 h-8 text-[#23335c]/40 mb-6" />
-                      <p className="text-2xl md:text-3xl font-bold text-[#011133] text-center leading-relaxed">{currentCard.front}</p>
-                      <div className="absolute bottom-6 flex items-center gap-2 text-[#23335c]/50 text-sm">
+                      <Brain className="w-8 h-8 text-terracotta/40 mb-6" />
+                      <p className="text-2xl md:text-3xl font-bold text-ink text-center leading-relaxed font-display">{currentCard.front}</p>
+                      <div className="absolute bottom-6 flex items-center gap-2 text-ink-light text-sm font-body">
                         <Sparkles className="w-4 h-4" />
                         <span>Çevirmek için tıklayın</span>
                       </div>
@@ -257,19 +257,19 @@ export function StudyMode({ setId }: StudyModeProps) {
 
                   {/* Back */}
                   <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                    <div className="w-full h-full flex flex-col items-center justify-center p-10 bg-gradient-to-br from-[#011133] via-[#1d2f5e] to-[#23335c] rounded-[1.5rem] shadow-2xl border border-[#f4f1e0]/10">
-                      <span className="absolute top-5 right-5 bg-[#f4f1e0]/10 text-[#f4f1e0]/70 px-3 py-1 rounded-full text-xs font-bold tracking-wide border border-[#f4f1e0]/20">
+                    <div className="w-full h-full flex flex-col items-center justify-center p-10 bg-ink rounded-sm paper-shadow-lg border border-parchment">
+                      <span className="absolute top-5 right-5 bg-paper/10 text-paper/70 px-3 py-1 rounded-sm text-xs font-bold tracking-wide border border-paper/20 font-mono-ui">
                         CEVAP
                       </span>
-                      <p className="text-xl md:text-2xl font-medium text-[#f4f1e0] text-center leading-relaxed mb-6">{currentCard.back}</p>
+                      <p className="text-xl md:text-2xl font-medium text-paper text-center leading-relaxed mb-6 font-body">{currentCard.back}</p>
                       
                       {currentCard.extra_notes && (
-                        <div className="w-full max-w-sm mt-4 pt-4 border-t border-[#f4f1e0]/20">
-                          <div className="flex items-center gap-2 text-[#f4f1e0]/60 text-xs mb-2">
+                        <div className="w-full max-w-sm mt-4 pt-4 border-t border-paper/20">
+                          <div className="flex items-center gap-2 text-paper/60 text-xs mb-2 font-mono-ui">
                             <Lightbulb className="w-4 h-4" />
                             <span className="font-semibold uppercase tracking-wider">Ekstra Notlar</span>
                           </div>
-                          <p className="text-sm text-[#f4f1e0]/80 leading-relaxed">{currentCard.extra_notes}</p>
+                          <p className="text-sm text-paper/80 leading-relaxed font-body">{currentCard.extra_notes}</p>
                         </div>
                       )}
                     </div>
@@ -280,29 +280,29 @@ export function StudyMode({ setId }: StudyModeProps) {
 
             {/* Rating */}
             {!isFlipped ? (
-              <div className="text-center text-sm text-[#f4f1e0]/40 py-2">
+              <div className="text-center text-sm text-ink-light py-2 font-body">
                 Kartı çevirmek için üzerine tıklayın
               </div>
             ) : (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                <p className="text-center text-sm font-medium text-[#f4f1e0]/80">Bu kartı ne kadar iyi biliyorsunuz?</p>
+                <p className="text-center text-sm font-medium text-ink-light font-body">Bu kartı ne kadar iyi biliyorsunuz?</p>
                 <div className="grid grid-cols-5 gap-3 max-w-lg mx-auto">
                   {[
-                    { q: 1, label: 'Tekrar', color: 'from-red-500 to-rose-600', hover: 'hover:shadow-red-500/40' },
-                    { q: 2, label: 'Zor', color: 'from-orange-500 to-amber-600', hover: 'hover:shadow-orange-500/40' },
-                    { q: 3, label: 'Orta', color: 'from-yellow-400 to-amber-500', hover: 'hover:shadow-yellow-500/40' },
-                    { q: 4, label: 'İyi', color: 'from-emerald-400 to-green-500', hover: 'hover:shadow-emerald-500/40' },
-                    { q: 5, label: 'Mükemmel', color: 'from-green-400 to-emerald-500', hover: 'hover:shadow-green-500/40' },
-                  ].map(({ q, label, color, hover }) => (
+                    { q: 1, label: 'Tekrar', color: 'bg-red-500 hover:bg-red-600' },
+                    { q: 2, label: 'Zor', color: 'bg-orange-500 hover:bg-orange-600' },
+                    { q: 3, label: 'Orta', color: 'bg-yellow-500 hover:bg-yellow-600' },
+                    { q: 4, label: 'İyi', color: 'bg-emerald-500 hover:bg-emerald-600' },
+                    { q: 5, label: 'Mükemmel', color: 'bg-green-500 hover:bg-green-600' },
+                  ].map(({ q, label, color }) => (
                     <motion.button
                       key={q}
                       onClick={() => handleReview(q)}
-                      className={`h-16 flex flex-col items-center justify-center gap-0.5 rounded-2xl bg-gradient-to-b ${color} text-white font-bold shadow-lg ${hover} transition-all hover:scale-105 active:scale-95`}
+                      className={`h-16 flex flex-col items-center justify-center gap-0.5 rounded-sm ${color} text-white font-bold shadow-lg transition-all hover:scale-105 active:scale-95`}
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <span className="text-xl">{q}</span>
-                      <span className="text-[9px] uppercase tracking-wider opacity-90">{label}</span>
+                      <span className="text-[9px] uppercase tracking-wider opacity-90 font-mono-ui">{label}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -315,7 +315,7 @@ export function StudyMode({ setId }: StudyModeProps) {
                 variant="ghost"
                 onClick={() => { if (currentIndex > 0) { setCurrentIndex(prev => prev - 1); setIsFlipped(false); } }}
                 disabled={currentIndex === 0}
-                className="text-[#f4f1e0]/60 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10"
+                className="text-ink-light hover:text-ink hover:bg-parchment rounded-sm font-mono-ui"
               >
                 <ChevronLeft className="w-4 h-4 mr-1" /> Önceki
               </Button>
@@ -323,7 +323,7 @@ export function StudyMode({ setId }: StudyModeProps) {
                 variant="ghost"
                 onClick={() => { if (currentIndex < cards.length - 1) { setCurrentIndex(prev => prev + 1); setIsFlipped(false); } }}
                 disabled={currentIndex === cards.length - 1}
-                className="text-[#f4f1e0]/60 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10"
+                className="text-ink-light hover:text-ink hover:bg-parchment rounded-sm font-mono-ui"
               >
                 Sonraki <ChevronRight className="w-4 h-4 ml-1" />
               </Button>

@@ -244,49 +244,71 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stats Section — Editorial masthead with icons */}
+        {/* Stats Section — Stamp Collection */}
         <section className="relative bg-paper-dark torn-edge-top torn-edge-bottom overflow-hidden">
           <div className="absolute inset-0 paper-texture opacity-30 pointer-events-none" />
 
           <div className="relative container mx-auto px-4 py-16 md:py-24">
             <div className="border-y-2 border-double border-ink/10 py-10 md:py-14">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 md:divide-x md:divide-parchment">
+              <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x md:divide-parchment gap-6 md:gap-4">
                 {[
-                  { value: '10K+', label: 'Aktif Kullanıcı', icon: Users, color: 'olive' },
-                  { value: '50K+', label: 'Yüklenen Belge', icon: FileText, color: 'terracotta' },
-                  { value: '1M+', label: 'AI Sohbeti', icon: MessageSquare, color: 'lavender' },
-                  { value: '4.9', label: 'Kullanıcı Puanı', icon: Star, color: 'gold' },
+                  { value: '10K+', label: 'Aktif Kullanıcı', icon: Users, color: 'olive', rotate: -2 },
+                  { value: '50K+', label: 'Yüklenen Belge', icon: FileText, color: 'terracotta', rotate: 1.5 },
+                  { value: '1M+', label: 'AI Sohbeti', icon: MessageSquare, color: 'lavender', rotate: -1 },
+                  { value: '4.9', label: 'Kullanıcı Puanı', icon: Star, color: 'gold', rotate: 2 },
                 ].map((stat, idx) => {
                   const c = COLOR_MAP[stat.color]
                   return (
                     <div
                       key={idx}
-                      className="text-center px-4 md:px-8 py-4 group cursor-default"
-                      style={{ minHeight: 160 }}
+                      className="relative group cursor-default"
+                      style={{
+                        transform: `rotate(${stat.rotate}deg)`,
+                        transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease',
+                        transformOrigin: 'center bottom',
+                      }}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget as HTMLDivElement
+                        el.style.transform = `rotate(0deg) translateY(-4px)`
+                        const shadow = el.querySelector('.stamp-card') as HTMLDivElement
+                        if (shadow) shadow.style.boxShadow = '4px 6px 20px rgba(26, 24, 20, 0.15), 0 2px 4px rgba(0, 0, 0, 0.08)'
+                      }}
+                      onMouseLeave={(e) => {
+                        const el = e.currentTarget as HTMLDivElement
+                        el.style.transform = `rotate(${stat.rotate}deg) translateY(0)`
+                        const shadow = el.querySelector('.stamp-card') as HTMLDivElement
+                        if (shadow) shadow.style.boxShadow = ''
+                      }}
                     >
-                      {/* Icon with paper circle */}
-                      <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full ${c.bg} mb-4 transition-transform duration-200 group-hover:scale-110`}>
-                        <stat.icon className={`w-7 h-7 ${c.text}`} strokeWidth={1.5} />
-                      </div>
+                      <div
+                        className="stamp-card bg-paper-dark border border-parchment p-5 md:p-6 relative transition-all duration-300 h-full flex flex-col items-center justify-center"
+                        style={{ transition: 'box-shadow 0.3s ease, border-color 0.3s ease' }}
+                      >
+                        {/* Stamp border effect on hover */}
+                        <div className="absolute inset-0 border-2 border-transparent group-hover:border-terracotta/20 transition-colors duration-300 rounded-sm pointer-events-none" />
 
-                      {/* Stamp-like number */}
-                      <div className="relative inline-block">
-                        <span className="text-5xl md:text-7xl font-bold text-ink leading-none font-display tracking-tight">
-                          {stat.value}
-                        </span>
-                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-terracotta/40 rounded-full blur-[1px]" />
-                      </div>
+                        {/* Icon badge */}
+                        <div className={`relative inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full ${c.bg} mb-4 md:mb-5 transition-transform duration-300 group-hover:scale-110`}>
+                          <stat.icon className={`w-7 h-7 md:w-8 md:h-8 ${c.text}`} strokeWidth={1.5} />
+                          {/* Subtle inner glow on hover */}
+                          <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-white/20 to-transparent" />
+                        </div>
 
-                      {/* Label */}
-                      <div className="mt-5 pt-3 border-t border-ink/10 mx-auto max-w-[140px]">
-                        <span className="text-[10px] md:text-xs font-mono-ui tracking-[0.2em] uppercase text-ink-light">
-                          {stat.label}
-                        </span>
-                      </div>
+                        {/* Number with stamp underline */}
+                        <div className="relative text-center mb-3 md:mb-4">
+                          <span className="text-4xl md:text-5xl lg:text-6xl font-bold text-ink leading-none font-display tracking-tight">
+                            {stat.value}
+                          </span>
+                          {/* Stamp mark underline */}
+                          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 md:w-20 h-1 bg-gradient-to-r from-transparent via-terracotta/60 to-transparent rounded-full" />
+                        </div>
 
-                      {/* Decorative index */}
-                      <div className="mt-3 text-[10px] font-mono-ui text-parchment tracking-widest">
-                        {String(idx + 1).padStart(2, '0')}
+                        {/* Label */}
+                        <div className="text-center mt-4 md:mt-5">
+                          <span className="text-[10px] md:text-xs font-mono-ui tracking-[0.15em] uppercase text-ink-light leading-relaxed">
+                            {stat.label}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   )

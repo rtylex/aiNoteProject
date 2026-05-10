@@ -213,25 +213,50 @@ export default function Home() {
         </section>
 
         {/* Stats Section */}
-        <section className="border-y border-parchment bg-paper-dark">
-          <div className="container mx-auto px-4 py-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-ink mb-1 font-display">10K+</div>
-                <div className="text-sm text-ink-light font-mono-ui tracking-wide uppercase">Aktif Kullanıcı</div>
+        <section className="relative bg-paper-dark torn-edge-top torn-edge-bottom">
+          <div className="absolute inset-0 paper-texture opacity-30 pointer-events-none" />
+
+          <div className="relative container mx-auto px-4 py-16 md:py-24">
+            {/* Editorial masthead style */}
+            <div className="border-y-2 border-double border-ink/10 py-10 md:py-14">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 md:divide-x md:divide-parchment">
+                {[
+                  { value: '10K+', label: 'Aktif Kullanıcı', icon: 'users' },
+                  { value: '50K+', label: 'Yüklenen Belge', icon: 'file' },
+                  { value: '1M+', label: 'AI Sohbeti', icon: 'chat' },
+                  { value: '4.9', label: 'Kullanıcı Puanı', icon: 'star' },
+                ].map((stat, idx) => (
+                  <div key={idx} className="text-center px-4 md:px-8 py-4">
+                    {/* Stamp-like number */}
+                    <div className="relative inline-block">
+                      <span className="text-5xl md:text-7xl font-bold text-ink leading-none font-display tracking-tight">
+                        {stat.value}
+                      </span>
+                      {/* Ink bleed effect */}
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-terracotta/40 rounded-full blur-[1px]" />
+                    </div>
+
+                    {/* Label with editorial line */}
+                    <div className="mt-5 pt-3 border-t border-ink/10 mx-auto max-w-[120px]">
+                      <span className="text-[10px] md:text-xs font-mono-ui tracking-[0.2em] uppercase text-ink-light">
+                        {stat.label}
+                      </span>
+                    </div>
+
+                    {/* Decorative index number */}
+                    <div className="mt-3 text-[10px] font-mono-ui text-parchment tracking-widest">
+                      {String(idx + 1).padStart(2, '0')}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-ink mb-1 font-display">50K+</div>
-                <div className="text-sm text-ink-light font-mono-ui tracking-wide uppercase">Yüklenen Belge</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-ink mb-1 font-display">1M+</div>
-                <div className="text-sm text-ink-light font-mono-ui tracking-wide uppercase">AI Sohbeti</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-ink mb-1 font-display">4.9</div>
-                <div className="text-sm text-ink-light font-mono-ui tracking-wide uppercase">Kullanıcı Puanı</div>
-              </div>
+            </div>
+
+            {/* Bottom editorial note */}
+            <div className="mt-8 text-center">
+              <p className="text-xs font-mono-ui tracking-[0.3em] uppercase text-ink-light/60">
+                ·&nbsp;&nbsp;Güncel veriler — 2025&nbsp;&nbsp;·
+              </p>
             </div>
           </div>
         </section>

@@ -232,11 +232,11 @@ export function UploadModal() {
         if (visibility === 'private') {
             return (
                 <div className="flex items-center justify-center gap-2 mb-6">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'file' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'file' ? 'bg-ink text-paper' : 'bg-parchment text-ink-light'}`}>
                         1
                     </div>
-                    <div className="w-6 h-0.5 bg-indigo-100" />
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'visibility' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                    <div className="w-6 h-0.5 bg-parchment" />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'visibility' ? 'bg-ink text-paper' : 'bg-parchment text-ink-light'}`}>
                         2
                     </div>
                 </div>
@@ -246,19 +246,19 @@ export function UploadModal() {
         // For public visibility, show all 4 steps
         return (
             <div className="flex items-center justify-center gap-2 mb-6">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'file' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'file' ? 'bg-ink text-paper' : 'bg-parchment text-ink-light'}`}>
                     1
                 </div>
-                <div className="w-6 h-0.5 bg-indigo-100" />
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'visibility' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                <div className="w-6 h-0.5 bg-parchment" />
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'visibility' ? 'bg-ink text-paper' : 'bg-parchment text-ink-light'}`}>
                     2
                 </div>
-                <div className="w-6 h-0.5 bg-indigo-100" />
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'type' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                <div className="w-6 h-0.5 bg-parchment" />
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'type' ? 'bg-ink text-paper' : 'bg-parchment text-ink-light'}`}>
                     3
                 </div>
-                <div className="w-6 h-0.5 bg-indigo-100" />
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'metadata' ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                <div className="w-6 h-0.5 bg-parchment" />
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === 'metadata' ? 'bg-ink text-paper' : 'bg-parchment text-ink-light'}`}>
                     4
                 </div>
             </div>
@@ -272,20 +272,20 @@ export function UploadModal() {
             if (!isOpen) resetForm()
         }}>
             <DialogTrigger asChild>
-                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                <Button className="bg-ink hover:bg-ink/90 text-paper font-mono-ui tracking-wide">
                     <Plus className="mr-2 h-4 w-4" />
                     Belge Yükle
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-xl border-none shadow-2xl">
+            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    <DialogTitle className="text-2xl font-bold text-center text-ink font-display">
                         {step === 'file' && 'Dosya Seç'}
                         {step === 'visibility' && 'Paylaşım Ayarı'}
                         {step === 'type' && 'Döküman Türü'}
                         {step === 'metadata' && (documentType === 'course' ? 'Ders Bilgileri' : 'Kategori Seç')}
                     </DialogTitle>
-                    <DialogDescription className="text-center text-gray-500">
+                    <DialogDescription className="text-center text-ink-light font-body">
                         {step === 'file' && 'PDF dosyanızı yükleyin'}
                         {step === 'visibility' && 'Notunuzu kimlerle paylaşmak istiyorsunuz?'}
                         {step === 'type' && 'Bu döküman ne türde?'}
@@ -301,23 +301,23 @@ export function UploadModal() {
                         <div className="flex items-center justify-center w-full">
                             <Label
                                 htmlFor="dropzone-file"
-                                className="flex flex-col items-center justify-center w-full h-64 border-2 border-indigo-100 border-dashed rounded-2xl cursor-pointer bg-indigo-50/50 hover:bg-indigo-50 transition-colors"
+                                className="flex flex-col items-center justify-center w-full h-64 border-2 border-parchment border-dashed rounded-sm cursor-pointer bg-paper-dark hover:bg-parchment/50 transition-colors"
                             >
                                 {file ? (
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
-                                        <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                                            <FileText className="w-8 h-8 text-indigo-600" />
+                                        <div className="w-16 h-16 bg-parchment rounded-sm flex items-center justify-center mb-4">
+                                            <FileText className="w-8 h-8 text-ink" />
                                         </div>
-                                        <p className="mb-2 text-sm font-semibold text-gray-700 truncate max-w-[200px]">
+                                        <p className="mb-2 text-sm font-semibold text-ink truncate max-w-[200px]">
                                             {file.name}
                                         </p>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-ink-light">
                                             {(file.size / 1024 / 1024).toFixed(2)} MB
                                         </p>
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="mt-4 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                            className="mt-4 text-red-500 hover:text-red-600 hover:bg-red-500/10"
                                             onClick={(e) => {
                                                 e.preventDefault()
                                                 setFile(null)
@@ -328,13 +328,13 @@ export function UploadModal() {
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                                            <UploadCloud className="w-8 h-8 text-indigo-600" />
+                                        <div className="w-16 h-16 bg-parchment rounded-sm flex items-center justify-center mb-4">
+                                            <UploadCloud className="w-8 h-8 text-terracotta" />
                                         </div>
-                                        <p className="mb-2 text-sm text-gray-500">
-                                            <span className="font-semibold text-indigo-600">Yüklemek için tıklayın</span> veya sürükleyip bırakın
+                                        <p className="mb-2 text-sm text-ink-light">
+                                            <span className="font-semibold text-terracotta">Yüklemek için tıklayın</span> veya sürükleyip bırakın
                                         </p>
-                                        <p className="text-xs text-gray-400">Sadece PDF (Maks. 50MB)</p>
+                                        <p className="text-xs text-ink-light/60">Sadece PDF (Maks. 50MB)</p>
                                     </div>
                                 )}
                                 <Input
@@ -352,21 +352,21 @@ export function UploadModal() {
                     {step === 'visibility' && (
                         <div className="space-y-4">
                             <div
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${visibility === 'private'
-                                    ? 'border-indigo-600 bg-indigo-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                className={`p-4 rounded-sm border-2 cursor-pointer transition-all ${visibility === 'private'
+                                    ? 'border-ink bg-paper-dark'
+                                    : 'border-parchment hover:border-ink/30'
                                     }`}
                                 onClick={() => setVisibility('private')}
                             >
                                 <div className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${visibility === 'private' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                                        <Lock className={`w-5 h-5 ${visibility === 'private' ? 'text-white' : 'text-gray-500'}`} />
+                                    <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${visibility === 'private' ? 'bg-ink' : 'bg-parchment'}`}>
+                                        <Lock className={`w-5 h-5 ${visibility === 'private' ? 'text-paper' : 'text-ink-light'}`} />
                                     </div>
                                     <div>
-                                        <h3 className={`font-semibold ${visibility === 'private' ? 'text-indigo-600' : 'text-gray-700'}`}>
+                                        <h3 className={`font-semibold ${visibility === 'private' ? 'text-ink' : 'text-ink-light'}`}>
                                             Sadece Ben
                                         </h3>
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-sm text-ink-light">
                                             Bu not sadece size özel olacak. Kişisel çalışmalarınız için ideal.
                                         </p>
                                     </div>
@@ -374,21 +374,21 @@ export function UploadModal() {
                             </div>
 
                             <div
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${visibility === 'public'
-                                    ? 'border-indigo-600 bg-indigo-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                className={`p-4 rounded-sm border-2 cursor-pointer transition-all ${visibility === 'public'
+                                    ? 'border-ink bg-paper-dark'
+                                    : 'border-parchment hover:border-ink/30'
                                     }`}
                                 onClick={() => setVisibility('public')}
                             >
                                 <div className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${visibility === 'public' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                                        <Globe className={`w-5 h-5 ${visibility === 'public' ? 'text-white' : 'text-gray-500'}`} />
+                                    <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${visibility === 'public' ? 'bg-ink' : 'bg-parchment'}`}>
+                                        <Globe className={`w-5 h-5 ${visibility === 'public' ? 'text-paper' : 'text-ink-light'}`} />
                                     </div>
                                     <div>
-                                        <h3 className={`font-semibold ${visibility === 'public' ? 'text-indigo-600' : 'text-gray-700'}`}>
+                                        <h3 className={`font-semibold ${visibility === 'public' ? 'text-ink' : 'text-ink-light'}`}>
                                             Toplulukla Paylaş
                                         </h3>
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-sm text-ink-light">
                                             Diğer öğrenciler de bu notla AI destekli çalışabilir. Admin onayı gerektirir.
                                         </p>
                                     </div>
@@ -401,21 +401,21 @@ export function UploadModal() {
                     {step === 'type' && (
                         <div className="space-y-4">
                             <div
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${documentType === 'course'
-                                    ? 'border-indigo-600 bg-indigo-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                className={`p-4 rounded-sm border-2 cursor-pointer transition-all ${documentType === 'course'
+                                    ? 'border-ink bg-paper-dark'
+                                    : 'border-parchment hover:border-ink/30'
                                     }`}
                                 onClick={() => setDocumentType('course')}
                             >
                                 <div className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${documentType === 'course' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                                        <GraduationCap className={`w-5 h-5 ${documentType === 'course' ? 'text-white' : 'text-gray-500'}`} />
+                                    <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${documentType === 'course' ? 'bg-ink' : 'bg-parchment'}`}>
+                                        <GraduationCap className={`w-5 h-5 ${documentType === 'course' ? 'text-paper' : 'text-ink-light'}`} />
                                     </div>
                                     <div>
-                                        <h3 className={`font-semibold ${documentType === 'course' ? 'text-indigo-600' : 'text-gray-700'}`}>
+                                        <h3 className={`font-semibold ${documentType === 'course' ? 'text-ink' : 'text-ink-light'}`}>
                                             Ders Dökümanı
                                         </h3>
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-sm text-ink-light">
                                             Ders notları, slaytlar, ödevler ve sınav dökümanları
                                         </p>
                                     </div>
@@ -423,21 +423,21 @@ export function UploadModal() {
                             </div>
 
                             <div
-                                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${documentType === 'non_course'
-                                    ? 'border-indigo-600 bg-indigo-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                className={`p-4 rounded-sm border-2 cursor-pointer transition-all ${documentType === 'non_course'
+                                    ? 'border-ink bg-paper-dark'
+                                    : 'border-parchment hover:border-ink/30'
                                     }`}
                                 onClick={() => setDocumentType('non_course')}
                             >
                                 <div className="flex items-start gap-3">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${documentType === 'non_course' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
-                                        <Library className={`w-5 h-5 ${documentType === 'non_course' ? 'text-white' : 'text-gray-500'}`} />
+                                    <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${documentType === 'non_course' ? 'bg-ink' : 'bg-parchment'}`}>
+                                        <Library className={`w-5 h-5 ${documentType === 'non_course' ? 'text-paper' : 'text-ink-light'}`} />
                                     </div>
                                     <div>
-                                        <h3 className={`font-semibold ${documentType === 'non_course' ? 'text-indigo-600' : 'text-gray-700'}`}>
+                                        <h3 className={`font-semibold ${documentType === 'non_course' ? 'text-ink' : 'text-ink-light'}`}>
                                             Ders Dışı Döküman
                                         </h3>
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-sm text-ink-light">
                                             Makaleler, kitaplar, tezler ve diğer akademik kaynaklar
                                         </p>
                                     </div>
@@ -446,13 +446,13 @@ export function UploadModal() {
 
                             {/* Warning for regular users about course document restrictions */}
                             {documentType === 'course' && userRole === 'user' && (
-                                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-sm flex items-start gap-2">
                                     <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-medium text-red-700">
+                                        <p className="text-sm font-medium text-red-600">
                                             Ders dökümanı paylaşımı kısıtlı
                                         </p>
-                                        <p className="text-sm text-red-600 mt-1">
+                                        <p className="text-sm text-red-500 mt-1">
                                             Topluluk kütüphanesine ders dökümanı yüklemek için öğretmen veya admin rolüne sahip olmanız gerekmektedir.
                                         </p>
                                     </div>
@@ -465,9 +465,9 @@ export function UploadModal() {
                     {step === 'metadata' && documentType === 'course' && (
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="courseName" className="text-sm font-medium text-gray-700">
+                                <Label htmlFor="courseName" className="text-sm font-medium text-ink">
                                     <div className="flex items-center gap-2">
-                                        <BookOpen className="w-4 h-4 text-indigo-600" />
+                                        <BookOpen className="w-4 h-4 text-ink" />
                                         Ders Adı
                                     </div>
                                 </Label>
@@ -479,12 +479,12 @@ export function UploadModal() {
                                         onChange={(e) => setCourseName(e.target.value)}
                                         onFocus={() => setShowCourseDropdown(true)}
                                         onBlur={() => setTimeout(() => setShowCourseDropdown(false), 200)}
-                                        className="bg-white"
+                                        className="bg-paper border-parchment focus-visible:border-terracotta"
                                         autoComplete="off"
                                     />
                                     {showCourseDropdown && suggestions.courses.length > 0 && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                            <div className="p-2 text-xs text-gray-500 border-b bg-gray-50">
+                                        <div className="absolute z-50 w-full mt-1 bg-paper border border-parchment rounded-sm shadow-lg max-h-48 overflow-y-auto">
+                                            <div className="p-2 text-xs text-ink-light border-b bg-paper-dark font-mono-ui">
                                                 Mevcut Dersler ({suggestions.courses.length})
                                             </div>
                                             {suggestions.courses
@@ -493,20 +493,20 @@ export function UploadModal() {
                                                     <button
                                                         key={idx}
                                                         type="button"
-                                                        className="w-full px-3 py-2 text-left text-sm hover:bg-indigo-50 transition-colors flex items-center gap-2"
+                                                        className="w-full px-3 py-2 text-left text-sm hover:bg-parchment transition-colors flex items-center gap-2 font-body"
                                                         onMouseDown={() => {
                                                             setCourseName(course)
                                                             setShowCourseDropdown(false)
                                                         }}
                                                     >
-                                                        <GraduationCap className="w-4 h-4 text-indigo-500" />
+                                                        <GraduationCap className="w-4 h-4 text-ink-light" />
                                                         {course}
                                                     </button>
                                                 ))}
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-ink-light/60 font-mono-ui">
                                     {suggestions.courses.length > 0
                                         ? `${suggestions.courses.length} mevcut ders bulundu. Listeden seçebilir veya yeni girebilirsiniz.`
                                         : 'Ders adını girmeniz önerilir'}
@@ -514,9 +514,9 @@ export function UploadModal() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="topic" className="text-sm font-medium text-gray-700">
+                                <Label htmlFor="topic" className="text-sm font-medium text-ink">
                                     <div className="flex items-center gap-2">
-                                        <FolderOpen className="w-4 h-4 text-purple-600" />
+                                        <FolderOpen className="w-4 h-4 text-ink" />
                                         Konu
                                     </div>
                                 </Label>
@@ -528,15 +528,15 @@ export function UploadModal() {
                                         onChange={(e) => setTopic(e.target.value)}
                                         onFocus={() => setShowTopicDropdown(true)}
                                         onBlur={() => setTimeout(() => setShowTopicDropdown(false), 200)}
-                                        className="bg-white"
+                                        className="bg-paper border-parchment focus-visible:border-terracotta"
                                         autoComplete="off"
                                     />
                                     {showTopicDropdown && (
-                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                        <div className="absolute z-50 w-full mt-1 bg-paper border border-parchment rounded-sm shadow-lg max-h-48 overflow-y-auto">
                                             {/* Show topics for selected course first */}
                                             {courseName && suggestions.course_topics[courseName] && (
                                                 <>
-                                                    <div className="p-2 text-xs text-gray-500 border-b bg-indigo-50">
+                                                    <div className="p-2 text-xs text-ink-light border-b bg-paper-dark font-mono-ui">
                                                         "{courseName}" dersi için konular
                                                     </div>
                                                     {suggestions.course_topics[courseName]
@@ -545,13 +545,13 @@ export function UploadModal() {
                                                             <button
                                                                 key={`course-${idx}`}
                                                                 type="button"
-                                                                className="w-full px-3 py-2 text-left text-sm hover:bg-purple-50 transition-colors flex items-center gap-2"
+                                                                className="w-full px-3 py-2 text-left text-sm hover:bg-parchment transition-colors flex items-center gap-2 font-body"
                                                                 onMouseDown={() => {
                                                                     setTopic(t)
                                                                     setShowTopicDropdown(false)
                                                                 }}
                                                             >
-                                                                <FolderOpen className="w-4 h-4 text-purple-500" />
+                                                                <FolderOpen className="w-4 h-4 text-ink-light" />
                                                                 {t}
                                                             </button>
                                                         ))}
@@ -560,7 +560,7 @@ export function UploadModal() {
                                             {/* Show all topics */}
                                             {suggestions.topics.length > 0 && (
                                                 <>
-                                                    <div className="p-2 text-xs text-gray-500 border-b bg-gray-50">
+                                                    <div className="p-2 text-xs text-ink-light border-b bg-paper-dark font-mono-ui">
                                                         Tüm Konular ({suggestions.topics.length})
                                                     </div>
                                                     {suggestions.topics
@@ -570,13 +570,13 @@ export function UploadModal() {
                                                             <button
                                                                 key={`all-${idx}`}
                                                                 type="button"
-                                                                className="w-full px-3 py-2 text-left text-sm hover:bg-purple-50 transition-colors flex items-center gap-2"
+                                                                className="w-full px-3 py-2 text-left text-sm hover:bg-parchment transition-colors flex items-center gap-2 font-body"
                                                                 onMouseDown={() => {
                                                                     setTopic(t)
                                                                     setShowTopicDropdown(false)
                                                                 }}
                                                             >
-                                                                <FolderOpen className="w-4 h-4 text-gray-400" />
+                                                                <FolderOpen className="w-4 h-4 text-ink-light/60" />
                                                                 {t}
                                                             </button>
                                                         ))}
@@ -585,7 +585,7 @@ export function UploadModal() {
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-ink-light/60 font-mono-ui">
                                     {courseName && suggestions.course_topics[courseName]
                                         ? `Bu ders için ${suggestions.course_topics[courseName].length} mevcut konu var.`
                                         : 'Notunuzun hangi konuyla ilgili olduğunu belirtin'}
@@ -598,21 +598,21 @@ export function UploadModal() {
                     {step === 'metadata' && documentType === 'non_course' && (
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label className="text-sm font-medium text-gray-700">
+                                <Label className="text-sm font-medium text-ink">
                                     <div className="flex items-center gap-2">
-                                        <Library className="w-4 h-4 text-indigo-600" />
+                                        <Library className="w-4 h-4 text-ink" />
                                         Kategori Seçin
                                     </div>
                                 </Label>
                                 {categories.length === 0 ? (
-                                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                                        <p className="text-sm text-amber-700">
+                                    <div className="p-4 bg-gold/10 border border-gold/20 rounded-sm">
+                                        <p className="text-sm text-gold font-body">
                                             Henüz kategori oluşturulmamış. Lütfen admin ile iletişime geçin.
                                         </p>
                                     </div>
                                 ) : (
                                     <Select value={categoryId} onValueChange={setCategoryId}>
-                                        <SelectTrigger className="bg-white">
+                                        <SelectTrigger className="bg-paper border-parchment">
                                             <SelectValue placeholder="Bir kategori seçin" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -624,7 +624,7 @@ export function UploadModal() {
                                         </SelectContent>
                                     </Select>
                                 )}
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-ink-light/60 font-mono-ui">
                                     Dökümanınızın türünü en iyi tanımlayan kategoriyi seçin
                                 </p>
                             </div>
@@ -641,6 +641,7 @@ export function UploadModal() {
                                 else if (step === 'type') setStep('visibility')
                                 else if (step === 'visibility') setStep('file')
                             }}
+                            className="border-parchment text-ink-light hover:text-ink hover:bg-parchment font-mono-ui"
                         >
                             <ChevronLeft className="w-4 h-4 mr-1" />
                             Geri
@@ -651,7 +652,7 @@ export function UploadModal() {
                         <Button
                             onClick={() => setStep('visibility')}
                             disabled={!canProceedToVisibility}
-                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                            className="w-full bg-ink text-paper hover:bg-ink/90 font-mono-ui tracking-wide"
                         >
                             Devam Et
                             <ChevronRight className="w-4 h-4 ml-1" />
@@ -662,7 +663,7 @@ export function UploadModal() {
                         <Button
                             onClick={handleUpload}
                             disabled={!canUploadPrivate || uploading}
-                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                            className="flex-1 bg-ink text-paper hover:bg-ink/90 font-mono-ui tracking-wide"
                         >
                             {uploading ? (
                                 <>
@@ -681,7 +682,7 @@ export function UploadModal() {
                     {step === 'visibility' && visibility === 'public' && (
                         <Button
                             onClick={() => setStep('type')}
-                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                            className="flex-1 bg-ink text-paper hover:bg-ink/90 font-mono-ui tracking-wide"
                         >
                             Devam Et
                             <ChevronRight className="w-4 h-4 ml-1" />
@@ -692,7 +693,7 @@ export function UploadModal() {
                         <Button
                             onClick={() => setStep('metadata')}
                             disabled={documentType === 'course' && userRole === 'user'}
-                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                            className="flex-1 bg-ink text-paper hover:bg-ink/90 font-mono-ui tracking-wide"
                         >
                             Devam Et
                             <ChevronRight className="w-4 h-4 ml-1" />
@@ -703,7 +704,7 @@ export function UploadModal() {
                         <Button
                             onClick={handleUpload}
                             disabled={!canUploadPublic || uploading}
-                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                            className="flex-1 bg-ink text-paper hover:bg-ink/90 font-mono-ui tracking-wide"
                         >
                             {uploading ? (
                                 <>
@@ -725,17 +726,17 @@ export function UploadModal() {
         <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
             <DialogContent className="max-w-md text-center">
                 <DialogHeader className="pb-2">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="w-20 h-20 bg-olive rounded-sm flex items-center justify-center mx-auto mb-4 paper-shadow-lg">
+                        <svg className="w-10 h-10 text-paper" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
-                    <DialogTitle className="text-xl text-gray-800">
+                    <DialogTitle className="text-xl text-ink font-display">
                         Başarıyla Yüklendi!
                     </DialogTitle>
                 </DialogHeader>
-                <DialogDescription className="text-gray-600 py-2">
-                    Notunuz <span className="font-semibold text-indigo-600">admin onayına</span> gönderildi. 
+                <DialogDescription className="text-ink-light py-2 font-body">
+                    Notunuz <span className="font-semibold text-terracotta">admin onayına</span> gönderildi. 
                     Onaylandıktan sonra topluluk kütüphanesinde görünecektir.
                 </DialogDescription>
                 <DialogFooter className="justify-center">
@@ -745,7 +746,7 @@ export function UploadModal() {
                             router.push('/dashboard')
                             router.refresh()
                         }}
-                        className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                        className="flex-1 bg-ink text-paper hover:bg-ink/90 font-mono-ui"
                     >
                         Dashboard'a Dön
                     </Button>
@@ -756,14 +757,14 @@ export function UploadModal() {
         <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
             <DialogContent className="max-w-md text-center">
                 <DialogHeader className="pb-2">
-                    <div className="w-20 h-20 bg-gradient-to-br from-red-400 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <AlertTriangle className="w-10 h-10 text-white" />
+                    <div className="w-20 h-20 bg-red-500 rounded-sm flex items-center justify-center mx-auto mb-4 paper-shadow-lg">
+                        <AlertTriangle className="w-10 h-10 text-paper" />
                     </div>
-                    <DialogTitle className="text-xl text-gray-800">
+                    <DialogTitle className="text-xl text-ink font-display">
                         Hata Oluştu
                     </DialogTitle>
                 </DialogHeader>
-                <DialogDescription className="text-gray-600 py-2">
+                <DialogDescription className="text-ink-light py-2 font-body">
                     {errorMessage}
                 </DialogDescription>
                 <DialogFooter className="justify-center">
@@ -772,7 +773,7 @@ export function UploadModal() {
                             setShowErrorDialog(false)
                             setStep('file')
                         }}
-                        className="flex-1 bg-gray-600 hover:bg-gray-700"
+                        className="flex-1 bg-ink text-paper hover:bg-ink/90 font-mono-ui"
                     >
                         Tekrar Dene
                     </Button>

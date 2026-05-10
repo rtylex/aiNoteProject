@@ -377,7 +377,7 @@ export default function Home() {
             </div>
 
             {/* Asymmetric 2x2 Grid with stagger */}
-            <div ref={featuresRef} className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto items-stretch">
+            <div ref={featuresRef} className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto items-stretch">
               {[
                 {
                   icon: MessageSquare,
@@ -412,7 +412,7 @@ export default function Home() {
               ].map((feature, idx) => (
                 <div
                   key={idx}
-                  className="bg-paper rounded-sm p-8 border border-parchment paper-shadow reveal-item opacity-0 translate-y-6 transition-all duration-300 cursor-default group h-full flex flex-col"
+                  className="bg-paper rounded-sm p-6 border border-parchment paper-shadow reveal-item opacity-0 translate-y-6 transition-all duration-300 cursor-default group h-full flex flex-col"
                   style={{
                     willChange: 'transform, box-shadow',
                     transitionDelay: `${idx * STAGGER_DELAY}ms`
@@ -453,8 +453,8 @@ export default function Home() {
             </div>
 
             {/* Security Card */}
-            <div className="max-w-5xl mx-auto mt-6">
-              <div className="bg-ink rounded-sm p-8 paper-shadow-lg relative overflow-hidden group">
+            <div className="max-w-6xl mx-auto mt-10">
+              <div className="bg-ink rounded-sm p-6 paper-shadow-lg relative overflow-hidden group">
                 <div className="absolute inset-0 paper-texture opacity-20" />
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                   <div className="flex items-center gap-6">

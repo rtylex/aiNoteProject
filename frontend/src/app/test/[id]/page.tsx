@@ -58,16 +58,6 @@ interface Attempt {
   created_at: string
 }
 
-interface TestStatsData {
-  total_tests: number
-  completed_tests: number
-  total_questions_answered: number
-  total_correct: number
-  total_wrong: number
-  total_empty: number
-  average_percentage: number
-}
-
 export default function TestPage() {
   const params = useParams()
   const router = useRouter()
@@ -79,7 +69,6 @@ export default function TestPage() {
 
   const [testData, setTestData] = useState<TestData | null>(null)
   const [attempts, setAttempts] = useState<Attempt[]>([])
-  const [stats, setStats] = useState<TestStatsData | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
@@ -96,14 +85,11 @@ export default function TestPage() {
     setError(null)
 
     try {
-      const [testRes, attemptsRes, statsRes] = await Promise.all([
+      const [testRes, attemptsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/v1/test/${testId}`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         }),
         fetch(`${API_BASE_URL}/api/v1/test/${testId}/attempts`, {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        }),
-        fetch(`${API_BASE_URL}/api/v1/test/stats`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         })
       ])
@@ -135,10 +121,6 @@ export default function TestPage() {
       if (attemptsRes.ok) {
         const data = await attemptsRes.json()
         setAttempts(data)
-      }
-      if (statsRes.ok) {
-        const data = await statsRes.json()
-        setStats(data)
       }
     } catch (err) {
       if (err instanceof Error) setError(err.message)
@@ -208,18 +190,20 @@ export default function TestPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-16 flex justify-center items-center bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
-        <Loader2 className="w-10 h-10 animate-spin text-[#f4f1e0]" />
+      <div className="min-h-screen pt-16 flex justify-center items-center bg-paper relative">
+        <div className="absolute inset-0 paper-texture pointer-events-none" />
+        <Loader2 className="w-10 h-10 animate-spin text-ink" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen pt-16 flex justify-center items-center bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
+      <div className="min-h-screen pt-16 flex justify-center items-center bg-paper relative">
+        <div className="absolute inset-0 paper-texture pointer-events-none" />
         <div className="text-center">
-          <p className="text-red-400 mb-4">{error}</p>
-          <Button onClick={() => router.push('/dashboard')} className="bg-[#f4f1e0] text-[#011133]">Dashboard'a Dön</Button>
+          <p className="text-terracotta mb-4 font-body">{error}</p>
+          <Button onClick={() => router.push('/dashboard')} className="bg-ink text-paper hover:bg-ink/90 font-mono-ui">Dashboard'a Dön</Button>
         </div>
       </div>
     )
@@ -227,10 +211,11 @@ export default function TestPage() {
 
   if (!testData || testData.questions.length === 0) {
     return (
-      <div className="min-h-screen pt-16 flex justify-center items-center bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
+      <div className="min-h-screen pt-16 flex justify-center items-center bg-paper relative">
+        <div className="absolute inset-0 paper-texture pointer-events-none" />
         <div className="text-center">
-          <p className="text-[#f4f1e0]/60 mb-4">Test bulunamadı veya soru yok</p>
-          <Button onClick={() => router.push('/dashboard')} className="bg-[#f4f1e0] text-[#011133]">Dashboard'a Dön</Button>
+          <p className="text-ink-light mb-4 font-body">Test bulunamadı veya soru yok</p>
+          <Button onClick={() => router.push('/dashboard')} className="bg-ink text-paper hover:bg-ink/90 font-mono-ui">Dashboard'a Dön</Button>
         </div>
       </div>
     )
@@ -238,8 +223,6 @@ export default function TestPage() {
 
   // RESULT VIEW
   if (submitResult) {
-    const [activeTab, setActiveTab] = useState<'all' | 'correct' | 'wrong'>('wrong')
-    const [openQuestionId, setOpenQuestionId] = useState<string | null>(null)
     const wrongQuestions = submitResult.questions.filter(q => !q.is_correct)
     const correctQuestions = submitResult.questions.filter(q => q.is_correct)
     const percentage = submitResult.percentage
@@ -268,11 +251,11 @@ export default function TestPage() {
     }
 
     return (
-      <div className="min-h-screen w-full pt-16 bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
-        <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(244,241,224,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(244,241,224,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+      <div className="min-h-screen w-full pt-16 bg-paper relative">
+        <div className="absolute inset-0 paper-texture pointer-events-none -z-10" />
         <div className="relative container mx-auto py-10 px-4 max-w-6xl">
           {/* Back Button */}
-          <Button variant="ghost" onClick={() => router.push('/test')} className="gap-2 mb-8 text-[#f4f1e0]/70 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10 rounded-full">
+          <Button variant="ghost" onClick={() => router.push('/test')} className="gap-2 mb-8 text-ink-light hover:text-ink hover:bg-parchment rounded-sm font-mono-ui">
             <ArrowLeft className="w-4 h-4" /> Testlerime Dön
           </Button>
 
@@ -280,43 +263,42 @@ export default function TestPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative bg-gradient-to-r from-[#1d2f5e] to-[#23335c] rounded-3xl p-8 md:p-12 mb-10 border border-[#f4f1e0]/10 shadow-2xl overflow-hidden text-center"
+            className="relative bg-ink rounded-sm p-8 md:p-12 mb-10 paper-shadow-lg overflow-hidden text-center text-paper"
           >
-            <div className="absolute top-0 right-0 w-96 h-96 bg-[#f4f1e0]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#f4f1e0]/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+            <div className="absolute inset-0 paper-texture opacity-10" />
             <div className="relative z-10">
               <div className="text-6xl md:text-7xl mb-4">{getGradeEmoji(percentage)}</div>
-              <h1 className="text-3xl md:text-4xl font-bold text-[#f4f1e0] mb-2">Test Tamamlandı!</h1>
-              <p className="text-xl text-[#f4f1e0]/60 mb-8">{getGradeText(percentage)}</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-paper mb-2 font-display">Test Tamamlandı!</h1>
+              <p className="text-xl text-paper/60 mb-8 font-body">{getGradeText(percentage)}</p>
 
               {/* Score Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-                <div className="bg-[#f4f1e0]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#f4f1e0]/10">
-                  <div className="text-3xl md:text-4xl font-bold text-[#f4f1e0]">{submitResult.score}</div>
-                  <div className="text-sm text-[#f4f1e0]/60 mt-1">Doğru</div>
+                <div className="bg-paper/10 backdrop-blur-sm rounded-sm p-5 border border-paper/10">
+                  <div className="text-3xl md:text-4xl font-bold text-paper font-display">{submitResult.score}</div>
+                  <div className="text-sm text-paper/60 mt-1 font-mono-ui">Doğru</div>
                 </div>
-                <div className="bg-[#f4f1e0]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#f4f1e0]/10">
-                  <div className="text-3xl md:text-4xl font-bold text-red-400">{submitResult.total - submitResult.score}</div>
-                  <div className="text-sm text-[#f4f1e0]/60 mt-1">Yanlış</div>
+                <div className="bg-paper/10 backdrop-blur-sm rounded-sm p-5 border border-paper/10">
+                  <div className="text-3xl md:text-4xl font-bold text-terracotta font-display">{submitResult.total - submitResult.score}</div>
+                  <div className="text-sm text-paper/60 mt-1 font-mono-ui">Yanlış</div>
                 </div>
-                <div className="bg-[#f4f1e0]/10 backdrop-blur-sm rounded-2xl p-5 border border-[#f4f1e0]/10">
-                  <div className="text-3xl md:text-4xl font-bold text-[#f4f1e0]">{submitResult.total}</div>
-                  <div className="text-sm text-[#f4f1e0]/60 mt-1">Toplam</div>
+                <div className="bg-paper/10 backdrop-blur-sm rounded-sm p-5 border border-paper/10">
+                  <div className="text-3xl md:text-4xl font-bold text-paper font-display">{submitResult.total}</div>
+                  <div className="text-sm text-paper/60 mt-1 font-mono-ui">Toplam</div>
                 </div>
-                <div className="bg-gradient-to-br from-[#f4f1e0] to-[#e7d9a8] rounded-2xl p-5 shadow-lg">
-                  <div className="text-3xl md:text-4xl font-bold text-[#011133]">%{percentage}</div>
-                  <div className="text-sm text-[#011133]/60 mt-1">Başarı</div>
+                <div className="bg-paper rounded-sm p-5 paper-shadow">
+                  <div className="text-3xl md:text-4xl font-bold text-ink font-display">%{percentage}</div>
+                  <div className="text-sm text-ink-light mt-1 font-mono-ui">Başarı</div>
                 </div>
               </div>
 
               {/* Actions */}
               <div className="flex gap-3 justify-center mt-8 flex-wrap">
                 <Link href={`/test/${testId}?retry=true`}>
-                  <Button className="bg-[#f4f1e0] text-[#011133] hover:bg-[#e7d9a8] rounded-full px-6 h-11 font-semibold">
+                  <Button className="bg-paper text-ink hover:bg-paper-dark rounded-sm px-6 h-11 font-semibold paper-shadow font-mono-ui">
                     <RotateCcw className="w-4 h-4 mr-2" /> Testi Tekrar Çöz
                   </Button>
                 </Link>
-                <Button variant="outline" className="border-[#f4f1e0]/20 text-[#f4f1e0] hover:bg-[#f4f1e0]/10 rounded-full px-6 h-11">
+                <Button variant="outline" className="border-paper/20 text-paper hover:bg-paper/10 rounded-sm px-6 h-11 font-mono-ui" onClick={handleToggleShare}>
                   <Share2 className="w-4 h-4 mr-2" /> Paylaş
                 </Button>
               </div>
@@ -325,14 +307,14 @@ export default function TestPage() {
 
           {/* Questions Detail with Tabs + Accordion */}
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-[#f4f1e0] mb-2 flex items-center gap-2">
-              <Lightbulb className="w-6 h-6 text-[#f4f1e0]/60" /> Soru Detayları
+            <h2 className="text-2xl font-bold text-ink mb-2 flex items-center gap-2 font-display">
+              <Lightbulb className="w-6 h-6 text-terracotta" /> Soru Detayları
             </h2>
-            <p className="text-[#f4f1e0]/50">İncelemek istediğiniz soruyu seçin</p>
+            <p className="text-ink-light font-body">İncelemek istediğiniz soruyu seçin</p>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-8 bg-[#f4f1e0]/10 backdrop-blur-sm rounded-full p-1.5 w-fit border border-[#f4f1e0]/10">
+          <div className="flex gap-2 mb-8 bg-paper-dark border border-parchment rounded-sm p-1.5 w-fit">
             {[
               { key: 'all', label: 'Tümü', count: submitResult.questions.length },
               { key: 'correct', label: 'Doğru', count: correctQuestions.length },
@@ -341,15 +323,15 @@ export default function TestPage() {
               <button
                 key={tab.key}
                 onClick={() => { setActiveTab(tab.key as any); setOpenQuestionId(null) }}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+                className={`px-5 py-2 rounded-sm text-sm font-medium transition-all font-mono-ui ${
                   activeTab === tab.key
-                    ? 'bg-[#f4f1e0] text-[#011133] shadow-lg'
-                    : 'text-[#f4f1e0]/70 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10'
+                    ? 'bg-paper text-ink paper-shadow'
+                    : 'text-ink-light hover:text-ink hover:bg-parchment/50'
                 }`}
               >
                 {tab.label}
-                <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${
-                  activeTab === tab.key ? 'bg-[#011133]/10 text-[#011133]' : 'bg-[#f4f1e0]/10 text-[#f4f1e0]'
+                <span className={`ml-1.5 px-1.5 py-0.5 rounded-sm text-xs font-mono-ui ${
+                  activeTab === tab.key ? 'bg-parchment text-ink' : 'bg-parchment text-ink-light'
                 }`}>
                   {tab.count}
                 </span>
@@ -361,13 +343,13 @@ export default function TestPage() {
           <div className="space-y-3">
             {filteredQuestions.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
-                  <CheckCircle className="w-8 h-8 text-white" />
+                <div className="w-16 h-16 bg-olive/20 rounded-sm flex items-center justify-center mx-auto mb-4 paper-shadow">
+                  <CheckCircle className="w-8 h-8 text-olive" />
                 </div>
-                <h3 className="text-xl font-bold text-[#f4f1e0] mb-2">
+                <h3 className="text-xl font-bold text-ink mb-2 font-display">
                   {activeTab === 'wrong' ? 'Harika! Yanlış Soru Yok' : 'Bu Sekmede Soru Yok'}
                 </h3>
-                <p className="text-[#f4f1e0]/60">
+                <p className="text-ink-light font-body">
                   {activeTab === 'wrong' ? 'Tüm soruları doğru cevapladınız!' : 'Başka bir sekme seçin.'}
                 </p>
               </div>
@@ -379,40 +361,40 @@ export default function TestPage() {
                     key={q.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`bg-white/95 backdrop-blur-sm rounded-2xl border-0 shadow-[0_4px_20px_rgb(0,0,0,0.06)] overflow-hidden ${
-                      q.is_correct ? 'border-l-[5px] border-green-500' : 'border-l-[5px] border-red-500'
+                    className={`bg-paper rounded-sm border border-parchment paper-shadow overflow-hidden paper-fold ${
+                      q.is_correct ? 'border-l-2 border-olive' : 'border-l-2 border-terracotta'
                     }`}
                   >
                     {/* Accordion Header */}
                     <button
                       onClick={() => toggleQuestion(q.id)}
                       className={`w-full px-5 py-4 flex items-center justify-between text-left transition-colors ${
-                        isOpen ? (q.is_correct ? 'bg-green-50/50' : 'bg-red-50/50') : 'hover:bg-gray-50/50'
+                        isOpen ? (q.is_correct ? 'bg-olive/5' : 'bg-terracotta/5') : 'hover:bg-paper-dark'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          q.is_correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                        <div className={`w-9 h-9 rounded-sm flex items-center justify-center flex-shrink-0 ${
+                          q.is_correct ? 'bg-olive text-paper' : 'bg-terracotta text-paper'
                         }`}>
                           {q.is_correct ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                         </div>
                         <div>
-                          <span className="text-sm font-bold text-[#011133]">Soru {q.order_num}</span>
-                          <span className={`ml-2 text-xs px-2 py-0.5 rounded-full font-medium ${
-                            q.is_correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          <span className="text-sm font-bold text-ink font-display">Soru {q.order_num}</span>
+                          <span className={`ml-2 text-xs px-2 py-0.5 rounded-sm font-medium font-mono-ui ${
+                            q.is_correct ? 'bg-olive/10 text-olive' : 'bg-terracotta/10 text-terracotta'
                           }`}>
                             {q.is_correct ? 'Doğru' : q.user_answer ? 'Yanlış' : 'Boş'}
                           </span>
                           {!q.is_correct && (
-                            <span className="ml-2 text-xs text-gray-400">
-                              Doğru: <span className="font-semibold text-green-600">{q.correct_answer}</span>
-                              {q.user_answer && <span> | Siz: <span className="font-semibold text-red-500">{q.user_answer}</span></span>}
+                            <span className="ml-2 text-xs text-ink-light font-mono-ui">
+                              Doğru: <span className="font-semibold text-olive">{q.correct_answer}</span>
+                              {q.user_answer && <span> | Siz: <span className="font-semibold text-terracotta">{q.user_answer}</span></span>}
                             </span>
                           )}
                         </div>
                       </div>
                       <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                        <ChevronDown className="w-5 h-5 text-ink-light" />
                       </div>
                     </button>
 
@@ -424,8 +406,8 @@ export default function TestPage() {
                         transition={{ duration: 0.2 }}
                         className="px-5 pb-5"
                       >
-                        <div className="pt-2 border-t border-gray-100">
-                          <p className="text-[#011133] font-semibold text-base mb-4 mt-4 leading-relaxed">{q.question_text}</p>
+                        <div className="pt-2 border-t border-parchment">
+                          <p className="text-ink font-semibold text-base mb-4 mt-4 leading-relaxed font-display">{q.question_text}</p>
 
                           {/* Options */}
                           <div className="space-y-2 mb-4">
@@ -436,28 +418,28 @@ export default function TestPage() {
                               return (
                                 <div
                                   key={letter}
-                                  className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
-                                    isCorrect ? 'border-green-500 bg-green-50' :
-                                    isUserWrong ? 'border-red-400 bg-red-50' :
-                                    'border-gray-100 bg-gray-50/50'
+                                  className={`flex items-center gap-3 p-3 rounded-sm border-2 ${
+                                    isCorrect ? 'border-olive bg-olive/5' :
+                                    isUserWrong ? 'border-terracotta/40 bg-terracotta/5' :
+                                    'border-parchment bg-paper-dark'
                                   }`}
                                 >
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
-                                    isCorrect ? 'bg-green-500 text-white' :
-                                    isUserWrong ? 'bg-red-500 text-white' :
-                                    'bg-gray-200 text-gray-600'
+                                  <div className={`w-8 h-8 rounded-sm flex items-center justify-center text-sm font-bold font-mono-ui ${
+                                    isCorrect ? 'bg-olive text-paper' :
+                                    isUserWrong ? 'bg-terracotta text-paper' :
+                                    'bg-parchment text-ink-light'
                                   }`}>
                                     {letter}
                                   </div>
-                                  <span className={`flex-1 text-sm ${
-                                    isCorrect ? 'text-green-800 font-medium' :
-                                    isUserWrong ? 'text-red-800' :
-                                    'text-gray-600'
+                                  <span className={`flex-1 text-sm font-body ${
+                                    isCorrect ? 'text-olive font-medium' :
+                                    isUserWrong ? 'text-terracotta' :
+                                    'text-ink-light'
                                   }`}>
                                     {opt.replace(/^[A-D]\)\s*/, '')}
                                   </span>
-                                  {isCorrect && <CheckCircle className="w-4 h-4 text-green-500" />}
-                                  {isUserWrong && <XCircle className="w-4 h-4 text-red-500" />}
+                                  {isCorrect && <CheckCircle className="w-4 h-4 text-olive" />}
+                                  {isUserWrong && <XCircle className="w-4 h-4 text-terracotta" />}
                                 </div>
                               )
                             })}
@@ -465,8 +447,8 @@ export default function TestPage() {
 
                           {/* Explanation */}
                           {q.explanation && (
-                            <div className={`p-3 rounded-xl mb-3 text-sm ${
-                              q.is_correct ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+                            <div className={`p-3 rounded-sm mb-3 text-sm font-body ${
+                              q.is_correct ? 'bg-olive/5 border border-olive/20 text-olive' : 'bg-terracotta/5 border border-terracotta/20 text-terracotta'
                             }`}>
                               <span className="font-semibold">Açıklama: </span>{q.explanation}
                             </div>
@@ -492,13 +474,12 @@ export default function TestPage() {
   // TEST TAKING VIEW
   const currentQuestion = testData.questions[currentIndex]
   const answeredCount = Object.keys(answers).length
-  const allAnswered = answeredCount === testData.questions.length
 
   return (
-    <div className="min-h-screen w-full pt-16 bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(244,241,224,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(244,241,224,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+    <div className="min-h-screen w-full pt-16 bg-paper relative">
+      <div className="absolute inset-0 paper-texture pointer-events-none -z-10" />
       <div className="relative container mx-auto py-10 px-4 max-w-5xl">
-        <Button variant="ghost" onClick={() => router.push('/test')} className="gap-2 mb-6 text-[#f4f1e0]/70 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10">
+        <Button variant="ghost" onClick={() => router.push('/test')} className="gap-2 mb-6 text-ink-light hover:text-ink hover:bg-parchment font-mono-ui">
           <ArrowLeft className="w-4 h-4" /> Testlerime Dön
         </Button>
 
@@ -506,37 +487,37 @@ export default function TestPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-gradient-to-r from-[#1d2f5e] to-[#23335c] rounded-3xl p-8 md:p-10 mb-8 border border-[#f4f1e0]/10 shadow-2xl overflow-hidden"
+          className="relative bg-ink rounded-sm p-8 md:p-10 mb-8 paper-shadow-lg overflow-hidden text-paper"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#f4f1e0]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute inset-0 paper-texture opacity-10" />
           <div className="relative z-10">
             <div className="flex items-start justify-between mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#f4f1e0] to-[#e7d9a8] flex items-center justify-center shadow-lg">
-                <ClipboardList className="w-7 h-7 text-[#011133]" />
+              <div className="w-14 h-14 rounded-sm bg-paper flex items-center justify-center paper-shadow">
+                <ClipboardList className="w-7 h-7 text-ink" />
               </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#f4f1e0] mb-2">{testData.title}</h1>
-            <p className="text-[#f4f1e0]/60">{testData.total_questions} soru</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-paper mb-2 font-display">{testData.title}</h1>
+            <p className="text-paper/60 font-body">{testData.total_questions} soru</p>
           </div>
         </motion.div>
 
         {/* Question Navigation */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 mb-6 shadow-[0_4px_20px_rgb(0,0,0,0.06)]">
+        <div className="bg-paper rounded-sm p-4 mb-6 paper-shadow border border-parchment">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-gray-500">Soru Navigasyonu</span>
-            <span className="text-sm text-[#011133] font-semibold">{answeredCount}/{testData.questions.length} cevaplandı</span>
+            <span className="text-sm font-medium text-ink-light font-mono-ui">Soru Navigasyonu</span>
+            <span className="text-sm text-ink font-semibold font-mono-ui">{answeredCount}/{testData.questions.length} cevaplandı</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {testData.questions.map((q, idx) => (
               <button
                 key={q.id}
                 onClick={() => setCurrentIndex(idx)}
-                className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                className={`w-10 h-10 rounded-sm text-sm font-bold transition-all font-mono-ui ${
                   idx === currentIndex
-                    ? 'bg-gradient-to-r from-[#011133] to-[#23335c] text-[#f4f1e0] shadow-lg'
+                    ? 'bg-ink text-paper paper-shadow'
                     : answers[q.id]
-                      ? 'bg-green-100 text-green-700 border border-green-200'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      ? 'bg-olive/10 text-olive border border-olive/20'
+                      : 'bg-parchment text-ink-light hover:bg-paper-dark'
                 }`}
               >
                 {idx + 1}
@@ -559,7 +540,7 @@ export default function TestPage() {
             variant="outline"
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            className="flex items-center gap-2 rounded-xl border-[#f4f1e0]/20 text-[#f4f1e0] hover:bg-[#f4f1e0]/10"
+            className="flex items-center gap-2 rounded-sm border-parchment text-ink hover:bg-paper-dark font-mono-ui"
           >
             Önceki
           </Button>
@@ -568,7 +549,7 @@ export default function TestPage() {
             <Button
               onClick={handleSubmit}
               disabled={submitting || answeredCount === 0}
-              className="flex items-center gap-2 bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] rounded-xl h-11 px-6 font-semibold shadow-lg"
+              className="flex items-center gap-2 bg-ink text-paper hover:bg-ink/90 rounded-sm h-11 px-6 font-semibold paper-shadow font-mono-ui"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Testi Bitir ({answeredCount}/{testData.questions.length})
@@ -576,7 +557,7 @@ export default function TestPage() {
           ) : (
             <Button
               onClick={handleNext}
-              className="flex items-center gap-2 bg-[#f4f1e0] text-[#011133] hover:bg-[#e7d9a8] rounded-xl h-11 px-6 font-semibold"
+              className="flex items-center gap-2 bg-terracotta text-paper hover:bg-terracotta/90 rounded-sm h-11 px-6 font-semibold paper-shadow font-mono-ui"
             >
               Sonraki <ChevronRight className="w-4 h-4" />
             </Button>

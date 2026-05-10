@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
-import { ArrowLeft, BookOpen, Share2, Play, Loader2, Lightbulb, Clock, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, BookOpen, Share2, Play, Loader2, Lightbulb, Clock } from 'lucide-react'
 import { FlashcardStats } from '@/components/flashcard/flashcard-stats'
 import { StudyMode } from '@/components/flashcard/study-mode'
 import { AddCardModal } from '@/components/flashcard/add-card-modal'
@@ -78,30 +78,32 @@ export default function FlashcardDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-16 flex justify-center items-center bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
-        <Loader2 className="w-10 h-10 animate-spin text-[#f4f1e0]" />
+      <div className="min-h-screen pt-16 flex justify-center items-center bg-paper relative">
+        <div className="absolute inset-0 paper-texture pointer-events-none" />
+        <Loader2 className="w-10 h-10 animate-spin text-ink" />
       </div>
     )
   }
 
   if (!setDetail) {
     return (
-      <div className="min-h-screen pt-16 flex justify-center items-center bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
-        <p className="text-[#f4f1e0]/60">Set bulunamadı.</p>
+      <div className="min-h-screen pt-16 flex justify-center items-center bg-paper relative">
+        <div className="absolute inset-0 paper-texture pointer-events-none" />
+        <p className="text-ink-light font-body">Set bulunamadı.</p>
       </div>
     )
   }
 
   if (isStudyMode) {
     return (
-      <div className="min-h-screen w-full pt-16 bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c] py-10 px-4">
-        <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(244,241,224,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(244,241,224,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+      <div className="min-h-screen w-full pt-16 bg-paper py-10 px-4 relative">
+        <div className="absolute inset-0 paper-texture pointer-events-none -z-10" />
         <div className="relative container mx-auto max-w-6xl">
           <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" onClick={() => router.push(`/flashcard/${setId}`)} className="gap-2 text-[#f4f1e0]/70 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10">
+            <Button variant="ghost" onClick={() => router.push(`/flashcard/${setId}`)} className="gap-2 text-ink-light hover:text-ink hover:bg-parchment font-mono-ui">
               <ArrowLeft className="w-4 h-4" /> Geri
             </Button>
-            <h1 className="text-xl font-bold text-[#f4f1e0]">{setDetail.title}</h1>
+            <h1 className="text-xl font-bold text-ink font-display">{setDetail.title}</h1>
           </div>
           <StudyMode setId={setId} />
         </div>
@@ -110,12 +112,12 @@ export default function FlashcardDetailPage() {
   }
 
   return (
-    <div className="min-h-screen w-full pt-16 bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(244,241,224,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(244,241,224,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+    <div className="min-h-screen w-full pt-16 bg-paper relative">
+      <div className="absolute inset-0 paper-texture pointer-events-none -z-10" />
       
       <div className="relative container mx-auto py-10 px-4 max-w-5xl">
         {/* Back button */}
-        <Button variant="ghost" onClick={() => router.push('/flashcard')} className="gap-2 mb-6 text-[#f4f1e0]/70 hover:text-[#f4f1e0] hover:bg-[#f4f1e0]/10">
+        <Button variant="ghost" onClick={() => router.push('/flashcard')} className="gap-2 mb-6 text-ink-light hover:text-ink hover:bg-parchment font-mono-ui">
           <ArrowLeft className="w-4 h-4" /> Flashcard'larıma Dön
         </Button>
 
@@ -123,25 +125,25 @@ export default function FlashcardDetailPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-gradient-to-r from-[#1d2f5e] to-[#23335c] rounded-3xl p-8 md:p-10 mb-8 border border-[#f4f1e0]/10 shadow-2xl overflow-hidden"
+          className="relative bg-ink rounded-sm p-8 md:p-10 mb-8 paper-shadow-lg overflow-hidden text-paper"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#f4f1e0]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute inset-0 paper-texture opacity-10" />
           <div className="relative z-10">
             <div className="flex items-start justify-between mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#f4f1e0] to-[#e7d9a8] flex items-center justify-center shadow-lg">
-                <BookOpen className="w-7 h-7 text-[#011133]" />
+              <div className="w-14 h-14 rounded-sm bg-paper flex items-center justify-center paper-shadow">
+                <BookOpen className="w-7 h-7 text-ink" />
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 bg-[#f4f1e0]/10 px-4 py-2 rounded-full border border-[#f4f1e0]/20">
-                  <Share2 className="w-4 h-4 text-[#f4f1e0]/70" />
-                  <span className="text-sm text-[#f4f1e0]/80">Paylaş</span>
+                <div className="flex items-center gap-2 bg-paper/10 px-4 py-2 rounded-sm border border-paper/20">
+                  <Share2 className="w-4 h-4 text-paper/70" />
+                  <span className="text-sm text-paper/80 font-mono-ui">Paylaş</span>
                   <Switch checked={setDetail.is_public} onCheckedChange={handleToggleShare} disabled={sharing} />
                 </div>
                 <DeleteFlashcardDialog setId={setId} title={setDetail.title} onDelete={() => router.push('/flashcard')} />
               </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#f4f1e0] mb-2">{setDetail.title}</h1>
-            {setDetail.description && <p className="text-[#f4f1e0]/60">{setDetail.description}</p>}
+            <h1 className="text-3xl md:text-4xl font-bold text-paper mb-2 font-display">{setDetail.title}</h1>
+            {setDetail.description && <p className="text-paper/60 font-body">{setDetail.description}</p>}
           </div>
         </motion.div>
 
@@ -156,12 +158,12 @@ export default function FlashcardDetailPage() {
 
         {/* Actions */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="flex flex-wrap gap-3 my-8">
-          <Button onClick={() => router.push(`/flashcard/${setId}?mode=study`)} className="bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] rounded-xl h-11 px-6 font-semibold shadow-lg">
+          <Button onClick={() => router.push(`/flashcard/${setId}?mode=study`)} className="bg-ink text-paper hover:bg-ink/90 rounded-sm h-11 px-6 font-semibold paper-shadow font-mono-ui">
             <Play className="w-4 h-4 mr-2" /> Çalışmaya Başla
           </Button>
           <AddCardModal setId={setId} onAdded={fetchSet} />
           {(setDetail.progress.learning + setDetail.progress.new) > 0 && (
-            <div className="flex items-center gap-2 bg-[#f4f1e0]/10 text-[#f4f1e0]/80 px-4 py-2 rounded-xl text-sm border border-[#f4f1e0]/20">
+            <div className="flex items-center gap-2 bg-parchment text-ink px-4 py-2 rounded-sm text-sm border border-parchment font-mono-ui">
               <Clock className="w-4 h-4" />
               Bugün {setDetail.progress.learning + setDetail.progress.new} kart tekrar edilecek
             </div>
@@ -170,8 +172,8 @@ export default function FlashcardDetailPage() {
 
         {/* Cards List */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-[#f4f1e0] mb-6 flex items-center gap-2">
-            <Lightbulb className="w-5 h-5 text-[#f4f1e0]/60" /> Kartlar
+          <h2 className="text-xl font-bold text-ink mb-6 flex items-center gap-2 font-display">
+            <Lightbulb className="w-5 h-5 text-terracotta" /> Kartlar
           </h2>
           {setDetail.cards.map((card, idx) => (
             <motion.div
@@ -179,44 +181,44 @@ export default function FlashcardDetailPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.04 }}
-              className="group bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.06)] hover:shadow-[0_4px_30px_rgb(0,0,0,0.1)] transition-all border-l-4 border-[#011133] hover:translate-x-1"
+              className="group bg-paper rounded-sm p-6 paper-shadow border border-parchment hover:border-terracotta/30 transition-all paper-fold"
             >
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="bg-[#011133] text-[#f4f1e0] w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold">{card.order}</span>
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                      card.status === 'new' ? 'bg-slate-100 text-slate-600' :
-                      card.status === 'learning' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                      card.status === 'review' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                      'bg-green-50 text-green-700 border border-green-200'
+                    <span className="bg-ink text-paper w-7 h-7 rounded-sm flex items-center justify-center text-xs font-bold font-mono-ui">{card.order}</span>
+                    <span className={`text-xs px-2.5 py-1 rounded-sm font-medium font-mono-ui ${
+                      card.status === 'new' ? 'bg-parchment text-ink-light' :
+                      card.status === 'learning' ? 'bg-gold/10 text-gold border border-gold/20' :
+                      card.status === 'review' ? 'bg-lavender/10 text-lavender border border-lavender/20' :
+                      'bg-olive/10 text-olive border border-olive/20'
                     }`}>
                       {card.status === 'new' ? 'Yeni' :
                        card.status === 'learning' ? 'Öğreniliyor' :
                        card.status === 'review' ? 'Tekrar' : 'Ezberlendi'}
                     </span>
                     {card.last_reviewed && (
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <span className="text-xs text-ink-light flex items-center gap-1 font-mono-ui">
                         <Clock className="w-3 h-3" /> {new Date(card.last_reviewed).toLocaleDateString('tr-TR')}
                       </span>
                     )}
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Ön</p>
-                      <p className="text-[#011133] font-semibold">{card.front}</p>
+                      <p className="text-xs text-ink-light font-semibold uppercase tracking-wider mb-1 font-mono-ui">Ön</p>
+                      <p className="text-ink font-semibold font-body">{card.front}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Arka</p>
-                      <p className="text-gray-600">{card.back}</p>
+                      <p className="text-xs text-ink-light font-semibold uppercase tracking-wider mb-1 font-mono-ui">Arka</p>
+                      <p className="text-ink-light font-body">{card.back}</p>
                     </div>
                   </div>
                   {card.extra_notes && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <p className="text-xs text-[#23335c]/60 font-semibold uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <div className="mt-4 pt-4 border-t border-parchment">
+                      <p className="text-xs text-ink-light font-semibold uppercase tracking-wider mb-1 flex items-center gap-1 font-mono-ui">
                         <Lightbulb className="w-3 h-3" /> Ekstra Notlar
                       </p>
-                      <p className="text-sm text-gray-500 leading-relaxed">{card.extra_notes}</p>
+                      <p className="text-sm text-ink-light leading-relaxed font-body">{card.extra_notes}</p>
                     </div>
                   )}
                 </div>

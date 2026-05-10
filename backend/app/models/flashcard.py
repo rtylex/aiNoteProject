@@ -40,6 +40,23 @@ class Flashcard(Base):
 
     flashcard_set = relationship("FlashcardSet", back_populates="cards")
     progress_entries = relationship("FlashcardProgress", back_populates="flashcard", cascade="all, delete-orphan")
+    review_history = relationship("FlashcardReviewHistory", back_populates="flashcard", cascade="all, delete-orphan", order_by="FlashcardReviewHistory.reviewed_at.desc()")
+
+
+class FlashcardReviewHistory(Base):
+    """Individual review event history."""
+    __tablename__ = "flashcard_review_history"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    user_id = Column(UUID(as_uuid=True), index=True, nullable=False)
+    flashcard_id = Column(UUID(as_uuid=True), ForeignKey("flashcards.id", ondelete="CASCADE"), nullable=False, index=True)
+    set_id = Column(UUID(as_uuid=True), ForeignKey("flashcard_sets.id", ondelete="CASCADE"), nullable=False, index=True)
+    quality = Column(Integer, nullable=False)
+    ease_factor = Column(Float, nullable=True)
+    interval = Column(Integer, nullable=True)
+    reviewed_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    flashcard = relationship("Flashcard", back_populates="review_history")
 
 
 class FlashcardStatus(str, enum.Enum):

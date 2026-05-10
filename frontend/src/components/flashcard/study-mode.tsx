@@ -20,6 +20,8 @@ interface StudyCard {
   status: string
   interval: number
   repetitions: number
+  review_count?: number
+  avg_quality?: number | null
 }
 
 type ReviewMode = 'normal' | 'weak' | 'full'
@@ -51,7 +53,7 @@ export function StudyMode({ setId }: { setId: string }) {
   })
   const [reviewMode, setReviewMode] = useState<ReviewMode>('normal')
 
-  /* ─── Fetch ─── */
+  /* ─── Fetch Functions ─── */
   const fetchStudyCards = useCallback(async () => {
     if (!accessToken) return
     setLoading(true)
@@ -67,6 +69,50 @@ export function StudyMode({ setId }: { setId: string }) {
           setFinished(true)
           setShuffling(false)
         }
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }, [setId, accessToken])
+
+  const fetchDifficultCards = useCallback(async () => {
+    if (!accessToken) return
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/flashcard/${setId}/difficult`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      if (res.ok) {
+        const data: StudyCard[] = await res.json()
+        setCards(data)
+        setReviewMode('weak')
+        resetSession()
+        setShuffling(true)
+        setTimeout(() => setShuffling(false), 1800)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }, [setId, accessToken])
+
+  const fetchAllCards = useCallback(async () => {
+    if (!accessToken) return
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/flashcard/${setId}/all`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      if (res.ok) {
+        const data: StudyCard[] = await res.json()
+        setCards(data)
+        setReviewMode('full')
+        resetSession()
+        setShuffling(true)
+        setTimeout(() => setShuffling(false), 1800)
       }
     } catch (e) {
       console.error(e)
@@ -96,20 +142,15 @@ export function StudyMode({ setId }: { setId: string }) {
   }
 
   const startWeakReview = () => {
-    const weak = allCards.filter((c) => (ratings[c.id] ?? 3) <= 2)
-    setCards(weak)
-    setReviewMode('weak')
-    resetSession()
+    fetchDifficultCards()
   }
 
   const startFullReview = () => {
-    setCards([...allCards])
-    setReviewMode('full')
-    resetSession()
+    fetchAllCards()
   }
 
   const startNormalReview = () => {
-    fetchStudyCards() // backend'ten güncel listeyi çek
+    fetchStudyCards()
     setReviewMode('normal')
     resetSession()
   }
@@ -439,6 +480,23 @@ export function StudyMode({ setId }: { setId: string }) {
                     </span>
                     {badge}
                   </div>
+                  {/* Review stats */}
+                  {card.review_count !== undefined && card.review_count > 0 && (
+                    <div className="flex items-center gap-2 pl-6 text-[10px] text-ink-light/60 font-mono-ui">
+                      <span>{card.review_count} kez tekrar</span>
+                      {card.avg_quality !== null && card.avg_quality !== undefined && (
+                        <span className={`px-1.5 py-0.5 rounded-sm ${
+                          card.avg_quality <= 2
+                            ? 'bg-red-500/10 text-red-500'
+                            : card.avg_quality <= 3.5
+                            ? 'bg-yellow-500/10 text-yellow-600'
+                            : 'bg-olive/10 text-olive'
+                        }`}>
+                          ort: {card.avg_quality}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </motion.button>
               )
             })}
@@ -471,6 +529,25 @@ export function StudyMode({ setId }: { setId: string }) {
                       <p className="text-2xl md:text-3xl font-bold text-ink text-center leading-relaxed font-display">
                         {currentCard.front}
                       </p>
+                      {/* Review stats on card */}
+                      {currentCard.review_count !== undefined && currentCard.review_count > 0 && (
+                        <div className="mt-4 flex items-center gap-2 text-xs text-ink-light font-mono-ui">
+                          <span className="bg-parchment px-2 py-1 rounded-sm">
+                            {currentCard.review_count} kez tekrar
+                          </span>
+                          {currentCard.avg_quality !== null && currentCard.avg_quality !== undefined && (
+                            <span className={`px-2 py-1 rounded-sm ${
+                              currentCard.avg_quality <= 2
+                                ? 'bg-red-500/10 text-red-500'
+                                : currentCard.avg_quality <= 3.5
+                                ? 'bg-yellow-500/10 text-yellow-600'
+                                : 'bg-olive/10 text-olive'
+                            }`}>
+                              ort: {currentCard.avg_quality}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <div className="absolute bottom-6 flex items-center gap-2 text-ink-light text-sm font-body">
                         <Sparkles className="w-4 h-4" />
                         <span>Çevirmek için tıklayın</span>

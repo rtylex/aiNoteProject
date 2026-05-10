@@ -11,7 +11,7 @@ import json
 import re
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from app.models.flashcard import FlashcardSet, Flashcard, FlashcardProgress, FlashcardStatus
+from app.models.flashcard import FlashcardSet, Flashcard, FlashcardProgress, FlashcardStatus, FlashcardReviewHistory
 from app.models.document import Document, DocumentEmbedding
 from app.services.deepseek_service import deepseek_service
 from app.services.gemini_service import gemini_service
@@ -593,6 +593,20 @@ def review_card(
         db.flush()
 
     calculate_sm2(quality, progress)
+
+    # Review history kaydet
+    history = FlashcardReviewHistory(
+        id=uuid.uuid4(),
+        user_id=user_id,
+        flashcard_id=card_id,
+        set_id=card.set_id,
+        quality=quality,
+        ease_factor=progress.ease_factor,
+        interval=progress.interval,
+        reviewed_at=datetime.utcnow()
+    )
+    db.add(history)
+
     db.commit()
     db.refresh(progress)
 
@@ -814,6 +828,127 @@ def get_difficult_cards(db: Session, user_id: uuid.UUID, limit: int = 50) -> lis
             "set_title": set_title,
             "ease_factor": prog.ease_factor,
             "last_reviewed": prog.last_reviewed.isoformat() if prog.last_reviewed else None,
+        })
+
+    return result
+
+
+def get_set_difficult_cards(db: Session, set_id: uuid.UUID, user_id: uuid.UUID, limit: int = 50) -> list[dict]:
+    """Get difficult cards from a specific set.
+    
+    Zor kart kriteri (OR):
+    1. Son 3 review ortalaması <= 2
+    2. ease_factor <= 2.0
+    3. status = "learning"
+    """
+    from sqlalchemy import desc, func
+
+    flashcard_set = db.query(FlashcardSet).filter(FlashcardSet.id == set_id).first()
+    if not flashcard_set:
+        raise ValueError("Flashcard set not found")
+
+    if flashcard_set.user_id != user_id and not flashcard_set.is_public:
+        raise ValueError("Access denied")
+
+    difficult_cards = []
+
+    for card in flashcard_set.cards:
+        # Son 3 review
+        recent_reviews = (
+            db.query(FlashcardReviewHistory)
+            .filter(
+                FlashcardReviewHistory.flashcard_id == card.id,
+                FlashcardReviewHistory.user_id == user_id,
+            )
+            .order_by(desc(FlashcardReviewHistory.reviewed_at))
+            .limit(3)
+            .all()
+        )
+
+        # Progress
+        prog = db.query(FlashcardProgress).filter(
+            FlashcardProgress.flashcard_id == card.id,
+            FlashcardProgress.user_id == user_id,
+        ).first()
+
+        # Zor mu?
+        is_difficult = False
+        avg_quality = None
+
+        if recent_reviews:
+            avg_quality = sum(r.quality for r in recent_reviews) / len(recent_reviews)
+            if avg_quality <= 2:
+                is_difficult = True
+
+        if prog and (prog.ease_factor <= 2.0 or prog.status == FlashcardStatus.LEARNING.value):
+            is_difficult = True
+
+        if is_difficult:
+            difficult_cards.append({
+                "id": str(card.id),
+                "front": card.front,
+                "back": card.back,
+                "extra_notes": card.extra_notes,
+                "order": card.order_num,
+                "status": prog.status if prog else FlashcardStatus.NEW.value,
+                "interval": prog.interval if prog else 0,
+                "repetitions": prog.repetitions if prog else 0,
+                "avg_quality": round(avg_quality, 2) if avg_quality is not None else None,
+                "review_count": len(recent_reviews),
+            })
+
+    return difficult_cards[:limit]
+
+
+def get_all_cards_with_stats(db: Session, set_id: uuid.UUID, user_id: uuid.UUID) -> list[dict]:
+    """Get ALL cards from a set with review statistics."""
+    from sqlalchemy import desc
+
+    flashcard_set = db.query(FlashcardSet).filter(FlashcardSet.id == set_id).first()
+    if not flashcard_set:
+        raise ValueError("Flashcard set not found")
+
+    if flashcard_set.user_id != user_id and not flashcard_set.is_public:
+        raise ValueError("Access denied")
+
+    result = []
+
+    for card in flashcard_set.cards:
+        # Tüm review history
+        reviews = (
+            db.query(FlashcardReviewHistory)
+            .filter(
+                FlashcardReviewHistory.flashcard_id == card.id,
+                FlashcardReviewHistory.user_id == user_id,
+            )
+            .order_by(desc(FlashcardReviewHistory.reviewed_at))
+            .all()
+        )
+
+        # Son 3 review ortalaması
+        recent_reviews = reviews[:3]
+        avg_quality = None
+        if recent_reviews:
+            avg_quality = round(sum(r.quality for r in recent_reviews) / len(recent_reviews), 2)
+
+        # Progress
+        prog = db.query(FlashcardProgress).filter(
+            FlashcardProgress.flashcard_id == card.id,
+            FlashcardProgress.user_id == user_id,
+        ).first()
+
+        result.append({
+            "id": str(card.id),
+            "front": card.front,
+            "back": card.back,
+            "extra_notes": card.extra_notes,
+            "order": card.order_num,
+            "status": prog.status if prog else FlashcardStatus.NEW.value,
+            "interval": prog.interval if prog else 0,
+            "repetitions": prog.repetitions if prog else 0,
+            "review_count": len(reviews),
+            "avg_quality": avg_quality,
+            "last_reviewed": reviews[0].reviewed_at.isoformat() if reviews else (prog.last_reviewed.isoformat() if prog and prog.last_reviewed else None),
         })
 
     return result

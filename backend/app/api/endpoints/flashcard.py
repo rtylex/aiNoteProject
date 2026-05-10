@@ -32,6 +32,8 @@ from app.services.flashcard_service import (
     list_public_sets,
     get_user_stats,
     get_difficult_cards,
+    get_set_difficult_cards,
+    get_all_cards_with_stats,
 )
 from app.services.query_limit import check_and_consume_query
 
@@ -502,6 +504,39 @@ async def get_study_set(
 
     try:
         return get_study_cards(db, set_uuid, user_uuid)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{set_id}/difficult")
+async def get_set_difficult_cards_endpoint(
+    set_id: str,
+    limit: int = Query(50, le=100),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get difficult cards from a specific set (last 3 review avg <= 2)."""
+    user_uuid = uuid.UUID(current_user.get("sub"))
+    set_uuid = uuid.UUID(set_id)
+
+    try:
+        return get_set_difficult_cards(db, set_uuid, user_uuid, limit)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get("/{set_id}/all")
+async def get_all_cards_endpoint(
+    set_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get ALL cards from a set with review statistics for full review."""
+    user_uuid = uuid.UUID(current_user.get("sub"))
+    set_uuid = uuid.UUID(set_id)
+
+    try:
+        return get_all_cards_with_stats(db, set_uuid, user_uuid)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

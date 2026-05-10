@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -91,25 +90,20 @@ export default function LoginForm({ activeTab, onTabChange }: Props) {
 
     return (
         <div className="w-full max-w-md">
-            {/* Logo (sadece mobilde, lg’de sağ panelde gösteriliyor) */}
+            {/* Logo (sadece mobilde) */}
             <div className="flex lg:hidden justify-center mb-6">
                 <Link href="/">
-                    <Image
-                        src="/bitigAcikTema.png"
-                        alt="BİTİG"
-                        width={140}
-                        height={45}
-                        className="object-contain"
-                        priority
-                    />
+                    <span className="font-display text-3xl font-bold text-ink tracking-tight">
+                        BİTİG
+                    </span>
                 </Link>
             </div>
 
             <div className="text-center lg:text-left mb-8">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-[#011133] to-[#2a3f6f] bg-clip-text text-transparent">
-                    {activeTab === 'login' ? 'Tekrar hoş geldiniz' : 'BİTİG’e katıl'}
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
+                    {activeTab === 'login' ? 'Tekrar hoş geldiniz' : 'BİTİG\'e katıl'}
                 </h1>
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-ink-light mt-2 font-body">
                     {activeTab === 'login'
                         ? 'AI çalışma alanınıza erişmek için bilgilerinizi girin.'
                         : 'Birkaç saniyede ücretsiz hesap oluşturun.'}
@@ -121,32 +115,32 @@ export default function LoginForm({ activeTab, onTabChange }: Props) {
                 onValueChange={(v) => onTabChange(v as 'login' | 'register')}
                 className="w-full"
             >
-                <TabsList className="grid w-full grid-cols-2 mb-6 bg-[#eef1f8] p-1 rounded-full h-11">
+                <TabsList className="grid w-full grid-cols-2 mb-6 bg-paper-dark p-1 rounded-sm h-11 border border-parchment">
                     <TabsTrigger
                         value="login"
-                        className="rounded-full text-sm data-[state=active]:bg-white data-[state=active]:text-[#011133] data-[state=active]:shadow-sm transition-all"
+                        className="rounded-sm text-xs font-mono-ui tracking-wider uppercase data-[state=active]:bg-paper data-[state=active]:text-ink data-[state=active]:shadow-sm transition-all"
                     >
                         Giriş Yap
                     </TabsTrigger>
                     <TabsTrigger
                         value="register"
-                        className="rounded-full text-sm data-[state=active]:bg-white data-[state=active]:text-[#011133] data-[state=active]:shadow-sm transition-all"
+                        className="rounded-sm text-xs font-mono-ui tracking-wider uppercase data-[state=active]:bg-paper data-[state=active]:text-ink data-[state=active]:shadow-sm transition-all"
                     >
                         Kayıt Ol
                     </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login" className="mt-0">
-                    <form onSubmit={handleLogin} className="space-y-4">
+                    <form onSubmit={handleLogin} className="space-y-5">
                         <div className="space-y-2">
-                            <Label htmlFor="email">E-posta</Label>
+                            <Label htmlFor="email" className="font-mono-ui text-xs tracking-wider uppercase text-ink-light">E-posta</Label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-light" />
                                 <Input
                                     id="email"
                                     type="email"
                                     placeholder="isim@ornek.com"
-                                    className="pl-10 h-11 bg-white"
+                                    className="pl-8 h-11 bg-transparent border-0 border-b border-parchment rounded-none focus-visible:ring-0 focus-visible:border-terracotta font-body"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -155,20 +149,20 @@ export default function LoginForm({ activeTab, onTabChange }: Props) {
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                                <Label htmlFor="password">Şifre</Label>
+                                <Label htmlFor="password" className="font-mono-ui text-xs tracking-wider uppercase text-ink-light">Şifre</Label>
                                 <button
                                     type="button"
-                                    className="text-xs text-[#23335c] hover:text-[#011133] transition-colors"
+                                    className="text-xs text-terracotta hover:text-terracotta/80 transition-colors font-mono-ui"
                                 >
                                     Şifremi unuttum
                                 </button>
                             </div>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Lock className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-light" />
                                 <Input
                                     id="password"
                                     type="password"
-                                    className="pl-10 h-11 bg-white"
+                                    className="pl-8 h-11 bg-transparent border-0 border-b border-parchment rounded-none focus-visible:ring-0 focus-visible:border-terracotta font-body"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -176,13 +170,13 @@ export default function LoginForm({ activeTab, onTabChange }: Props) {
                             </div>
                         </div>
                         {error && (
-                            <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
+                            <div className="p-3 text-sm text-terracotta bg-terracotta/10 rounded-sm border border-terracotta/20 font-body">
                                 {error}
                             </div>
                         )}
                         <Button
                             type="submit"
-                            className="w-full h-11 bg-gradient-to-r from-[#011133] to-[#2a3f6f] hover:from-[#0b1f4d] hover:to-[#31497d] text-[#f4f1e0] font-medium rounded-xl shadow-lg shadow-[#011133]/15 transition-all"
+                            className="w-full h-11 bg-ink text-paper hover:bg-ink/90 font-medium rounded-sm paper-shadow transition-all font-mono-ui tracking-wider uppercase"
                             disabled={loading}
                         >
                             {loading ? (
@@ -196,16 +190,16 @@ export default function LoginForm({ activeTab, onTabChange }: Props) {
                 </TabsContent>
 
                 <TabsContent value="register" className="mt-0">
-                    <form onSubmit={handleSignUp} className="space-y-4">
+                    <form onSubmit={handleSignUp} className="space-y-5">
                         <div className="space-y-2">
-                            <Label htmlFor="register-name">Ad Soyad</Label>
+                            <Label htmlFor="register-name" className="font-mono-ui text-xs tracking-wider uppercase text-ink-light">Ad Soyad</Label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <User className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-light" />
                                 <Input
                                     id="register-name"
                                     type="text"
                                     placeholder="Adınız Soyadınız"
-                                    className="pl-10 h-11 bg-white"
+                                    className="pl-8 h-11 bg-transparent border-0 border-b border-parchment rounded-none focus-visible:ring-0 focus-visible:border-terracotta font-body"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
                                     required
@@ -213,30 +207,30 @@ export default function LoginForm({ activeTab, onTabChange }: Props) {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="register-email">E-posta</Label>
+                            <Label htmlFor="register-email" className="font-mono-ui text-xs tracking-wider uppercase text-ink-light">E-posta</Label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Mail className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-light" />
                                 <Input
                                     id="register-email"
                                     type="email"
                                     placeholder="isim@ornek.com"
-                                    className="pl-10 h-11 bg-white"
+                                    className="pl-8 h-11 bg-transparent border-0 border-b border-parchment rounded-none focus-visible:ring-0 focus-visible:border-terracotta font-body"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="register-password">Şifre</Label>
+                                <Label htmlFor="register-password" className="font-mono-ui text-xs tracking-wider uppercase text-ink-light">Şifre</Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <Lock className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-light" />
                                     <Input
                                         id="register-password"
                                         type="password"
                                         placeholder="En az 6 karakter"
-                                        className="pl-10 h-11 bg-white"
+                                        className="pl-8 h-11 bg-transparent border-0 border-b border-parchment rounded-none focus-visible:ring-0 focus-visible:border-terracotta font-body"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
@@ -244,14 +238,14 @@ export default function LoginForm({ activeTab, onTabChange }: Props) {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="register-confirm-password">Tekrar</Label>
+                                <Label htmlFor="register-confirm-password" className="font-mono-ui text-xs tracking-wider uppercase text-ink-light">Tekrar</Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <Lock className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-light" />
                                     <Input
                                         id="register-confirm-password"
                                         type="password"
                                         placeholder="Şifre tekrar"
-                                        className="pl-10 h-11 bg-white"
+                                        className="pl-8 h-11 bg-transparent border-0 border-b border-parchment rounded-none focus-visible:ring-0 focus-visible:border-terracotta font-body"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
@@ -260,18 +254,18 @@ export default function LoginForm({ activeTab, onTabChange }: Props) {
                             </div>
                         </div>
                         {error && (
-                            <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
+                            <div className="p-3 text-sm text-terracotta bg-terracotta/10 rounded-sm border border-terracotta/20 font-body">
                                 {error}
                             </div>
                         )}
                         {success && (
-                            <div className="p-3 text-sm text-green-700 bg-green-50 rounded-lg border border-green-100">
+                            <div className="p-3 text-sm text-olive bg-olive/10 rounded-sm border border-olive/20 font-body">
                                 {success}
                             </div>
                         )}
                         <Button
                             type="submit"
-                            className="w-full h-11 bg-gradient-to-r from-[#23335c] to-[#011133] hover:from-[#2d3f6d] hover:to-[#0b1f4d] text-[#f4f1e0] font-medium rounded-xl shadow-lg shadow-[#011133]/15 transition-all"
+                            className="w-full h-11 bg-ink text-paper hover:bg-ink/90 font-medium rounded-sm paper-shadow transition-all font-mono-ui tracking-wider uppercase"
                             disabled={loading}
                         >
                             {loading ? (
@@ -285,7 +279,7 @@ export default function LoginForm({ activeTab, onTabChange }: Props) {
                 </TabsContent>
             </Tabs>
 
-            <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mt-8">
+            <div className="flex items-center justify-center gap-2 text-xs text-ink-light mt-8 font-mono-ui">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 AI güvenliği ile korunmaktadır · KVKK uyumlu
             </div>

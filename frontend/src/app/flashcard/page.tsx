@@ -74,9 +74,8 @@ export default function FlashcardPage() {
   useEffect(() => { fetchSets() }, [fetchSets])
 
   return (
-    <div className="min-h-screen w-full pt-16 bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
-      {/* Subtle grid pattern */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(244,241,224,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(244,241,224,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+    <div className="min-h-screen w-full pt-16 bg-paper relative">
+      <div className="absolute inset-0 paper-texture pointer-events-none -z-10" />
       
       <div className="relative container mx-auto py-12 px-4">
         {/* Hero Header */}
@@ -85,24 +84,24 @@ export default function FlashcardPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-14"
         >
-          <div className="inline-flex items-center gap-2 bg-[#f4f1e0]/10 backdrop-blur-sm px-4 py-2 rounded-full text-[#f4f1e0]/80 text-sm mb-6 border border-[#f4f1e0]/20">
-            <Brain className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 bg-parchment/50 px-4 py-2 rounded-sm text-ink-light text-sm mb-6 border border-parchment font-mono-ui tracking-wide">
+            <Brain className="w-4 h-4 text-terracotta" />
             <span>Akıllı Çalışma Kartları</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-[#f4f1e0] mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-ink mb-4 font-display">
             Flashcard'larım
           </h1>
-          <p className="text-[#f4f1e0]/60 text-lg max-w-xl mx-auto">
+          <p className="text-ink-light text-lg max-w-xl mx-auto font-body">
             AI destekli çalışma kartlarınızı yönetin, tekrar edin ve öğrenmeyi hızlandırın
           </p>
         </motion.div>
 
         <Tabs defaultValue="sets" className="space-y-8">
-          <TabsList className="bg-[#f4f1e0]/10 border border-[#f4f1e0]/20 p-1 rounded-full mx-auto flex w-fit">
-            <TabsTrigger value="sets" className="rounded-full px-6 py-2 text-[#f4f1e0]/70 data-[state=active]:bg-[#f4f1e0] data-[state=active]:text-[#011133] transition-all">
-              Setlerim {sets.length > 0 && <span className="ml-1.5 bg-[#f4f1e0]/20 text-[#f4f1e0] data-[state=active]:bg-[#011133]/20 data-[state=active]:text-[#011133] px-1.5 py-0.5 rounded-full text-xs">{sets.length}</span>}
+          <TabsList className="bg-paper-dark border border-parchment p-1 rounded-sm mx-auto flex w-fit">
+            <TabsTrigger value="sets" className="rounded-sm px-6 py-2 text-ink-light data-[state=active]:bg-paper data-[state=active]:text-ink transition-all font-mono-ui text-xs tracking-wide">
+              Setlerim {sets.length > 0 && <span className="ml-1.5 bg-parchment text-ink px-1.5 py-0.5 rounded-sm text-xs font-mono-ui">{sets.length}</span>}
             </TabsTrigger>
-            <TabsTrigger value="difficult" onClick={fetchDifficult} className="rounded-full px-6 py-2 text-[#f4f1e0]/70 data-[state=active]:bg-[#f4f1e0] data-[state=active]:text-[#011133] transition-all">
+            <TabsTrigger value="difficult" onClick={fetchDifficult} className="rounded-sm px-6 py-2 text-ink-light data-[state=active]:bg-paper data-[state=active]:text-ink transition-all font-mono-ui text-xs tracking-wide">
               <AlertTriangle className="w-3.5 h-3.5 mr-1.5" /> Tekrarlarım
             </TabsTrigger>
           </TabsList>
@@ -111,20 +110,20 @@ export default function FlashcardPage() {
           <TabsContent value="sets">
             {loading ? (
               <div className="flex justify-center items-center py-20">
-                <Loader2 className="w-10 h-10 animate-spin text-[#f4f1e0]" />
+                <Loader2 className="w-10 h-10 animate-spin text-ink" />
               </div>
             ) : sets.length === 0 ? (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-                <Card className="max-w-lg mx-auto border-dashed border-2 border-[#f4f1e0]/20 bg-transparent">
+                <Card className="max-w-lg mx-auto border-dashed border-2 border-parchment bg-paper/50">
                   <CardHeader className="text-center py-14">
-                    <div className="w-20 h-20 bg-gradient-to-br from-[#f4f1e0] to-[#e7d9a8] rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                      <BookOpen className="w-10 h-10 text-[#011133]" />
+                    <div className="w-20 h-20 bg-ink rounded-sm flex items-center justify-center mx-auto mb-6 paper-shadow-lg">
+                      <BookOpen className="w-10 h-10 text-paper" />
                     </div>
-                    <CardTitle className="text-2xl text-[#f4f1e0]">Henüz flashcard seti yok</CardTitle>
+                    <CardTitle className="text-2xl text-ink font-display">Henüz flashcard seti yok</CardTitle>
                   </CardHeader>
                   <CardContent className="text-center pb-10">
-                    <p className="text-[#f4f1e0]/60 mb-6">Dökümanlarınızdan veya çoklu çalışmalarınızdan flashcard oluşturun.</p>
-                    <Button onClick={() => router.push('/dashboard')} className="bg-[#f4f1e0] text-[#011133] hover:bg-[#e7d9a8] rounded-full px-8 h-12 font-semibold">
+                    <p className="text-ink-light mb-6 font-body">Dökümanlarınızdan veya çoklu çalışmalarınızdan flashcard oluşturun.</p>
+                    <Button onClick={() => router.push('/dashboard')} className="bg-ink text-paper hover:bg-ink/90 rounded-sm px-8 h-12 font-semibold font-mono-ui">
                       Dökümanlarıma Git
                     </Button>
                   </CardContent>
@@ -139,47 +138,46 @@ export default function FlashcardPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.08 }}
                   >
-                    <Card className="group bg-white/95 backdrop-blur-sm rounded-3xl border-0 shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 overflow-hidden relative">
+                    <Card className="group bg-paper rounded-sm border-parchment paper-shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden relative paper-fold">
                       {/* Top accent bar */}
-                      <div className="h-1.5 bg-gradient-to-r from-[#011133] via-[#23335c] to-[#3d4f7f]" />
+                      <div className="h-1.5 bg-ink" />
                       <CardHeader className="pb-3 pt-5">
                         <div className="flex items-start justify-between">
-                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#011133] to-[#23335c] flex items-center justify-center shadow-lg">
-                            <BookOpen className="w-6 h-6 text-[#f4f1e0]" />
+                          <div className="w-12 h-12 rounded-sm bg-ink flex items-center justify-center paper-shadow">
+                            <BookOpen className="w-6 h-6 text-paper" />
                           </div>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); router.push(`/flashcard/${set.id}`); }}>
-                              <Edit className="w-4 h-4 text-gray-400 hover:text-[#011133]" />
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-parchment" onClick={(e) => { e.stopPropagation(); router.push(`/flashcard/${set.id}`); }}>
+                              <Edit className="w-4 h-4 text-ink-light hover:text-ink" />
                             </Button>
                             <div onClick={(e) => e.stopPropagation()}>
                               <DeleteFlashcardDialog setId={set.id} title={set.title} onDelete={fetchSets} />
                             </div>
                           </div>
                         </div>
-                        <CardTitle className="text-lg font-bold text-[#011133] group-hover:text-[#23335c] truncate mt-3">
+                        <CardTitle className="text-lg font-bold text-ink group-hover:text-terracotta truncate mt-3 font-display">
                           {set.title}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">{set.card_count} kart</span>
-                          <span className="text-gray-400">{set.completion_percentage}% tamamlandı</span>
+                        <div className="flex items-center justify-between text-sm font-mono-ui">
+                          <span className="text-ink-light">{set.card_count} kart</span>
+                          <span className="text-ink-light">{set.completion_percentage}% tamamlandı</span>
                         </div>
-                        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-[#011133] to-[#23335c] rounded-full transition-all" style={{ width: `${set.completion_percentage}%` }} />
+                        <div className="w-full h-2 bg-parchment rounded-sm overflow-hidden">
+                          <div className="h-full bg-olive rounded-sm transition-all" style={{ width: `${set.completion_percentage}%` }} />
                         </div>
-                        {/* Due count badge */}
                         {(set.progress.new + set.progress.learning) > 0 && (
-                          <div className="inline-flex items-center gap-1.5 bg-[#011133]/5 text-[#011133] px-3 py-1.5 rounded-full text-xs font-medium">
+                          <div className="inline-flex items-center gap-1.5 bg-terracotta/10 text-terracotta px-3 py-1.5 rounded-sm text-xs font-medium font-mono-ui">
                             <RotateCcw className="w-3 h-3" />
                             Bugün {set.progress.new + set.progress.learning} kart tekrar edilecek
                           </div>
                         )}
                         <div className="flex gap-2 pt-2">
-                          <Button onClick={() => router.push(`/flashcard/${set.id}?mode=study`)} className="flex-1 bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] rounded-xl h-10 text-sm font-semibold">
+                          <Button onClick={() => router.push(`/flashcard/${set.id}?mode=study`)} className="flex-1 bg-ink text-paper hover:bg-ink/90 rounded-sm h-10 text-sm font-semibold font-mono-ui">
                             <Play className="w-4 h-4 mr-1.5" /> Çalış
                           </Button>
-                          <Button onClick={() => router.push(`/flashcard/${set.id}`)} variant="outline" size="sm" className="flex-1 rounded-xl h-10 text-sm border-gray-200 hover:border-[#011133] hover:text-[#011133]">
+                          <Button onClick={() => router.push(`/flashcard/${set.id}`)} variant="outline" size="sm" className="flex-1 rounded-sm h-10 text-sm border-parchment hover:border-ink hover:text-ink font-mono-ui">
                             <Edit className="w-4 h-4 mr-1.5" /> Düzenle
                           </Button>
                         </div>
@@ -200,15 +198,15 @@ export default function FlashcardPage() {
               />
             ) : loadingDifficult ? (
               <div className="flex justify-center items-center py-20">
-                <Loader2 className="w-10 h-10 animate-spin text-[#f4f1e0]" />
+                <Loader2 className="w-10 h-10 animate-spin text-ink" />
               </div>
             ) : difficultCards.length === 0 ? (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-20">
-                <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                  <Brain className="w-10 h-10 text-white" />
+                <div className="w-20 h-20 bg-olive/20 rounded-sm flex items-center justify-center mx-auto mb-6 paper-shadow-lg">
+                  <Brain className="w-10 h-10 text-olive" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#f4f1e0] mb-2">Harika!</h3>
-                <p className="text-[#f4f1e0]/60 max-w-md mx-auto">Şu anda zorlandığınız bir kart yok. Tüm kartları iyi biliyorsunuz.</p>
+                <h3 className="text-2xl font-bold text-ink mb-2 font-display">Harika!</h3>
+                <p className="text-ink-light max-w-md mx-auto font-body">Şu anda zorlandığınız bir kart yok. Tüm kartları iyi biliyorsunuz.</p>
               </motion.div>
             ) : (
               <div className="max-w-3xl mx-auto">
@@ -216,24 +214,24 @@ export default function FlashcardPage() {
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }} 
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gradient-to-r from-[#1d2f5e]/80 to-[#23335c]/80 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-[#f4f1e0]/10"
+                  className="bg-paper-dark border border-parchment rounded-sm p-6 mb-8 paper-shadow"
                 >
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-[#f4f1e0]/10 flex items-center justify-center">
-                        <Flame className="w-6 h-6 text-orange-400" />
+                      <div className="w-12 h-12 rounded-sm bg-terracotta/10 flex items-center justify-center">
+                        <Flame className="w-6 h-6 text-terracotta" />
                       </div>
                       <div>
-                        <p className="text-[#f4f1e0] font-bold text-xl">{difficultCards.length} zor kart</p>
-                        <p className="text-[#f4f1e0]/60 text-sm">Tekrar etmeyi bekliyor</p>
+                        <p className="text-ink font-bold text-xl font-display">{difficultCards.length} zor kart</p>
+                        <p className="text-ink-light text-sm font-body">Tekrar etmeyi bekliyor</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <div className="flex items-center gap-2 text-[#f4f1e0]/70">
+                    <div className="flex items-center gap-6 text-sm font-mono-ui">
+                      <div className="flex items-center gap-2 text-ink-light">
                         <TrendingDown className="w-4 h-4" />
                         <span>Ort. zorluk: {(difficultCards.reduce((acc, c) => acc + c.ease_factor, 0) / difficultCards.length).toFixed(1)}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-[#f4f1e0]/70">
+                      <div className="flex items-center gap-2 text-ink-light">
                         <Clock className="w-4 h-4" />
                         <span>{new Set(difficultCards.map(c => c.set_id)).size} farklı set</span>
                       </div>
@@ -245,7 +243,7 @@ export default function FlashcardPage() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8">
                   <Button 
                     onClick={() => setIsStudyingDifficult(true)}
-                    className="w-full h-16 bg-gradient-to-r from-orange-500 via-red-500 to-rose-600 hover:from-orange-600 hover:via-red-600 hover:to-rose-700 text-white rounded-2xl text-lg font-bold shadow-xl shadow-red-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full h-16 bg-terracotta hover:bg-terracotta/90 text-paper rounded-sm text-lg font-bold paper-shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] font-mono-ui tracking-wide"
                   >
                     <Flame className="w-6 h-6 mr-3" />
                     Zor Kartları Çalışmaya Başla
@@ -255,31 +253,31 @@ export default function FlashcardPage() {
 
                 {/* Preview List */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-[#f4f1e0]/60 uppercase tracking-wider mb-4">Zorlandığınız Kartlar</h3>
+                  <h3 className="text-sm font-semibold text-ink-light uppercase tracking-wider mb-4 font-mono-ui">Zorlandığınız Kartlar</h3>
                   {difficultCards.map((card, idx) => (
                     <motion.div
                       key={card.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.04 }}
-                      className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-[0_4px_20px_rgb(0,0,0,0.06)] hover:shadow-[0_4px_30px_rgb(0,0,0,0.1)] transition-all border-l-4 border-orange-400 hover:translate-x-1"
+                      className="bg-paper rounded-sm p-5 paper-shadow border-l-2 border-terracotta hover:translate-x-1 transition-all paper-fold"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-bold text-[#23335c]/60 bg-[#011133]/5 px-2.5 py-1 rounded-full">{card.set_title}</span>
+                            <span className="text-xs font-bold text-ink-light bg-parchment px-2.5 py-1 rounded-sm font-mono-ui">{card.set_title}</span>
                             {card.last_reviewed && (
-                              <span className="text-xs text-gray-400">{new Date(card.last_reviewed).toLocaleDateString('tr-TR')}</span>
+                              <span className="text-xs text-ink-light font-mono-ui">{new Date(card.last_reviewed).toLocaleDateString('tr-TR')}</span>
                             )}
                           </div>
-                          <p className="text-[#011133] font-semibold mb-1 truncate">{card.front}</p>
-                          <p className="text-gray-500 text-sm truncate">{card.back}</p>
+                          <p className="text-ink font-semibold mb-1 truncate font-display">{card.front}</p>
+                          <p className="text-ink-light text-sm truncate font-body">{card.back}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                            card.ease_factor <= 1.5 ? 'bg-red-100 text-red-700' :
-                            card.ease_factor <= 2.0 ? 'bg-orange-100 text-orange-700' :
-                            'bg-yellow-100 text-yellow-700'
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-sm font-mono-ui ${
+                            card.ease_factor <= 1.5 ? 'bg-terracotta/10 text-terracotta' :
+                            card.ease_factor <= 2.0 ? 'bg-gold/10 text-gold' :
+                            'bg-olive/10 text-olive'
                           }`}>
                             Zorluk: {card.ease_factor.toFixed(1)}
                           </span>

@@ -35,14 +35,13 @@ interface ModelError {
     message: string
 }
 
-// Prompt templates for DeepSeek cache optimization
 const PROMPT_TEMPLATES = [
-    { icon: FileText, label: 'Kısaca Özetle', prompt: 'Bu dokümanları kısaca 2-3 paragrafta özetle.', color: 'text-blue-500' },
-    { icon: BookOpen, label: 'Detaylı Özetle', prompt: 'Bu dokümanları detaylı bir şekilde özetle. Tüm önemli noktaları kapsa.', color: 'text-indigo-500' },
-    { icon: ListChecks, label: 'Madde Madde', prompt: 'Bu dokümanların ana noktalarını madde madde listele.', color: 'text-emerald-500' },
-    { icon: Lightbulb, label: 'Basitçe Açıkla', prompt: 'Bu konuları basit ve anlaşılır bir şekilde açıkla.', color: 'text-amber-500' },
-    { icon: GraduationCap, label: 'Sınav Sorusu', prompt: 'Bu konulardan 5 adet sınav sorusu hazırla. Cevaplarını da ver.', color: 'text-purple-500' },
-    { icon: HelpCircle, label: 'Çoktan Seçmeli', prompt: 'Bu konulardan 5 adet çoktan seçmeli (A/B/C/D) soru hazırla. Doğru cevapları işaretle.', color: 'text-rose-500' },
+    { icon: FileText, label: 'Kısaca Özetle', prompt: 'Bu dokümanları kısaca 2-3 paragrafta özetle.', color: 'text-terracotta' },
+    { icon: BookOpen, label: 'Detaylı Özetle', prompt: 'Bu dokümanları detaylı bir şekilde özetle. Tüm önemli noktaları kapsa.', color: 'text-ink' },
+    { icon: ListChecks, label: 'Madde Madde', prompt: 'Bu dokümanların ana noktalarını madde madde listele.', color: 'text-olive' },
+    { icon: Lightbulb, label: 'Basitçe Açıkla', prompt: 'Bu konuları basit ve anlaşılır bir şekilde açıkla.', color: 'text-gold' },
+    { icon: GraduationCap, label: 'Sınav Sorusu', prompt: 'Bu konulardan 5 adet sınav sorusu hazırla. Cevaplarını da ver.', color: 'text-lavender' },
+    { icon: HelpCircle, label: 'Çoktan Seçmeli', prompt: 'Bu konulardan 5 adet çoktan seçmeli (A/B/C/D) soru hazırla. Doğru cevapları işaretle.', color: 'text-terracotta' },
 ]
 
 function MultiChatContent() {
@@ -56,7 +55,6 @@ function MultiChatContent() {
     const scrollRef = useRef<HTMLDivElement>(null)
     const { accessToken, preferredModel } = useAuth()
 
-    // Session state
     const [sessionId, setSessionId] = useState<string | null>(null)
     const [sessionTitle, setSessionTitle] = useState('')
     const [showNameModal, setShowNameModal] = useState(false)
@@ -64,24 +62,17 @@ function MultiChatContent() {
     const [isEditingTitle, setIsEditingTitle] = useState(false)
     const [editTitle, setEditTitle] = useState('')
 
-    // Limit modal state
     const [showLimitModal, setShowLimitModal] = useState(false)
     const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null)
 
-    // Model error state
     const [showModelError, setShowModelError] = useState(false)
     const [modelError, setModelError] = useState<ModelError | null>(null)
 
-    // Template dropdown state
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
     const templateDropdownRef = useRef<HTMLDivElement>(null)
 
-    // Mobile docs toggle state
     const [showMobileDocs, setShowMobileDocs] = useState(false)
 
-
-
-    // Close template dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (templateDropdownRef.current && !templateDropdownRef.current.contains(event.target as Node)) {
@@ -92,16 +83,13 @@ function MultiChatContent() {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
-    // Check for existing session or new documents
     useEffect(() => {
         const existingSessionId = searchParams.get('session')
         const idsParam = searchParams.get('ids')
 
         if (existingSessionId && accessToken) {
-            // Load existing session
             loadExistingSession(existingSessionId)
         } else if (idsParam && accessToken) {
-            // New session - show name modal
             const ids = idsParam.split(',')
             fetchDocumentInfo(ids)
             setShowNameModal(true)
@@ -177,7 +165,6 @@ function MultiChatContent() {
                 setSessionId(data.id)
                 setSessionTitle(data.title)
                 setShowNameModal(false)
-                // Update URL to include session ID
                 router.replace(`/multi-chat?session=${data.id}`)
             }
         } catch (error) {
@@ -247,27 +234,23 @@ function MultiChatContent() {
                 }
                 setMessages(prev => [...prev, aiMessage])
             } else if (response.status === 429) {
-                // Rate limit exceeded - show popup
                 const errorData = await response.json()
                 setLimitInfo({
                     remaining: 0,
                     limit: errorData.detail?.limit || 5
                 })
                 setShowLimitModal(true)
-                // Remove the user message since it wasn't processed
                 setMessages(prev => prev.filter(m => m.id !== userMessage.id))
-                setInput(sentMessage) // Restore the input
+                setInput(sentMessage)
             } else if (response.status === 503) {
-                // Model unavailable - show error modal
                 const errorData = await response.json()
                 setModelError({
                     model: errorData.detail?.model || preferredModel,
                     message: errorData.detail?.message || 'Bu model şu anda kullanılamıyor'
                 })
                 setShowModelError(true)
-                // Remove the user message since it wasn't processed
                 setMessages(prev => prev.filter(m => m.id !== userMessage.id))
-                setInput(sentMessage) // Restore the input
+                setInput(sentMessage)
             } else {
                 const errorData = await response.json()
                 const aiMessage: Message = {
@@ -290,7 +273,6 @@ function MultiChatContent() {
         }
     }
 
-    // Handle template click
     const handleTemplateClick = (prompt: string) => {
         handleSend(prompt)
     }
@@ -302,19 +284,19 @@ function MultiChatContent() {
         }
     }
 
-    // Name Modal
     if (showNameModal) {
         return (
-            <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
-                <Card className="max-w-md w-full mx-4">
+            <div className="min-h-screen pt-16 flex items-center justify-center bg-paper relative">
+                <div className="absolute inset-0 paper-texture pointer-events-none" />
+                <Card className="max-w-md w-full mx-4 paper-texture paper-shadow-lg">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Sparkles className="w-5 h-5 text-indigo-600" />
+                        <CardTitle className="flex items-center gap-2 font-display">
+                            <Sparkles className="w-5 h-5 text-terracotta" />
                             Çoklu Çalışmaya İsim Ver
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-ink-light font-body">
                             {documents.length} döküman seçtiniz. Bu çalışmaya bir isim verin.
                         </p>
                         <Input
@@ -323,17 +305,18 @@ function MultiChatContent() {
                             placeholder="Örn: Yapay Zeka Dersi Notları"
                             autoFocus
                             onKeyPress={(e) => e.key === 'Enter' && createSession()}
+                            className="bg-paper-dark border-parchment font-body"
                         />
                         <div className="flex gap-2">
                             <Button
                                 variant="outline"
-                                className="flex-1"
+                                className="flex-1 border-parchment font-mono-ui"
                                 onClick={() => router.push('/dashboard')}
                             >
                                 İptal
                             </Button>
                             <Button
-                                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600"
+                                className="flex-1 bg-ink text-paper hover:bg-ink/90 font-mono-ui"
                                 onClick={createSession}
                                 disabled={!tempTitle.trim()}
                             >
@@ -348,10 +331,11 @@ function MultiChatContent() {
 
     if (isLoadingDocs) {
         return (
-            <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
+            <div className="min-h-screen pt-16 flex items-center justify-center bg-paper relative">
+                <div className="absolute inset-0 paper-texture pointer-events-none" />
                 <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Yükleniyor...</p>
+                    <Loader2 className="w-12 h-12 animate-spin text-ink mx-auto mb-4" />
+                    <p className="text-ink-light font-display">Yükleniyor...</p>
                 </div>
             </div>
         )
@@ -359,17 +343,18 @@ function MultiChatContent() {
 
     if (documents.length < 2) {
         return (
-            <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
-                <Card className="max-w-md w-full mx-4">
+            <div className="min-h-screen pt-16 flex items-center justify-center bg-paper relative">
+                <div className="absolute inset-0 paper-texture pointer-events-none" />
+                <Card className="max-w-md w-full mx-4 paper-texture">
                     <CardHeader>
-                        <CardTitle className="text-red-600">Hata</CardTitle>
+                        <CardTitle className="text-terracotta font-display">Hata</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-gray-600 mb-4">
+                        <p className="text-ink-light mb-4 font-body">
                             Çoklu döküman çalışması için en az 2 döküman gereklidir.
                         </p>
                         <Link href="/dashboard">
-                            <Button className="w-full">Dashboard&apos;a Dön</Button>
+                            <Button className="w-full bg-ink text-paper hover:bg-ink/90 font-mono-ui">Dashboard&apos;a Dön</Button>
                         </Link>
                     </CardContent>
                 </Card>
@@ -378,39 +363,38 @@ function MultiChatContent() {
     }
 
     return (
-        <div className="min-h-screen pt-16 bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
+        <div className="min-h-screen pt-16 bg-paper relative">
+            <div className="absolute inset-0 paper-texture pointer-events-none -z-10" />
+
             {/* Limit Warning Modal */}
             {showLimitModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
-                    <Card className="max-w-md w-full animate-in fade-in zoom-in duration-200">
+                <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
+                    <Card className="max-w-md w-full animate-in fade-in zoom-in duration-200 paper-texture">
                         <CardHeader className="text-center pb-2">
-                            <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <AlertCircle className="w-8 h-8 text-white" />
+                            <div className="w-16 h-16 bg-gold/20 rounded-sm flex items-center justify-center mx-auto mb-4">
+                                <AlertCircle className="w-8 h-8 text-gold" />
                             </div>
-                            <CardTitle className="text-xl text-gray-800">Günlük Limit Doldu</CardTitle>
+                            <CardTitle className="text-xl text-ink font-display">Günlük Limit Doldu</CardTitle>
                         </CardHeader>
                         <CardContent className="text-center space-y-4">
-                            <p className="text-gray-600">
-                                Günlük <span className="font-bold text-indigo-600">{limitInfo?.limit || 5}</span> sorgu hakkınızı kullandınız.
+                            <p className="text-ink-light font-body">
+                                Günlük <span className="font-bold text-terracotta">{limitInfo?.limit || 5}</span> sorgu hakkınızı kullandınız.
                             </p>
-                            <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4">
-                                <p className="text-sm text-orange-700">
-                                    🕐 Limitiniz <strong>yarın gece yarısı</strong> sıfırlanacak.
+                            <div className="bg-parchment/50 border border-parchment rounded-sm p-4">
+                                <p className="text-sm text-ink-light font-body">
+                                    Limitiniz <strong>yarın gece yarısı</strong> sıfırlanacak.
                                 </p>
                             </div>
-                            <p className="text-sm text-gray-500">
-                                Daha fazla sorgu hakkı için premium plana geçebilirsiniz.
-                            </p>
                             <div className="flex gap-3 pt-2">
                                 <Button
                                     variant="outline"
-                                    className="flex-1"
+                                    className="flex-1 border-parchment font-mono-ui"
                                     onClick={() => setShowLimitModal(false)}
                                 >
                                     Tamam
                                 </Button>
                                 <Button
-                                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600"
+                                    className="flex-1 bg-ink text-paper hover:bg-ink/90 font-mono-ui"
                                     onClick={() => router.push('/dashboard')}
                                 >
                                     Dashboard'a Dön
@@ -422,10 +406,10 @@ function MultiChatContent() {
             )}
 
             {/* Header */}
-            <div className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+            <div className="border-b border-parchment bg-paper/80 backdrop-blur-sm sticky top-0 z-10">
                 <div className="container mx-auto px-4 py-4 flex items-center gap-4">
                     <Link href="/dashboard">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="hover:bg-parchment">
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
                     </Link>
@@ -435,20 +419,20 @@ function MultiChatContent() {
                                 <Input
                                     value={editTitle}
                                     onChange={(e) => setEditTitle(e.target.value)}
-                                    className="max-w-xs"
+                                    className="max-w-xs bg-paper-dark border-parchment font-body"
                                     autoFocus
                                 />
                                 <Button size="icon" variant="ghost" onClick={updateSessionTitle}>
-                                    <Check className="w-4 h-4 text-green-600" />
+                                    <Check className="w-4 h-4 text-olive" />
                                 </Button>
                                 <Button size="icon" variant="ghost" onClick={() => setIsEditingTitle(false)}>
-                                    <X className="w-4 h-4 text-red-600" />
+                                    <X className="w-4 h-4 text-terracotta" />
                                 </Button>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
-                                <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
-                                    <Sparkles className="w-5 h-5 text-indigo-600" />
+                                <h1 className="text-xl font-bold text-ink flex items-center gap-2 font-display">
+                                    <Sparkles className="w-5 h-5 text-terracotta" />
                                     {sessionTitle || 'Çoklu Döküman Çalışması'}
                                 </h1>
                                 {sessionId && (
@@ -460,12 +444,12 @@ function MultiChatContent() {
                                             setIsEditingTitle(true)
                                         }}
                                     >
-                                        <Edit2 className="w-4 h-4 text-gray-400" />
+                                        <Edit2 className="w-4 h-4 text-ink-light" />
                                     </Button>
                                 )}
                             </div>
                         )}
-                        <p className="text-sm text-gray-500">{documents.length} döküman seçili</p>
+                        <p className="text-sm text-ink-light font-mono-ui">{documents.length} döküman seçili</p>
                     </div>
                 </div>
             </div>
@@ -476,11 +460,11 @@ function MultiChatContent() {
                     <div className="lg:hidden">
                         <Button 
                             variant="outline" 
-                            className="w-full flex justify-between items-center bg-white/80 backdrop-blur-sm"
+                            className="w-full flex justify-between items-center bg-paper border-parchment font-mono-ui"
                             onClick={() => setShowMobileDocs(!showMobileDocs)}
                         >
                             <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-indigo-600" />
+                                <FileText className="w-4 h-4 text-terracotta" />
                                 <span className="font-medium">Seçili Dökümanlar ({documents.length})</span>
                             </div>
                             {showMobileDocs ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -494,35 +478,35 @@ function MultiChatContent() {
                                     exit={{ height: 0, opacity: 0 }}
                                     className="overflow-hidden mt-2"
                                 >
-                                    <Card>
+                                    <Card className="border-parchment">
                                         <CardContent className="space-y-2 p-4 max-h-[30vh] overflow-y-auto">
                                             {documents.map((doc, index) => (
                                                 <div
                                                     key={doc.id}
-                                                    className="flex items-center gap-3 p-2 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100"
+                                                    className="flex items-center gap-3 p-2 rounded-sm bg-paper-dark border border-parchment"
                                                 >
-                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                                    <div className="w-6 h-6 rounded-sm bg-ink flex items-center justify-center text-paper text-xs font-bold shrink-0 font-mono-ui">
                                                         {index + 1}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium text-gray-800 truncate">
+                                                        <p className="text-sm font-medium text-ink truncate font-display">
                                                             {doc.title}
                                                         </p>
                                                     </div>
                                                 </div>
                                             ))}
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+                                        </CardContent>
+                                    </Card>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
 
-        {/* Sidebar - Selected Documents (Desktop) */}
+                    {/* Sidebar - Selected Documents (Desktop) */}
                     <div className="hidden lg:block lg:col-span-1">
-                        <Card className="sticky top-24 bg-white/80 backdrop-blur-xl border-white/50 shadow-lg">
+                        <Card className="sticky top-24 bg-paper border-parchment paper-shadow-lg paper-fold">
                             <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                                <CardTitle className="text-sm font-medium text-ink-light flex items-center gap-2 font-mono-ui">
                                     <FileText className="w-4 h-4" />
                                     Seçili Dökümanlar
                                 </CardTitle>
@@ -531,13 +515,13 @@ function MultiChatContent() {
                                 {documents.map((doc, index) => (
                                     <div
                                         key={doc.id}
-                                        className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-indigo-50/50 to-purple-50/50 border border-indigo-100/50 hover:border-indigo-200 hover:shadow-sm transition-all"
+                                        className="flex items-center gap-3 p-3 rounded-sm bg-paper-dark border border-parchment hover:border-terracotta/30 transition-all"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm">
+                                        <div className="w-8 h-8 rounded-sm bg-ink flex items-center justify-center text-paper text-sm font-bold shrink-0 font-mono-ui">
                                             {index + 1}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-800 truncate">
+                                            <p className="text-sm font-medium text-ink truncate font-display">
                                                 {doc.title}
                                             </p>
                                         </div>
@@ -549,29 +533,29 @@ function MultiChatContent() {
 
                     {/* Main Chat Area */}
                     <div className="lg:col-span-3">
-                        <Card className="h-[calc(100dvh-180px)] flex flex-col overflow-hidden">
+                        <Card className="h-[calc(100dvh-180px)] flex flex-col overflow-hidden border-parchment">
                             {/* Messages */}
                             <ScrollArea className="flex-1 p-4 min-h-0" ref={scrollRef}>
                                 {messages.length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center text-center px-4">
-                                        <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mb-6">
-                                            <Sparkles className="w-10 h-10 text-white" />
+                                        <div className="w-20 h-20 bg-ink rounded-sm flex items-center justify-center mb-6">
+                                            <Sparkles className="w-10 h-10 text-paper" />
                                         </div>
-                                        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                                        <h2 className="text-2xl font-bold text-ink mb-2 font-display">
                                             {sessionTitle}
                                         </h2>
-                                        <p className="text-gray-500 max-w-md mb-6">
+                                        <p className="text-ink-light max-w-md mb-6 font-body">
                                             Seçtiğiniz {documents.length} döküman üzerinden soru sorabilirsiniz.
                                             AI, tüm kaynaklardaki bilgileri birleştirerek size kapsamlı cevaplar verecek.
                                         </p>
                                         <div className="flex flex-wrap gap-2 justify-center">
-                                            <Button variant="outline" size="sm" onClick={() => setInput("Bu dökümanları karşılaştır")}>
+                                            <Button variant="outline" size="sm" onClick={() => setInput("Bu dökümanları karşılaştır")} className="border-parchment font-mono-ui text-xs">
                                                 Karşılaştır
                                             </Button>
-                                            <Button variant="outline" size="sm" onClick={() => setInput("Bu konuları özetle")}>
+                                            <Button variant="outline" size="sm" onClick={() => setInput("Bu konuları özetle")} className="border-parchment font-mono-ui text-xs">
                                                 Özetle
                                             </Button>
-                                            <Button variant="outline" size="sm" onClick={() => setInput("Ortak noktaları ve farklılıkları göster")}>
+                                            <Button variant="outline" size="sm" onClick={() => setInput("Ortak noktaları ve farklılıkları göster")} className="border-parchment font-mono-ui text-xs">
                                                 Benzerlikler/Farklılıklar
                                             </Button>
                                         </div>
@@ -580,28 +564,29 @@ function MultiChatContent() {
                                     <div className="space-y-4">
                                         {messages.map((msg) => (
                                             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                                <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${msg.sender === 'user'
-                                                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
-                                                    : 'bg-white border border-gray-200 text-gray-800'
+                                                <div className={`max-w-[80%] rounded-sm px-4 py-3 ${msg.sender === 'user'
+                                                    ? 'bg-ink text-paper'
+                                                    : 'bg-paper-dark border border-parchment text-ink'
                                                     }`}>
                                                     {msg.sender === 'ai' ? (
-                                                        <div className="prose prose-sm max-w-none overflow-hidden break-words">
+                                                        <div className="prose prose-sm max-w-none overflow-hidden break-words font-body">
                                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                                                 {msg.message}
                                                             </ReactMarkdown>
                                                         </div>
                                                     ) : (
-                                                        <p>{msg.message}</p>
+                                                        <p className="font-body">{msg.message}</p>
                                                     )}
                                                 </div>
                                             </div>
                                         ))}
                                         {isLoading && (
                                             <div className="flex justify-start">
-                                                <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
-                                                        <span className="text-gray-500">Düşünüyor...</span>
+                                                <div className="bg-paper-dark border border-parchment rounded-sm px-4 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-2 h-2 bg-terracotta rounded-full ink-drop-1" />
+                                                        <div className="w-2 h-2 bg-terracotta rounded-full ink-drop-2" />
+                                                        <div className="w-2 h-2 bg-terracotta rounded-full ink-drop-3" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -611,27 +596,25 @@ function MultiChatContent() {
                             </ScrollArea>
 
                             {/* Input Area */}
-                            <div className="border-t p-4 bg-white/50">
+                            <div className="border-t border-parchment p-4 bg-paper/50">
                                 <div className="flex gap-2 items-center">
-                                    {/* AI Model Indicator */}
-                                    <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-background/80 px-3 py-2 text-sm font-medium text-foreground/80">
-                                        <Zap className={`w-4 h-4 ${preferredModel === 'gemma' ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                    <div className="flex items-center gap-2 rounded-sm border border-parchment bg-paper-dark px-3 py-2 text-sm font-medium text-ink-light font-mono-ui">
+                                        <Zap className={`w-4 h-4 ${preferredModel === 'gemma' ? 'text-lavender' : 'text-olive'}`} />
                                         <span className="hidden sm:inline">{preferredModel === 'deepseek' ? 'DeepSeek' : 'Gemma'}</span>
                                     </div>
 
-                                    {/* Template Dropdown Button */}
                                     <div className="relative shrink-0" ref={templateDropdownRef}>
                                         <button
                                             type="button"
                                             onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
-                                            className="group rounded-xl p-2 bg-background/80 border border-border/30 transition-all hover:bg-muted/50 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                                            className="group rounded-sm p-2 bg-paper-dark border border-parchment transition-all hover:bg-parchment/50 hover:border-terracotta/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/40"
                                             aria-label="Şablonlar"
                                             aria-expanded={showTemplateDropdown}
                                             aria-haspopup="menu"
                                         >
                                             <Lightbulb
                                                 size={18}
-                                                className="text-amber-500 group-hover:text-amber-600 transition-colors"
+                                                className="text-gold group-hover:text-gold/80 transition-colors"
                                                 strokeWidth={2}
                                             />
                                         </button>
@@ -643,7 +626,7 @@ function MultiChatContent() {
                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                                                     transition={{ duration: 0.15, ease: 'easeOut' }}
-                                                    className="absolute left-0 bottom-full mb-2 w-56 rounded-xl border border-border/40 bg-background/95 py-1.5 shadow-lg backdrop-blur-xl z-50"
+                                                    className="absolute left-0 bottom-full mb-2 w-56 rounded-sm border border-parchment bg-paper py-1.5 paper-shadow-lg z-50"
                                                     role="menu"
                                                 >
                                                     {PROMPT_TEMPLATES.map((template, index) => (
@@ -654,7 +637,7 @@ function MultiChatContent() {
                                                                 handleTemplateClick(template.prompt)
                                                                 setShowTemplateDropdown(false)
                                                             }}
-                                                            className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-foreground/80 transition-all hover:bg-muted/50"
+                                                            className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-ink transition-all hover:bg-paper-dark font-body"
                                                             role="menuitem"
                                                         >
                                                             <template.icon className={`w-4 h-4 ${template.color}`} />
@@ -672,12 +655,12 @@ function MultiChatContent() {
                                         onKeyPress={handleKeyPress}
                                         placeholder="Tüm dökümanlardan soru sorun..."
                                         disabled={isLoading || !sessionId}
-                                        className="flex-1"
+                                        className="flex-1 bg-paper-dark border-parchment font-body"
                                     />
                                     <Button
                                         onClick={() => handleSend()}
                                         disabled={!input.trim() || isLoading || !sessionId}
-                                        className="bg-gradient-to-r from-indigo-600 to-purple-600"
+                                        className="bg-ink text-paper hover:bg-ink/90 font-mono-ui"
                                     >
                                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                     </Button>
@@ -694,8 +677,9 @@ function MultiChatContent() {
 export default function MultiChatPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-white">
-                <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
+            <div className="min-h-screen pt-16 flex items-center justify-center bg-paper relative">
+                <div className="absolute inset-0 paper-texture pointer-events-none" />
+                <Loader2 className="w-12 h-12 animate-spin text-ink" />
             </div>
         }>
             <MultiChatContent />

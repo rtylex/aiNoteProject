@@ -32,26 +32,23 @@ interface ModelError {
     message: string
 }
 
-// Prompt templates for DeepSeek cache optimization
 const PROMPT_TEMPLATES = [
-    { icon: FileText, label: 'Kısaca Özetle', prompt: 'Bu dokümanı kısaca 2-3 paragrafta özetle.', color: 'text-blue-500' },
-    { icon: BookOpen, label: 'Detaylı Özetle', prompt: 'Bu dokümanı detaylı bir şekilde özetle. Tüm önemli noktaları kapsa.', color: 'text-indigo-500' },
-    { icon: ListChecks, label: 'Madde Madde', prompt: 'Bu dokümanın ana noktalarını madde madde listele.', color: 'text-emerald-500' },
-    { icon: Lightbulb, label: 'Basitçe Açıkla', prompt: 'Bu konuyu basit ve anlaşılır bir şekilde açıkla.', color: 'text-amber-500' },
-    { icon: GraduationCap, label: 'Sınav Sorusu', prompt: 'Bu konudan 5 adet sınav sorusu hazırla. Cevaplarını da ver.', color: 'text-purple-500' },
-    { icon: HelpCircle, label: 'Çoktan Seçmeli', prompt: 'Bu konudan 5 adet çoktan seçmeli (A/B/C/D) soru hazırla. Doğru cevapları işaretle.', color: 'text-rose-500' },
+    { icon: FileText, label: 'Kısaca Özetle', prompt: 'Bu dokümanı kısaca 2-3 paragrafta özetle.', color: 'text-terracotta', bg: 'bg-terracotta/10' },
+    { icon: BookOpen, label: 'Detaylı Özetle', prompt: 'Bu dokümanı detaylı bir şekilde özetle. Tüm önemli noktaları kapsa.', color: 'text-ink', bg: 'bg-ink/5' },
+    { icon: ListChecks, label: 'Madde Madde', prompt: 'Bu dokümanın ana noktalarını madde madde listele.', color: 'text-olive', bg: 'bg-olive/10' },
+    { icon: Lightbulb, label: 'Basitçe Açıkla', prompt: 'Bu konuyu basit ve anlaşılır bir şekilde açıkla.', color: 'text-gold', bg: 'bg-gold/10' },
+    { icon: GraduationCap, label: 'Sınav Sorusu', prompt: 'Bu konudan 5 adet sınav sorusu hazırla. Cevaplarını da ver.', color: 'text-lavender', bg: 'bg-lavender/10' },
+    { icon: HelpCircle, label: 'Çoktan Seçmeli', prompt: 'Bu konudan 5 adet çoktan seçmeli (A/B/C/D) soru hazırla. Doğru cevapları işaretle.', color: 'text-terracotta', bg: 'bg-terracotta/10' },
 ]
 
 const markdownComponents: Components = {
     pre({ className = '', ...props }) {
         return (
-            <div className="w-full overflow-x-auto my-2 rounded-lg bg-muted/80 shadow-inner">
+            <div className="w-full overflow-x-auto my-2 rounded-sm bg-paper-dark shadow-inner border border-parchment">
                 <pre
                     {...props}
                     className="p-3 text-[10px] sm:text-xs font-mono break-normal whitespace-pre"
-                    style={{
-                        lineHeight: '1.4'
-                    }}
+                    style={{ lineHeight: '1.4' }}
                 />
             </div>
         )
@@ -61,7 +58,7 @@ const markdownComponents: Components = {
             return (
                 <code
                     {...props}
-                    className="bg-black/10 px-1.5 py-0.5 rounded text-[0.8em] font-mono break-all"
+                    className="bg-parchment px-1.5 py-0.5 rounded-sm text-[0.8em] font-mono break-all"
                 >
                     {children}
                 </code>
@@ -78,59 +75,56 @@ const markdownComponents: Components = {
     },
     table({ className, ...props }) {
         return (
-            <div className="w-full overflow-x-auto my-2 rounded-md border border-border/20">
+            <div className="w-full overflow-x-auto my-2 rounded-sm border border-parchment">
                 <table className="w-full border-collapse text-[10px] sm:text-xs" {...props} />
             </div>
         )
     },
     th({ className, ...props }) {
         return (
-            <th className="p-2 text-left border-b border-border/20 bg-muted/30 font-semibold" {...props} />
+            <th className="p-2 text-left border-b border-parchment bg-paper-dark font-semibold" {...props} />
         )
     },
     td({ className, ...props }) {
         return (
-            <td className="p-2 text-left border-b border-border/20 break-words" {...props} />
+            <td className="p-2 text-left border-b border-parchment break-words" {...props} />
         )
     },
     img({ className, ...props }) {
         return (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img className="max-w-full h-auto rounded-md my-2 block" {...props} alt={props.alt || ''} />
+            <img className="max-w-full h-auto rounded-sm my-2 block" {...props} alt={props.alt || ''} />
         )
     },
     h1({ children }) {
-        return <h1 className="text-lg sm:text-xl font-bold mt-4 mb-2 break-words">{children}</h1>
+        return <h1 className="text-lg sm:text-xl font-bold mt-4 mb-2 break-words font-display">{children}</h1>
     },
     h2({ children }) {
-        return <h2 className="text-base sm:text-lg font-bold mt-3 mb-2 break-words">{children}</h2>
+        return <h2 className="text-base sm:text-lg font-bold mt-3 mb-2 break-words font-display">{children}</h2>
     },
     h3({ children }) {
-        return <h3 className="text-sm sm:text-base font-bold mt-2 mb-1 break-words">{children}</h3>
+        return <h3 className="text-sm sm:text-base font-bold mt-2 mb-1 break-words font-display">{children}</h3>
     },
     p({ children }) {
-        return <p className="mb-2 last:mb-0 leading-relaxed break-words text-sm sm:text-base">{children}</p>
+        return <p className="mb-2 last:mb-0 leading-relaxed break-words text-sm sm:text-base font-body">{children}</p>
     },
     ul({ children }) {
-        return <ul className="my-2 pl-5 list-disc break-words text-sm sm:text-base">{children}</ul>
+        return <ul className="my-2 pl-5 list-disc break-words text-sm sm:text-base font-body">{children}</ul>
     },
     ol({ children }) {
-        return <ol className="my-2 pl-5 list-decimal break-words text-sm sm:text-base">{children}</ol>
+        return <ol className="my-2 pl-5 list-decimal break-words text-sm sm:text-base font-body">{children}</ol>
     },
     li({ children }) {
-        return <li className="my-1 break-words">{children}</li>
+        return <li className="my-1 break-words font-body">{children}</li>
     },
     blockquote({ children }) {
-        return <blockquote className="border-l-4 border-muted pl-3 my-2 italic opacity-80 break-words">{children}</blockquote>
+        return <blockquote className="border-l-2 border-terracotta pl-3 my-2 italic opacity-80 break-words font-accent">{children}</blockquote>
     },
 }
 
 const normalizeMessage = (text: string) => {
-    // Only normalize Windows line endings and excessive blank lines
-    // DO NOT remove single newlines - they are important for markdown formatting
     return text
-        .replace(/\r\n/g, '\n')           // Windows → Unix line endings
-        .replace(/\n{4,}/g, '\n\n\n');    // Max 3 consecutive newlines
+        .replace(/\r\n/g, '\n')
+        .replace(/\n{4,}/g, '\n\n\n');
 };
 
 const bubbleWidthStyle = { maxWidth: 'min(640px, calc(100% - 2rem))' };
@@ -144,21 +138,15 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
     const bottomRef = useRef<HTMLDivElement>(null)
     const { accessToken, preferredModel } = useAuth()
 
-    // Limit modal state
     const [showLimitModal, setShowLimitModal] = useState(false)
     const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null)
 
-    // Model error state
     const [showModelError, setShowModelError] = useState(false)
     const [modelError, setModelError] = useState<ModelError | null>(null)
 
-    // Template dropdown state
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
     const templateDropdownRef = useRef<HTMLDivElement>(null)
 
-
-
-    // Close template dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (templateDropdownRef.current && !templateDropdownRef.current.contains(event.target as Node)) {
@@ -178,7 +166,6 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
         }
     }, [messages])
 
-    // Check document status and poll if processing
     useEffect(() => {
         if (!documentId || !accessToken) return
 
@@ -195,7 +182,6 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                     const doc = await res.json()
                     setDocumentStatus(doc.status as DocumentStatus)
 
-                    // Stop polling if document is ready or failed
                     if (doc.status === 'completed' || doc.status === 'failed') {
                         if (intervalId) {
                             clearInterval(intervalId)
@@ -208,10 +194,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
             }
         }
 
-        // Initial check
         checkDocumentStatus()
-
-        // Poll every 2 seconds if not completed
         intervalId = setInterval(checkDocumentStatus, 2000)
 
         return () => {
@@ -275,30 +258,26 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
             })
 
             if (res.status === 429) {
-                // Rate limit exceeded - show popup
                 const errorData = await res.json()
                 setLimitInfo({
                     remaining: 0,
                     limit: errorData.detail?.limit || 5
                 })
                 setShowLimitModal(true)
-                // Remove the user message since it wasn't processed
                 setMessages(prev => prev.filter(m => m.id !== userMsg.id))
-                setInput(sentMessage) // Restore the input
+                setInput(sentMessage)
                 return
             }
 
             if (res.status === 503) {
-                // Model unavailable - show error modal
                 const errorData = await res.json()
                 setModelError({
                     model: errorData.detail?.model || preferredModel,
                     message: errorData.detail?.message || 'Bu model şu anda kullanılamıyor'
                 })
                 setShowModelError(true)
-                // Remove the user message since it wasn't processed
                 setMessages(prev => prev.filter(m => m.id !== userMsg.id))
-                setInput(sentMessage) // Restore the input
+                setInput(sentMessage)
                 return
             }
 
@@ -320,37 +299,33 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
         }
     }
 
-    // Handle template click
     const handleTemplateClick = (prompt: string) => {
         handleSend(prompt)
     }
 
     return (
-        <div className="flex flex-col h-full bg-background min-w-0">
+        <div className="flex flex-col h-full bg-paper min-w-0">
             {/* Limit Warning Modal */}
             {showLimitModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
-                    <Card className="max-w-md w-full animate-in fade-in zoom-in duration-200">
+                <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
+                    <Card className="max-w-md w-full animate-in fade-in zoom-in duration-200 paper-texture">
                         <CardHeader className="text-center pb-2">
-                            <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <AlertCircle className="w-8 h-8 text-white" />
+                            <div className="w-16 h-16 bg-gold/20 rounded-sm flex items-center justify-center mx-auto mb-4">
+                                <AlertCircle className="w-8 h-8 text-gold" />
                             </div>
-                            <CardTitle className="text-xl text-gray-800">Günlük Limit Doldu</CardTitle>
+                            <CardTitle className="text-xl text-ink font-display">Günlük Limit Doldu</CardTitle>
                         </CardHeader>
                         <CardContent className="text-center space-y-4">
-                            <p className="text-gray-600">
-                                Günlük <span className="font-bold text-primary">{limitInfo?.limit || 5}</span> sorgu hakkınızı kullandınız.
+                            <p className="text-ink-light font-body">
+                                Günlük <span className="font-bold text-terracotta">{limitInfo?.limit || 5}</span> sorgu hakkınızı kullandınız.
                             </p>
-                            <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4">
-                                <p className="text-sm text-orange-700">
-                                    🕐 Limitiniz <strong>yarın gece yarısı</strong> sıfırlanacak.
+                            <div className="bg-parchment/50 border border-parchment rounded-sm p-4">
+                                <p className="text-sm text-ink-light font-body">
+                                    Limitiniz <strong>yarın gece yarısı</strong> sıfırlanacak.
                                 </p>
                             </div>
-                            <p className="text-sm text-gray-500">
-                                Daha fazla sorgu hakkı için premium plana geçebilirsiniz.
-                            </p>
                             <Button
-                                className="w-full"
+                                className="w-full bg-ink text-paper hover:bg-ink/90 font-mono-ui"
                                 onClick={() => setShowLimitModal(false)}
                             >
                                 Tamam
@@ -362,25 +337,25 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
 
             {/* Model Error Modal */}
             {showModelError && modelError && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
-                    <Card className="max-w-md w-full animate-in fade-in zoom-in duration-200">
+                <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-[1000] flex items-center justify-center p-4">
+                    <Card className="max-w-md w-full animate-in fade-in zoom-in duration-200 paper-texture">
                         <CardHeader className="text-center pb-2">
-                            <div className="w-16 h-16 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <AlertCircle className="w-8 h-8 text-white" />
+                            <div className="w-16 h-16 bg-parchment rounded-sm flex items-center justify-center mx-auto mb-4">
+                                <AlertCircle className="w-8 h-8 text-ink-light" />
                             </div>
-                            <CardTitle className="text-xl text-gray-800">Model Kullanılamıyor</CardTitle>
+                            <CardTitle className="text-xl text-ink font-display">Model Kullanılamıyor</CardTitle>
                         </CardHeader>
                         <CardContent className="text-center space-y-4">
-                            <p className="text-gray-600">
+                            <p className="text-ink-light font-body">
                                 <span className="font-bold">{modelError.model}</span> modeli şu anda kullanılamıyor.
                             </p>
-                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-4">
-                                <p className="text-sm text-gray-600">
-                                    💡 Farklı bir model seçerek devam edebilirsiniz.
+                            <div className="bg-parchment/50 border border-parchment rounded-sm p-4">
+                                <p className="text-sm text-ink-light font-body">
+                                    Farklı bir model seçerek devam edebilirsiniz.
                                 </p>
                             </div>
                             <Button
-                                className="w-full"
+                                className="w-full bg-ink text-paper hover:bg-ink/90 font-mono-ui"
                                 onClick={() => setShowModelError(false)}
                             >
                                 Tamam
@@ -397,17 +372,17 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                             <div className="flex flex-col items-center justify-center h-[50vh] text-center">
                                 {(documentStatus === 'pending' || documentStatus === 'processing') ? (
                                     <>
-                                        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                                        <p className="text-lg font-medium text-muted-foreground">Doküman hazırlanıyor...</p>
-                                        <p className="text-sm text-muted-foreground">İşlem tamamlandığında sohbete başlayabilirsiniz.</p>
+                                        <Loader2 className="h-8 w-8 animate-spin text-ink mb-4" />
+                                        <p className="text-lg font-medium text-ink-light font-display">Doküman hazırlanıyor...</p>
+                                        <p className="text-sm text-ink-light font-body">İşlem tamamlandığında sohbete başlayabilirsiniz.</p>
                                     </>
                                 ) : (
                                     <>
-                                        <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center mb-4">
-                                            <Lightbulb className="w-8 h-8 text-primary" />
+                                        <div className="w-16 h-16 bg-terracotta/10 rounded-sm flex items-center justify-center mb-4">
+                                            <Lightbulb className="w-8 h-8 text-terracotta" />
                                         </div>
-                                        <p className="text-lg font-medium mb-2">Bu dokümanla ne yapmak istersin?</p>
-                                        <p className="text-sm text-muted-foreground mb-6">Hazır şablonlardan birini seç veya kendi sorunuzu yazın.</p>
+                                        <p className="text-lg font-medium mb-2 font-display">Bu dokümanla ne yapmak istersin?</p>
+                                        <p className="text-sm text-ink-light mb-6 font-body">Hazır şablonlardan birini seç veya kendi sorunuzu yazın.</p>
 
                                         {/* Prompt Templates Grid */}
                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-w-lg">
@@ -418,10 +393,10 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: index * 0.05 }}
                                                     onClick={() => handleTemplateClick(template.prompt)}
-                                                    className="flex flex-col items-center gap-2 p-3 rounded-xl border border-border/50 bg-background/80 hover:bg-muted/50 hover:border-primary/30 transition-all duration-200 text-left group"
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-sm border border-parchment ${template.bg} hover:bg-paper-dark hover:border-terracotta/30 transition-all duration-200 text-left group`}
                                                 >
                                                     <template.icon className={`w-5 h-5 ${template.color} group-hover:scale-110 transition-transform`} />
-                                                    <span className="text-xs font-medium text-center">{template.label}</span>
+                                                    <span className="text-xs font-medium text-center font-mono-ui">{template.label}</span>
                                                 </motion.button>
                                             ))}
                                         </div>
@@ -435,15 +410,15 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                                 <div key={msg.id} className={`flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                                     <div className={`flex w-full gap-3 min-w-0 ${containerMaxWidth} ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                                         <Avatar className="h-8 w-8 mt-1 shrink-0">
-                                            <AvatarFallback className={msg.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}>
+                                            <AvatarFallback className={msg.sender === 'user' ? 'bg-ink text-paper font-mono-ui' : 'bg-parchment text-ink-light font-mono-ui'}>
                                                 {msg.sender === 'user' ? 'S' : 'AI'}
                                             </AvatarFallback>
                                         </Avatar>
 
                                         <div className="flex-1 min-w-0" style={{ maxWidth: bubbleMaxWidth }}>
-                                            <div className={`w-full min-w-0 p-4 rounded-2xl shadow-sm overflow-x-hidden overflow-y-visible ${msg.sender === 'user'
-                                                ? 'bg-primary text-primary-foreground rounded-tr-none'
-                                                : 'bg-muted/50 border rounded-tl-none'
+                                            <div className={`w-full min-w-0 p-4 rounded-sm shadow-sm overflow-x-hidden overflow-y-visible ${msg.sender === 'user'
+                                                ? 'bg-ink text-paper'
+                                                : 'bg-paper-dark border border-parchment'
                                                 }`}>
                                                 {msg.sender === 'ai' ? (
                                                     <div className="w-full min-w-0 overflow-hidden" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
@@ -505,7 +480,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <p className="whitespace-pre-wrap break-words overflow-hidden">{displayMessage}</p>
+                                                    <p className="whitespace-pre-wrap break-words overflow-hidden font-body">{displayMessage}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -518,12 +493,12 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                             <div className="flex justify-start">
                                 <div className="flex gap-3 max-w-[85%]">
                                     <Avatar className="h-8 w-8 mt-1">
-                                        <AvatarFallback className="bg-muted">AI</AvatarFallback>
+                                        <AvatarFallback className="bg-parchment text-ink-light font-mono-ui">AI</AvatarFallback>
                                     </Avatar>
-                                    <div className="bg-muted/50 border p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                    <div className="bg-paper-dark border border-parchment p-4 rounded-sm flex items-center gap-3">
+                                        <div className="w-2 h-2 bg-terracotta rounded-full ink-drop-1" />
+                                        <div className="w-2 h-2 bg-terracotta rounded-full ink-drop-2" />
+                                        <div className="w-2 h-2 bg-terracotta rounded-full ink-drop-3" />
                                     </div>
                                 </div>
                             </div>
@@ -533,51 +508,49 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                 </ScrollArea>
             </div >
 
-            <div className="p-4 bg-background border-t">
+            <div className="p-4 bg-paper border-t border-parchment">
                 <div className="max-w-full mx-auto">
                     {(documentStatus === 'pending' || documentStatus === 'processing') ? (
                         <div className="flex flex-col items-center gap-3 py-4">
-                            <div className="flex items-center gap-3 text-muted-foreground">
-                                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                                <span className="text-sm font-medium">
+                            <div className="flex items-center gap-3 text-ink-light">
+                                <Loader2 className="h-5 w-5 animate-spin text-ink" />
+                                <span className="text-sm font-medium font-display">
                                     Doküman hazırlanıyor...
                                 </span>
                             </div>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-ink-light font-body">
                                 Doküman işleniyor, birkaç saniye içinde sohbete başlayabilirsiniz.
                             </p>
                         </div>
                     ) : documentStatus === 'failed' ? (
                         <div className="flex flex-col items-center gap-2 py-4">
-                            <p className="text-sm text-destructive font-medium">
+                            <p className="text-sm text-terracotta font-medium font-display">
                                 Doküman işlenirken bir hata oluştu.
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-ink-light font-body">
                                 Lütfen dokümanı tekrar yüklemeyi deneyin.
                             </p>
                         </div>
                     ) : (
                         <>
                             <form onSubmit={(e) => { e.preventDefault(); handleSend() }} className="relative flex items-center gap-2">
-                                {/* AI Model Indicator */}
-                                <div className="flex items-center gap-2 rounded-xl border border-border/30 bg-background/80 px-3 py-2 text-sm font-medium text-foreground/80">
-                                    <Zap className={`w-4 h-4 ${preferredModel === 'gemma' ? 'text-purple-500' : 'text-emerald-500'}`} />
+                                <div className="flex items-center gap-2 rounded-sm border border-parchment bg-paper-dark px-3 py-2 text-sm font-medium text-ink-light font-mono-ui">
+                                    <Zap className={`w-4 h-4 ${preferredModel === 'gemma' ? 'text-lavender' : 'text-olive'}`} />
                                     <span className="hidden sm:inline">{preferredModel === 'deepseek' ? 'DeepSeek' : 'Gemma'}</span>
                                 </div>
 
-                                {/* Template Dropdown Button */}
                                 <div className="relative shrink-0" ref={templateDropdownRef}>
                                     <button
                                         type="button"
                                         onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
-                                        className="group rounded-xl p-2 bg-background/80 border border-border/30 transition-all hover:bg-muted/50 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                                        className="group rounded-sm p-2 bg-paper-dark border border-parchment transition-all hover:bg-parchment/50 hover:border-terracotta/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/40"
                                         aria-label="Şablonlar"
                                         aria-expanded={showTemplateDropdown}
                                         aria-haspopup="menu"
                                     >
                                         <Lightbulb
                                             size={18}
-                                            className="text-amber-500 group-hover:text-amber-600 transition-colors"
+                                            className="text-gold group-hover:text-gold/80 transition-colors"
                                             strokeWidth={2}
                                         />
                                     </button>
@@ -589,7 +562,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                                 exit={{ opacity: 0, y: 8, scale: 0.95 }}
                                                 transition={{ duration: 0.15, ease: 'easeOut' }}
-                                                className="absolute left-0 bottom-full mb-2 w-56 rounded-xl border border-border/40 bg-background/95 py-1.5 shadow-lg backdrop-blur-xl z-50"
+                                                className="absolute left-0 bottom-full mb-2 w-56 rounded-sm border border-parchment bg-paper py-1.5 paper-shadow-lg z-50"
                                                 role="menu"
                                             >
                                                 {PROMPT_TEMPLATES.map((template, index) => (
@@ -600,7 +573,7 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                                                             handleTemplateClick(template.prompt)
                                                             setShowTemplateDropdown(false)
                                                         }}
-                                                        className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-foreground/80 transition-all hover:bg-muted/50"
+                                                        className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-ink transition-all hover:bg-paper-dark font-body"
                                                         role="menuitem"
                                                     >
                                                         <template.icon className={`w-4 h-4 ${template.color}`} />
@@ -618,19 +591,19 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
                                         onChange={(e) => setInput(e.target.value)}
                                         placeholder="Doküman hakkında bir soru sor..."
                                         disabled={loading}
-                                        className="pr-20 py-6 rounded-full shadow-sm border-muted-foreground/20 focus-visible:ring-primary/20"
+                                        className="pr-20 py-6 rounded-sm shadow-sm border-parchment bg-paper-dark focus-visible:ring-terracotta/20 font-body"
                                     />
                                     <Button
                                         type="submit"
                                         disabled={loading || !input.trim()}
                                         size="sm"
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-4"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm px-4 bg-ink text-paper hover:bg-ink/90 font-mono-ui"
                                     >
                                         Gönder
                                     </Button>
                                 </div>
                             </form>
-                            <p className="text-xs text-center text-muted-foreground mt-2">
+                            <p className="text-xs text-center text-ink-light mt-2 font-body">
                                 AI hatalar yapabilir. Önemli bilgileri kontrol edin.
                             </p>
                         </>
@@ -640,7 +613,3 @@ export function ChatInterface({ documentId, sessionId, isFullWidth = false }: { 
         </div >
     )
 }
-
-
-
-

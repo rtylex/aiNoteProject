@@ -85,8 +85,8 @@ export default function TestsPage() {
   const inProgressTests = tests.filter(t => !t.completed)
 
   return (
-    <div className="min-h-screen w-full pt-16 bg-gradient-to-b from-[#011133] via-[#1d2f5e] to-[#23335c]">
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(244,241,224,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(244,241,224,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+    <div className="min-h-screen w-full pt-16 bg-paper relative">
+      <div className="absolute inset-0 paper-texture pointer-events-none -z-10" />
 
       <div className="relative container mx-auto py-12 px-4">
         {/* Hero Header */}
@@ -95,26 +95,26 @@ export default function TestsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-14"
         >
-          <div className="inline-flex items-center gap-2 bg-[#f4f1e0]/10 backdrop-blur-sm px-4 py-2 rounded-full text-[#f4f1e0]/80 text-sm mb-6 border border-[#f4f1e0]/20">
-            <Brain className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 bg-parchment/50 px-4 py-2 rounded-sm text-ink-light text-sm mb-6 border border-parchment font-mono-ui tracking-wide">
+            <Brain className="w-4 h-4 text-terracotta" />
             <span>Akıllı Test ve Analiz</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-[#f4f1e0] mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-ink mb-4 font-display">
             Testlerim
           </h1>
-          <p className="text-[#f4f1e0]/60 text-lg max-w-xl mx-auto">
+          <p className="text-ink-light text-lg max-w-xl mx-auto font-body">
             AI destekli testlerinizi çözün, analiz edin ve öğrenmeyi hızlandırın
           </p>
         </motion.div>
 
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="w-10 h-10 animate-spin text-[#f4f1e0]" />
+            <Loader2 className="w-10 h-10 animate-spin text-ink" />
           </div>
         ) : error ? (
           <div className="text-center py-20">
-            <p className="text-red-400 mb-4">{error}</p>
-            <Button onClick={fetchTests} className="bg-[#f4f1e0] text-[#011133] hover:bg-[#e7d9a8]">Tekrar Dene</Button>
+            <p className="text-terracotta mb-4 font-body">{error}</p>
+            <Button onClick={fetchTests} className="bg-ink text-paper hover:bg-ink/90 font-mono-ui">Tekrar Dene</Button>
           </div>
         ) : (
           <>
@@ -127,14 +127,14 @@ export default function TestsPage() {
 
             {/* Tabs */}
             <Tabs defaultValue="all" className="space-y-8">
-              <TabsList className="bg-[#f4f1e0]/10 border border-[#f4f1e0]/20 p-1 rounded-full mx-auto flex w-fit">
-                <TabsTrigger value="all" className="rounded-full px-6 py-2 text-[#f4f1e0]/70 data-[state=active]:bg-[#f4f1e0] data-[state=active]:text-[#011133] transition-all">
-                  Tümü {tests.length > 0 && <span className="ml-1.5 bg-[#f4f1e0]/20 text-[#f4f1e0] data-[state=active]:bg-[#011133]/20 data-[state=active]:text-[#011133] px-1.5 py-0.5 rounded-full text-xs">{tests.length}</span>}
+              <TabsList className="bg-paper-dark border border-parchment p-1 rounded-sm mx-auto flex w-fit">
+                <TabsTrigger value="all" className="rounded-sm px-6 py-2 text-ink-light data-[state=active]:bg-paper data-[state=active]:text-ink transition-all font-mono-ui text-xs tracking-wide">
+                  Tümü {tests.length > 0 && <span className="ml-1.5 bg-parchment text-ink px-1.5 py-0.5 rounded-sm text-xs font-mono-ui">{tests.length}</span>}
                 </TabsTrigger>
-                <TabsTrigger value="inprogress" className="rounded-full px-6 py-2 text-[#f4f1e0]/70 data-[state=active]:bg-[#f4f1e0] data-[state=active]:text-[#011133] transition-all">
+                <TabsTrigger value="inprogress" className="rounded-sm px-6 py-2 text-ink-light data-[state=active]:bg-paper data-[state=active]:text-ink transition-all font-mono-ui text-xs tracking-wide">
                   <Clock className="w-3.5 h-3.5 mr-1.5" /> Devam Eden
                 </TabsTrigger>
-                <TabsTrigger value="completed" className="rounded-full px-6 py-2 text-[#f4f1e0]/70 data-[state=active]:bg-[#f4f1e0] data-[state=active]:text-[#011133] transition-all">
+                <TabsTrigger value="completed" className="rounded-sm px-6 py-2 text-ink-light data-[state=active]:bg-paper data-[state=active]:text-ink transition-all font-mono-ui text-xs tracking-wide">
                   <CheckCircle className="w-3.5 h-3.5 mr-1.5" /> Tamamlanan
                 </TabsTrigger>
               </TabsList>
@@ -162,16 +162,16 @@ function TestGrid({ tests, onDelete }: { tests: TestItem[]; onDelete: () => void
   if (!tests || tests.length === 0) {
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-        <Card className="max-w-lg mx-auto border-dashed border-2 border-[#f4f1e0]/20 bg-transparent">
+        <Card className="max-w-lg mx-auto border-dashed border-2 border-parchment bg-paper/50">
           <CardHeader className="text-center py-14">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#f4f1e0] to-[#e7d9a8] rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
-              <ClipboardList className="w-10 h-10 text-[#011133]" />
+            <div className="w-20 h-20 bg-ink rounded-sm flex items-center justify-center mx-auto mb-6 paper-shadow-lg">
+              <ClipboardList className="w-10 h-10 text-paper" />
             </div>
-            <CardTitle className="text-2xl text-[#f4f1e0]">Henüz test yok</CardTitle>
+            <CardTitle className="text-2xl text-ink font-display">Henüz test yok</CardTitle>
           </CardHeader>
           <CardContent className="text-center pb-10">
-            <p className="text-[#f4f1e0]/60 mb-6">PDF dokümanlarınızdan veya kütüphaneden test oluşturun.</p>
-            <Button onClick={() => router.push('/dashboard')} className="bg-[#f4f1e0] text-[#011133] hover:bg-[#e7d9a8] rounded-full px-8 h-12 font-semibold">
+            <p className="text-ink-light mb-6 font-body">PDF dokümanlarınızdan veya kütüphaneden test oluşturun.</p>
+            <Button onClick={() => router.push('/dashboard')} className="bg-ink text-paper hover:bg-ink/90 rounded-sm px-8 h-12 font-semibold font-mono-ui">
               Dökümanlarıma Git
             </Button>
           </CardContent>
@@ -196,60 +196,60 @@ function TestGrid({ tests, onDelete }: { tests: TestItem[]; onDelete: () => void
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.08 }}
           >
-            <Card className="group bg-white/95 backdrop-blur-sm rounded-3xl border-0 shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 overflow-hidden relative">
+            <Card className="group bg-paper rounded-sm border-parchment paper-shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden relative paper-fold">
               {/* Top accent bar */}
-              <div className={`h-1.5 bg-gradient-to-r ${
+              <div className={`h-1.5 ${
                 isCompleted
-                  ? isPassing ? 'from-green-500 to-emerald-500' : 'from-red-400 to-rose-500'
-                  : 'from-amber-400 to-orange-500'
+                  ? isPassing ? 'bg-olive' : 'bg-terracotta'
+                  : 'bg-gold'
               }`} />
               <CardHeader className="pb-3 pt-5">
                 <div className="flex items-start justify-between">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
+                  <div className={`w-12 h-12 rounded-sm flex items-center justify-center paper-shadow ${
                     isCompleted
-                      ? isPassing ? 'bg-gradient-to-br from-green-500 to-emerald-500' : 'bg-gradient-to-br from-red-400 to-rose-500'
-                      : 'bg-gradient-to-br from-amber-400 to-orange-500'
+                      ? isPassing ? 'bg-olive/20' : 'bg-terracotta/20'
+                      : 'bg-gold/20'
                   }`}>
                     {isCompleted ? (
-                      isPassing ? <CheckCircle className="w-6 h-6 text-white" /> : <XCircle className="w-6 h-6 text-white" />
+                      isPassing ? <CheckCircle className="w-6 h-6 text-olive" /> : <XCircle className="w-6 h-6 text-terracotta" />
                     ) : (
-                      <Clock className="w-6 h-6 text-white" />
+                      <Clock className="w-6 h-6 text-gold" />
                     )}
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DeleteTestDialog testId={test.id} testTitle={test.title} onDelete={onDelete} />
                   </div>
                 </div>
-                <CardTitle className="text-lg font-bold text-[#011133] group-hover:text-[#23335c] truncate mt-3">
+                <CardTitle className="text-lg font-bold text-ink group-hover:text-terracotta truncate mt-3 font-display">
                   {test.title}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">{test.total_questions} soru</span>
-                  {isCompleted && <span className="text-gray-400">%{percentage}</span>}
+                <div className="flex items-center justify-between text-sm font-mono-ui">
+                  <span className="text-ink-light">{test.total_questions} soru</span>
+                  {isCompleted && <span className="text-ink-light">%{percentage}</span>}
                 </div>
 
                 {isCompleted && (
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all ${
-                      isPassing ? 'bg-gradient-to-r from-green-500 to-emerald-500' : 'bg-gradient-to-r from-red-400 to-rose-500'
+                  <div className="w-full h-2 bg-parchment rounded-sm overflow-hidden">
+                    <div className={`h-full rounded-sm transition-all ${
+                      isPassing ? 'bg-olive' : 'bg-terracotta'
                     }`} style={{ width: `${percentage}%` }} />
                   </div>
                 )}
 
                 <div className="flex gap-2 pt-2">
                   <Link href={`/test/${test.id}${isCompleted ? '?retry=true' : ''}`} className="flex-1">
-                    <Button className={`w-full rounded-xl h-10 text-sm font-semibold ${
+                    <Button className={`w-full rounded-sm h-10 text-sm font-semibold font-mono-ui ${
                       isCompleted
-                        ? 'bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0]'
-                        : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white'
+                        ? 'bg-ink text-paper hover:bg-ink/90'
+                        : 'bg-gold text-paper hover:bg-gold/90'
                     }`}>
                       {isCompleted ? <><RotateCcw className="w-4 h-4 mr-1.5" /> Tekrar Çöz</> : <><Play className="w-4 h-4 mr-1.5" /> Teste Başla</>}
                     </Button>
                   </Link>
                   <Link href={`/test/${test.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full rounded-xl h-10 text-sm border-gray-200 hover:border-[#011133] hover:text-[#011133]">
+                    <Button variant="outline" size="sm" className="w-full rounded-sm h-10 text-sm border-parchment hover:border-ink hover:text-ink font-mono-ui">
                       <TrendingUp className="w-4 h-4 mr-1.5" /> Analiz
                     </Button>
                   </Link>

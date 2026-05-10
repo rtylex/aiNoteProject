@@ -1,26 +1,35 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Orbitron } from "next/font/google";
+import { Playfair_Display, Source_Serif_4, JetBrains_Mono, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const orbitron = Orbitron({
-  variable: "--font-orbitron",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
 });
 
+const sourceSerif = Source_Serif_4({
+  variable: "--font-source-serif",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+});
+
 export const metadata: Metadata = {
-  title: "YirikAI - Notlarınla Konuş, Geleceğini Tasarla",
-  description: "Akademik verilerle eğitilen yapay zeka dil modeli ile öğrencilere çalışma süreçlerinde rehberlik eden AI platformu.",
+  title: "BİTİG — Belgelerinizle Konuşun",
+  description: "PDF belgelerinizi yükleyin, yapay zeka ile analiz edin ve akademik konularda anında cevap alın. Göktürkçe bir kelime: yazıt, kitabe, yazılı belge.",
   other: {
     google: "notranslate",
   },
@@ -35,9 +44,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" translate="no" suppressHydrationWarning className="overflow-x-hidden">
+    <html lang="tr" translate="no" suppressHydrationWarning className="overflow-x-hidden">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} antialiased overflow-x-hidden`}
+        className={`${playfair.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} ${cormorant.variable} antialiased overflow-x-hidden`}
         suppressHydrationWarning
       >
         <AuthProvider>
@@ -48,5 +57,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-

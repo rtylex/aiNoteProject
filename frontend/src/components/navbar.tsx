@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { BookOpen, LogOut, Library, Shield, Menu, X, Home, FolderOpen, Users, ClipboardList } from 'lucide-react'
@@ -36,7 +35,6 @@ export function Navbar() {
         opacity: 0
     })
 
-    // 3-State Navbar
     const [navbarMode, setNavbarMode] = useState<NavbarMode>('full')
     const lastScrollY = useRef(0)
     const ticking = useRef(false)
@@ -57,17 +55,17 @@ export function Navbar() {
 
     const getLinkClassName = (href: string) => {
         const isActive = activeDesktopHref === href
-        return `relative z-10 px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${isActive
-            ? 'text-[#011133]'
-            : 'text-gray-600 hover:text-gray-900'
+        return `relative z-10 px-4 py-1.5 text-xs font-medium tracking-wider uppercase transition-colors font-mono-ui ${isActive
+            ? 'text-ink'
+            : 'text-ink-light hover:text-ink'
             }`
     }
 
     const getMobileLinkClassName = (href: string) => {
         const isActive = pathname === href || (href === '/dashboard' && pathname?.startsWith('/dashboard')) || (href === '/flashcard' && pathname?.startsWith('/flashcard')) || (href === '/test' && pathname?.startsWith('/test'))
-        return `flex items-center gap-3 px-4 py-3 text-base font-medium rounded-xl transition-all ${isActive
-            ? 'bg-[#d9dff0] text-[#011133]'
-            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+        return `flex items-center gap-3 px-4 py-3 text-base font-medium rounded-sm transition-all font-mono-ui tracking-wide ${isActive
+            ? 'bg-parchment text-ink border-l-2 border-terracotta'
+            : 'text-ink-light hover:text-ink hover:bg-paper-dark'
             }`
     }
 
@@ -144,7 +142,6 @@ export function Navbar() {
         checkRole()
     }, [user, accessToken])
 
-    // 3-State Scroll Handler with RAF throttle & 10px threshold
     useEffect(() => {
         const handleScroll = () => {
             if (ticking.current) return
@@ -154,21 +151,16 @@ export function Navbar() {
                 const currentScrollY = window.scrollY
                 const delta = currentScrollY - lastScrollY.current
 
-                // 10px threshold: ignore micro-jitter
                 if (Math.abs(delta) < 10) {
                     ticking.current = false
                     return
                 }
 
-                // Determine mode based on scroll position and direction
                 if (currentScrollY < 10) {
-                    // Near top: always full
                     setNavbarMode('full')
                 } else if (delta > 0 && currentScrollY > 80) {
-                    // Scrolling down past 80px: hide
                     setNavbarMode('hidden')
                 } else if (delta < 0) {
-                    // Scrolling up: compact mode (show only pill)
                     setNavbarMode('compact')
                 }
 
@@ -181,7 +173,6 @@ export function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
 
-    // Close mobile menu on route change
     useEffect(() => {
         setMobileMenuOpen(false)
     }, [pathname])
@@ -215,16 +206,15 @@ export function Navbar() {
         router.refresh()
     }
 
-    // Pill Links Component (reused in full & compact)
     const PillLinks = useCallback(() => (
         <nav
             ref={navRef}
             aria-label="Ana navigasyon"
-            className="hidden md:flex relative items-center bg-gray-50/80 backdrop-blur-sm rounded-full px-2 py-1.5 border border-gray-200/60 shadow-sm"
+            className="hidden md:flex relative items-center bg-paper-dark/80 backdrop-blur-sm rounded-full px-2 py-1.5 border border-parchment shadow-sm"
         >
             <span
                 aria-hidden="true"
-                className="pointer-events-none absolute top-1.5 bottom-1.5 rounded-full bg-[#d9dff0] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 ease-out motion-reduce:transition-none"
+                className="pointer-events-none absolute top-1.5 bottom-1.5 rounded-full bg-parchment transition-all duration-300 ease-out"
                 style={{
                     width: `${desktopIndicator.width}px`,
                     transform: `translateX(${desktopIndicator.left}px)`,
@@ -257,12 +247,13 @@ export function Navbar() {
                     navbarMode === 'full' ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
                 }`}
             >
-                <div className="border-b border-gray-200/30 dark:border-white/10 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl">
+                <div className="border-b border-parchment bg-paper/80 backdrop-blur-xl">
                     <div className="container mx-auto px-4 h-16 flex justify-between items-center">
                         {/* Logo */}
                         <Link href="/" className="flex items-center group">
-                            <Image src="/bitigAcikTema.png" alt="YirikAI Logo" width={140} height={45} className="block dark:hidden group-hover:scale-105 transition-transform object-contain" priority />
-                            <Image src="/bitigKapali (2).png" alt="YirikAI Logo" width={140} height={45} className="hidden dark:block group-hover:scale-105 transition-transform object-contain" priority />
+                            <span className="font-display text-2xl font-bold text-ink tracking-tight group-hover:text-terracotta transition-colors">
+                                BİTİG
+                            </span>
                         </Link>
 
                         {/* Pill Menu */}
@@ -271,7 +262,7 @@ export function Navbar() {
                         {/* Right Side */}
                         <div className="flex items-center gap-3">
                             <button
-                                className="md:hidden relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors z-[1100]"
+                                className="md:hidden relative p-2 text-ink-light hover:text-ink hover:bg-paper-dark rounded-sm transition-colors z-[1100]"
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                                 aria-label="Menü"
                             >
@@ -281,59 +272,59 @@ export function Navbar() {
                             {user ? (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-[#d9dff0] transition-all">
-                                            <Avatar className="h-10 w-10 border-2 border-white shadow-md">
-                                                <AvatarFallback className="bg-gradient-to-br from-[#011133] to-[#23335c] text-[#f4f1e0] text-sm font-medium">
+                                        <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-parchment transition-all">
+                                            <Avatar className="h-10 w-10 border-2 border-parchment paper-shadow">
+                                                <AvatarFallback className="bg-ink text-paper text-sm font-medium font-mono-ui">
                                                     {user.email?.charAt(0).toUpperCase()}
                                                 </AvatarFallback>
                                             </Avatar>
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                                    <DropdownMenuContent className="w-56 bg-paper border-parchment paper-shadow" align="end" forceMount>
                                         <DropdownMenuLabel className="font-normal">
                                             <div className="flex flex-col space-y-1">
-                                                <p className="text-sm font-medium leading-none">{user.full_name || 'Kullanıcı'}</p>
-                                                <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                                                <p className="text-sm font-medium leading-none font-display">{user.full_name || 'Kullanıcı'}</p>
+                                                <p className="text-xs leading-none text-muted-foreground font-mono-ui">{user.email}</p>
                                             </div>
                                         </DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
+                                        <DropdownMenuSeparator className="bg-parchment" />
                                         <DropdownMenuItem asChild>
-                                            <Link href="/library" className="cursor-pointer"><Library className="mr-2 h-4 w-4" /><span>Topluluk Kütüphanesi</span></Link>
+                                            <Link href="/library" className="cursor-pointer font-body"><Library className="mr-2 h-4 w-4" /><span>Topluluk Kütüphanesi</span></Link>
                                         </DropdownMenuItem>
                                         {isAdmin && (
                                             <DropdownMenuItem asChild>
-                                                <Link href="/admin" className="cursor-pointer"><Shield className="mr-2 h-4 w-4" /><span>Admin Paneli</span></Link>
+                                                <Link href="/admin" className="cursor-pointer font-body"><Shield className="mr-2 h-4 w-4" /><span>Admin Paneli</span></Link>
                                             </DropdownMenuItem>
                                         )}
-                                        <DropdownMenuSeparator />
+                                        <DropdownMenuSeparator className="bg-parchment" />
                                         <div className="px-2 py-2">
-                                            <p className="text-xs font-semibold text-gray-500 mb-2">AI Modeli</p>
-                                            <div className="flex bg-gray-100 rounded-lg p-1">
+                                            <p className="text-xs font-semibold text-ink-light mb-2 font-mono-ui uppercase tracking-wider">AI Modeli</p>
+                                            <div className="flex bg-paper-dark rounded-sm p-1 border border-parchment">
                                                 <button
                                                     type="button"
-                                                    className={`flex-1 text-xs py-1.5 rounded-md transition-all ${preferredModel === 'deepseek' ? 'bg-white shadow-sm font-medium text-[#011133]' : 'text-gray-500 hover:bg-gray-200/50'}`}
+                                                    className={`flex-1 text-xs py-1.5 rounded-sm transition-all font-mono-ui ${preferredModel === 'deepseek' ? 'bg-paper shadow-sm font-medium text-ink border border-parchment' : 'text-ink-light hover:bg-parchment/50'}`}
                                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreferredModel('deepseek'); }}
                                                 >
                                                     Basic
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    className={`flex-1 text-xs py-1.5 rounded-md transition-all ${preferredModel === 'gemma' ? 'bg-white shadow-sm font-medium text-purple-600' : 'text-gray-500 hover:bg-gray-200/50'}`}
+                                                    className={`flex-1 text-xs py-1.5 rounded-sm transition-all font-mono-ui ${preferredModel === 'gemma' ? 'bg-paper shadow-sm font-medium text-terracotta border border-parchment' : 'text-ink-light hover:bg-parchment/50'}`}
                                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreferredModel('gemma'); }}
                                                 >
                                                     Premium
                                                 </button>
                                             </div>
                                         </div>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                                        <DropdownMenuSeparator className="bg-parchment" />
+                                        <DropdownMenuItem onClick={handleLogout} className="text-terracotta cursor-pointer font-body">
                                             <LogOut className="mr-2 h-4 w-4" /><span>Çıkış Yap</span>
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             ) : (
                                 <Link href="/login" className="hidden sm:block">
-                                    <Button className="bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] px-6 h-10 text-sm font-medium shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 rounded-full">
+                                    <Button className="bg-ink text-paper hover:bg-ink/90 px-6 h-10 text-xs font-medium paper-shadow transition-all duration-200 rounded-sm font-mono-ui tracking-wider uppercase">
                                         Giriş Yap
                                     </Button>
                                 </Link>
@@ -343,7 +334,7 @@ export function Navbar() {
                 </div>
             </header>
 
-            {/* ========== COMPACT NAVBAR (Floating Pill) ========== */}
+            {/* ========== COMPACT NAVBAR ========== */}
             <header
                 className={`fixed top-3 left-1/2 z-[998] transition-all duration-500 ease-out will-change-transform ${
                     navbarMode === 'compact'
@@ -351,14 +342,14 @@ export function Navbar() {
                         : '-translate-x-1/2 -translate-y-24 opacity-0 pointer-events-none'
                 }`}
             >
-                <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-white/10 rounded-full px-2 py-1.5 shadow-xl shadow-black/10">
+                <div className="bg-paper/95 backdrop-blur-xl border border-parchment rounded-full px-2 py-1.5 paper-shadow-lg">
                     <PillLinks />
                 </div>
             </header>
 
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
-                <div className="md:hidden fixed inset-0 top-[64px] bg-white dark:bg-slate-950 z-[1000] animate-in slide-in-from-top duration-200 overflow-y-auto overflow-x-hidden">
+                <div className="md:hidden fixed inset-0 top-[64px] bg-paper z-[1000] animate-in slide-in-from-top duration-200 overflow-y-auto overflow-x-hidden paper-texture">
                     <nav className="container mx-auto px-4 py-6 flex flex-col gap-2">
                         {user ? (
                             <>
@@ -368,8 +359,8 @@ export function Navbar() {
                                 <Link href="/test" className={getMobileLinkClassName('/test')} onClick={() => setMobileMenuOpen(false)}><ClipboardList className="h-5 w-5" />Testlerim</Link>
                                 <Link href="/library" className={getMobileLinkClassName('/library')} onClick={() => setMobileMenuOpen(false)}><Users className="h-5 w-5" />Topluluk</Link>
                                 {isAdmin && <Link href="/admin" className={getMobileLinkClassName('/admin')} onClick={() => setMobileMenuOpen(false)}><Shield className="h-5 w-5" />Admin Paneli</Link>}
-                                <div className="border-t border-gray-100 my-4" />
-                                <button onClick={() => { handleLogout(); setMobileMenuOpen(false) }} className="flex items-center gap-3 px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                                <div className="border-t border-parchment my-4" />
+                                <button onClick={() => { handleLogout(); setMobileMenuOpen(false) }} className="flex items-center gap-3 px-4 py-3 text-base font-medium text-terracotta hover:bg-terracotta/10 rounded-sm transition-all font-mono-ui">
                                     <LogOut className="h-5 w-5" />Çıkış Yap
                                 </button>
                             </>
@@ -378,9 +369,9 @@ export function Navbar() {
                                 <Link href="/" className={getMobileLinkClassName('/')} onClick={() => setMobileMenuOpen(false)}><Home className="h-5 w-5" />Ana Sayfa</Link>
                                 <Link href="#features" className={getMobileLinkClassName('#features')} onClick={() => setMobileMenuOpen(false)}>Özellikler</Link>
                                 <Link href="#how-it-works" className={getMobileLinkClassName('#how-it-works')} onClick={() => setMobileMenuOpen(false)}>Nasıl Çalışır</Link>
-                                <div className="border-t border-gray-100 my-4" />
+                                <div className="border-t border-parchment my-4" />
                                 <Link href="/login" className="w-full" onClick={() => setMobileMenuOpen(false)}>
-                                    <Button className="w-full bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] h-12 text-base font-medium shadow-md rounded-xl">Giriş Yap</Button>
+                                    <Button className="w-full bg-ink text-paper hover:bg-ink/90 h-12 text-base font-medium paper-shadow rounded-sm font-mono-ui tracking-wider uppercase">Giriş Yap</Button>
                                 </Link>
                             </>
                         )}

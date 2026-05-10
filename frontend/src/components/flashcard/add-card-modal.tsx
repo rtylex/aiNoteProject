@@ -61,7 +61,7 @@ export function AddCardModal({ setId, onAdded }: AddCardModalProps) {
         Kart Ekle
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto bg-paper !top-[5vh] !translate-y-0">
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto bg-paper">
           <DialogHeader>
             <div className="w-12 h-12 rounded-sm bg-terracotta/10 flex items-center justify-center mb-4 mx-auto">
               <BookOpen className="w-6 h-6 text-terracotta" />

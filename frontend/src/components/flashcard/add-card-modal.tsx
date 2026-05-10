@@ -51,38 +51,71 @@ export function AddCardModal({ setId, onAdded }: AddCardModalProps) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} variant="outline" size="sm" className="flex items-center gap-2 rounded-xl border-[#011133]/20 hover:border-[#011133] hover:bg-[#011133]/5 text-[#011133]">
+      <Button
+        onClick={() => setOpen(true)}
+        variant="outline"
+        size="sm"
+        className="flex items-center gap-2 rounded-sm border-ink/20 text-ink hover:bg-parchment hover:border-ink/30 font-mono-ui"
+      >
         <Plus className="w-4 h-4" />
         Kart Ekle
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md bg-gradient-to-b from-white to-[#e7ecf8] border-0 rounded-3xl shadow-2xl">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#011133] to-[#23335c] flex items-center justify-center mb-4 mx-auto">
-              <BookOpen className="w-6 h-6 text-[#f4f1e0]" />
+            <div className="w-12 h-12 rounded-sm bg-terracotta/10 flex items-center justify-center mb-4 mx-auto">
+              <BookOpen className="w-6 h-6 text-terracotta" />
             </div>
-            <DialogTitle className="text-center text-xl text-[#011133]">Yeni Kart Ekle</DialogTitle>
-            <DialogDescription className="text-center text-gray-500">
+            <DialogTitle className="text-center text-xl text-ink font-display">Yeni Kart Ekle</DialogTitle>
+            <DialogDescription className="text-center text-ink-light font-body">
               Sete manuel olarak yeni kart ekleyin
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label className="text-[#011133] font-semibold text-sm">Ön Yüz (Soru/Terim)</Label>
-              <Textarea value={front} onChange={(e) => setFront(e.target.value)} placeholder="Soruyu veya terimi yazın..." rows={3} className="rounded-xl border-gray-200 focus:border-[#011133] focus:ring-[#011133]/20" />
+              <Label className="text-ink font-semibold text-sm font-mono-ui">Ön Yüz (Soru/Terim)</Label>
+              <Textarea
+                value={front}
+                onChange={(e) => setFront(e.target.value)}
+                placeholder="Soruyu veya terimi yazın..."
+                rows={3}
+                className="rounded-sm border-parchment bg-paper-dark focus-visible:border-terracotta focus-visible:ring-terracotta/20 font-body"
+              />
             </div>
             <div className="space-y-2">
-              <Label className="text-[#011133] font-semibold text-sm">Arka Yüz (Cevap/Tanım)</Label>
-              <Textarea value={back} onChange={(e) => setBack(e.target.value)} placeholder="Cevabı veya tanımı yazın..." rows={3} className="rounded-xl border-gray-200 focus:border-[#011133] focus:ring-[#011133]/20" />
+              <Label className="text-ink font-semibold text-sm font-mono-ui">Arka Yüz (Cevap/Tanım)</Label>
+              <Textarea
+                value={back}
+                onChange={(e) => setBack(e.target.value)}
+                placeholder="Cevabı veya tanımı yazın..."
+                rows={3}
+                className="rounded-sm border-parchment bg-paper-dark focus-visible:border-terracotta focus-visible:ring-terracotta/20 font-body"
+              />
             </div>
             <div className="space-y-2">
-              <Label className="text-[#011133] font-semibold text-sm">Ekstra Notlar (İpucu/Formül)</Label>
-              <Textarea value={extraNotes} onChange={(e) => setExtraNotes(e.target.value)} placeholder="Ek ipucu, formül veya açıklama..." rows={2} className="rounded-xl border-gray-200 focus:border-[#011133] focus:ring-[#011133]/20 bg-[#f8fafc]" />
-              <p className="text-xs text-gray-400">Opsiyonel — kartı çevirince gösterilir</p>
+              <Label className="text-ink font-semibold text-sm font-mono-ui">Ekstra Notlar (İpucu/Formül)</Label>
+              <Textarea
+                value={extraNotes}
+                onChange={(e) => setExtraNotes(e.target.value)}
+                placeholder="Ek ipucu, formül veya açıklama..."
+                rows={2}
+                className="rounded-sm border-parchment bg-paper-dark focus-visible:border-terracotta focus-visible:ring-terracotta/20 font-body"
+              />
+              <p className="text-xs text-ink-light/60 font-mono-ui">Opsiyonel — kartı çevirince gösterilir</p>
             </div>
             <div className="flex justify-end gap-3 pt-2">
-              <Button variant="ghost" onClick={() => setOpen(false)} className="rounded-xl text-gray-500 hover:text-[#011133]">İptal</Button>
-              <Button onClick={handleSubmit} disabled={loading || !front.trim() || !back.trim()} className="bg-gradient-to-r from-[#011133] to-[#23335c] hover:from-[#0b1f4d] hover:to-[#2d3e6b] text-[#f4f1e0] rounded-xl px-6 h-11 font-semibold shadow-lg">
+              <Button
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                className="rounded-sm text-ink-light hover:text-ink hover:bg-parchment font-mono-ui"
+              >
+                İptal
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={loading || !front.trim() || !back.trim()}
+                className="bg-ink text-paper hover:bg-ink/90 rounded-sm px-6 h-11 font-semibold paper-shadow font-mono-ui tracking-wide"
+              >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Ekle'}
               </Button>
             </div>

@@ -277,7 +277,7 @@ export function UploadModal() {
                     Belge Yükle
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto !top-[5vh] !translate-y-0">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-center text-ink font-display">
                         {step === 'file' && 'Dosya Seç'}

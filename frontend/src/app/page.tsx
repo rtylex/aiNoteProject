@@ -95,7 +95,7 @@ export default function Home() {
       <main className="flex-1">
         <section className="container mx-auto px-4 pt-24 pb-20 md:pt-32 md:pb-28">
           <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
               {/* Left - Text */}
               <div className="order-2 lg:order-1">
                 {/* Badge */}

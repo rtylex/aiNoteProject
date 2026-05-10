@@ -367,17 +367,17 @@ export default function Home() {
         <section id="features" className="py-24 bg-paper-dark scroll-mt-24 relative">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center mb-16">
-              <span className="stamp mb-4 inline-block border-olive text-olive reveal-item opacity-0 translate-y-4 transition-all duration-500">Özellikler</span>
-              <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4 font-display reveal-item opacity-0 translate-y-4 transition-all duration-500" style={{ transitionDelay: '80ms' }}>
+              <span className="stamp mb-4 inline-block border-olive text-olive">Özellikler</span>
+              <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4 font-display">
                 Öğrenmeyi Kolaylaştıran Araçlar
               </h2>
-              <p className="text-lg text-ink-light font-body reveal-item opacity-0 translate-y-4 transition-all duration-500" style={{ transitionDelay: '160ms' }}>
+              <p className="text-lg text-ink-light font-body">
                 Her şey tek bir platformda, öğrenciler için tasarlandı.
               </p>
             </div>
 
             {/* Asymmetric 2x2 Grid with stagger */}
-            <div ref={featuresRef} className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            <div ref={featuresRef} className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto items-stretch">
               {[
                 {
                   icon: MessageSquare,
@@ -385,8 +385,7 @@ export default function Home() {
                   iconBg: 'bg-lavender/10',
                   title: 'Akıllı Sohbet',
                   desc: 'Belgeleriniz hakkında doğal dilde sorular sorun. AI, içeriği anlayarak size en doğru cevapları verir.',
-                  badge: { text: 'Türkçe dil desteği', icon: CheckCircle2, color: 'bg-olive/10 text-olive' },
-                  large: true
+                  badge: { text: 'Türkçe dil desteği', icon: CheckCircle2, color: 'bg-olive/10 text-olive' }
                 },
                 {
                   icon: Zap,
@@ -413,7 +412,7 @@ export default function Home() {
               ].map((feature, idx) => (
                 <div
                   key={idx}
-                  className={`bg-paper rounded-sm p-8 border border-parchment paper-shadow reveal-item opacity-0 translate-y-6 transition-all duration-300 cursor-default group ${feature.large ? 'md:row-span-1' : ''}`}
+                  className="bg-paper rounded-sm p-8 border border-parchment paper-shadow reveal-item opacity-0 translate-y-6 transition-all duration-300 cursor-default group h-full flex flex-col"
                   style={{
                     willChange: 'transform, box-shadow',
                     transitionDelay: `${idx * STAGGER_DELAY}ms`
@@ -429,19 +428,19 @@ export default function Home() {
                   <h3 className="text-xl font-semibold text-ink mb-3 font-display group-hover:text-terracotta transition-colors duration-200">
                     {feature.title}
                   </h3>
-                  <p className="text-ink-light mb-6 leading-relaxed font-body">
+                  <p className="text-ink-light mb-6 leading-relaxed font-body flex-grow">
                     {feature.desc}
                   </p>
 
                   {feature.badge && (
-                    <div className={`inline-flex items-center gap-2 ${feature.badge.color} px-4 py-2 rounded-sm text-xs font-medium font-mono-ui tracking-wide`}>
+                    <div className={`inline-flex items-center gap-2 ${feature.badge.color} px-4 py-2 rounded-sm text-xs font-medium font-mono-ui tracking-wide mt-auto`}>
                       <feature.badge.icon className="w-4 h-4" />
                       <span>{feature.badge.text}</span>
                     </div>
                   )}
 
                   {feature.tags && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mt-auto">
                       {feature.tags.map((tag) => (
                         <span key={tag} className="bg-parchment text-ink-light px-3 py-1.5 rounded-sm text-xs font-mono-ui group-hover:bg-paper-dark group-hover:text-ink transition-colors duration-200">
                           {tag}

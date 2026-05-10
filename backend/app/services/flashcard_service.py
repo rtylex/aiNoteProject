@@ -439,6 +439,16 @@ def list_user_sets(
         mastered = progress_counts.get("mastered", 0)
         completion_pct = round((mastered / total) * 100) if total > 0 else 0
 
+        # Count difficult cards in this set
+        difficult_count = 0
+        for card in s.cards:
+            prog = db.query(FlashcardProgress).filter(
+                FlashcardProgress.flashcard_id == card.id,
+                FlashcardProgress.user_id == user_id,
+            ).first()
+            if prog and (prog.ease_factor <= 2.0 or prog.status == FlashcardStatus.LEARNING.value):
+                difficult_count += 1
+
         result.append({
             "id": str(s.id),
             "title": s.title,
@@ -448,7 +458,8 @@ def list_user_sets(
             "created_at": s.created_at.isoformat() if s.created_at else None,
             "updated_at": s.updated_at.isoformat() if s.updated_at else None,
             "progress": progress_counts,
-            "completion_percentage": completion_pct
+            "completion_percentage": completion_pct,
+            "difficult_count": difficult_count,
         })
 
     return result

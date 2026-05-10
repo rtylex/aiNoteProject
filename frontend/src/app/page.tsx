@@ -42,6 +42,7 @@ const STAGGER_DELAY = 80
 export default function Home() {
   const stepsRef = useRef<HTMLDivElement>(null)
   const featuresRef = useRef<HTMLDivElement>(null)
+  const introRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const heroCardRef = useRef<HTMLDivElement>(null)
 
@@ -65,6 +66,7 @@ export default function Home() {
       { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
     )
 
+    if (introRef.current) observer.observe(introRef.current)
     if (stepsRef.current) observer.observe(stepsRef.current)
     if (featuresRef.current) observer.observe(featuresRef.current)
 
@@ -327,7 +329,7 @@ export default function Home() {
         {/* How It Works Section */}
         <section id="how-it-works" className="py-24 bg-paper scroll-mt-24 relative">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center mb-16">
+            <div ref={introRef} className="max-w-3xl mx-auto text-center mb-16">
               <span className="stamp mb-4 inline-block reveal-item opacity-0 translate-y-4 transition-all duration-500">3 Adım</span>
               <h2 className="text-4xl md:text-5xl font-bold text-ink mb-4 font-display reveal-item opacity-0 translate-y-4 transition-all duration-500" style={{ transitionDelay: '80ms' }}>
                 Başlamak Bu Kadar Kolay

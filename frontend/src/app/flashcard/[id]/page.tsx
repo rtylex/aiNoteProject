@@ -44,7 +44,7 @@ export default function FlashcardDetailPage() {
   const [loading, setLoading] = useState(true)
   const [sharing, setSharing] = useState(false)
   const setId = params.id as string
-  const isStudyMode = searchParams.get('mode') === 'study'
+  const isStudyMode = ['study', 'difficult', 'full'].includes(searchParams.get('mode') || '')
 
   const fetchSet = async () => {
     if (!accessToken) return

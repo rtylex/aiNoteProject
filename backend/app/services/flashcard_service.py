@@ -460,6 +460,8 @@ def get_set_with_cards(
     user_id: uuid.UUID
 ) -> dict:
     """Get flashcard set details with cards and user progress."""
+    from sqlalchemy import desc
+
     flashcard_set = db.query(FlashcardSet).filter(FlashcardSet.id == set_id).first()
 
     if not flashcard_set:
@@ -488,6 +490,22 @@ def get_set_with_cards(
         if prog:
             progress_counts[prog.status] = progress_counts.get(prog.status, 0) + 1
 
+        # Review history
+        reviews = (
+            db.query(FlashcardReviewHistory)
+            .filter(
+                FlashcardReviewHistory.flashcard_id == card.id,
+                FlashcardReviewHistory.user_id == user_id,
+            )
+            .order_by(desc(FlashcardReviewHistory.reviewed_at))
+            .all()
+        )
+
+        recent_reviews = reviews[:3]
+        avg_quality = None
+        if recent_reviews:
+            avg_quality = round(sum(r.quality for r in recent_reviews) / len(recent_reviews), 2)
+
         cards.append({
             "id": str(card.id),
             "front": card.front,
@@ -497,6 +515,9 @@ def get_set_with_cards(
             "status": prog.status if prog else "new",
             "next_review": prog.next_review.isoformat() if prog and prog.next_review else None,
             "last_reviewed": prog.last_reviewed.isoformat() if prog and prog.last_reviewed else None,
+            "review_count": len(reviews),
+            "avg_quality": avg_quality,
+            "ease_factor": prog.ease_factor if prog else 2.5,
         })
 
     total = len(cards)

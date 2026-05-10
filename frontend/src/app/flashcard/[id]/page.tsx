@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
-import { ArrowLeft, BookOpen, Share2, Play, Loader2, Lightbulb, Clock } from 'lucide-react'
+import { ArrowLeft, BookOpen, Share2, Play, Loader2, Lightbulb, Clock, AlertTriangle } from 'lucide-react'
 import { FlashcardStats } from '@/components/flashcard/flashcard-stats'
 import { StudyMode } from '@/components/flashcard/study-mode'
 import { AddCardModal } from '@/components/flashcard/add-card-modal'
@@ -29,6 +29,9 @@ interface FlashcardSetDetail {
     order: number
     status: string
     last_reviewed: string | null
+    review_count?: number
+    avg_quality?: number | null
+    ease_factor?: number
   }[]
 }
 
@@ -161,6 +164,9 @@ export default function FlashcardDetailPage() {
           <Button onClick={() => router.push(`/flashcard/${setId}?mode=study`)} className="bg-ink text-paper hover:bg-ink/90 rounded-sm h-11 px-6 font-semibold paper-shadow font-mono-ui">
             <Play className="w-4 h-4 mr-2" /> Çalışmaya Başla
           </Button>
+          <Button onClick={() => router.push(`/flashcard/${setId}?mode=difficult`)} variant="outline" className="border-terracotta/30 text-terracotta hover:bg-terracotta/10 rounded-sm h-11 px-6 font-semibold font-mono-ui">
+            <AlertTriangle className="w-4 h-4 mr-2" /> Zor Kartları Çalış
+          </Button>
           <AddCardModal setId={setId} onAdded={fetchSet} />
           {(setDetail.progress.learning + setDetail.progress.new) > 0 && (
             <div className="flex items-center gap-2 bg-parchment text-ink px-4 py-2 rounded-sm text-sm border border-parchment font-mono-ui">
@@ -197,6 +203,22 @@ export default function FlashcardDetailPage() {
                        card.status === 'learning' ? 'Öğreniliyor' :
                        card.status === 'review' ? 'Tekrar' : 'Ezberlendi'}
                     </span>
+                    {card.review_count !== undefined && card.review_count > 0 && (
+                      <span className="text-xs text-ink-light font-mono-ui bg-parchment px-2 py-1 rounded-sm">
+                        {card.review_count} kez tekrar
+                      </span>
+                    )}
+                    {card.avg_quality !== null && card.avg_quality !== undefined && (
+                      <span className={`text-xs font-bold px-2 py-1 rounded-sm font-mono-ui ${
+                        card.avg_quality <= 2
+                          ? 'bg-red-500/10 text-red-500'
+                          : card.avg_quality <= 3.5
+                          ? 'bg-yellow-500/10 text-yellow-600'
+                          : 'bg-olive/10 text-olive'
+                      }`}>
+                        ort: {card.avg_quality}
+                      </span>
+                    )}
                     {card.last_reviewed && (
                       <span className="text-xs text-ink-light flex items-center gap-1 font-mono-ui">
                         <Clock className="w-3 h-3" /> {new Date(card.last_reviewed).toLocaleDateString('tr-TR')}

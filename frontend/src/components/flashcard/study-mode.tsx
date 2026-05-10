@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { API_BASE_URL } from '@/lib/api-config'
 import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Loader2, ChevronLeft, ChevronRight, RotateCcw,
   Brain, Sparkles, Lightbulb, Zap, BookOpen,
@@ -37,6 +37,7 @@ interface SessionStats {
 
 export function StudyMode({ setId }: { setId: string }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { accessToken } = useAuth()
 
   /* ─── State ─── */
@@ -122,8 +123,15 @@ export function StudyMode({ setId }: { setId: string }) {
   }, [setId, accessToken])
 
   useEffect(() => {
-    fetchStudyCards()
-  }, [fetchStudyCards])
+    const mode = searchParams.get('mode')
+    if (mode === 'difficult') {
+      fetchDifficultCards()
+    } else if (mode === 'full') {
+      fetchAllCards()
+    } else {
+      fetchStudyCards()
+    }
+  }, [fetchStudyCards, fetchDifficultCards, fetchAllCards, searchParams])
 
   useEffect(() => {
     if (cards.length > 0) {

@@ -116,21 +116,6 @@ export default function WelcomePopup() {
                         </div>
                     </div>
 
-                    {/* Credits */}
-                    <div className="flex flex-col items-center justify-center gap-4 md:flex-row md:gap-16 pt-4 md:pt-6 border-t border-parchment">
-                        <div className="text-center">
-                            <p className="text-[10px] md:text-xs text-ink-light uppercase tracking-wider mb-1 font-mono-ui">Proje Geliştiricisi</p>
-                            <p className="text-base md:text-lg font-semibold text-ink font-display">
-                                Emirhan Yirik
-                            </p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-[10px] md:text-xs text-ink-light uppercase tracking-wider mb-1 font-mono-ui">Proje Danışmanı</p>
-                            <p className="text-base md:text-lg font-semibold text-ink font-display">
-                                Dr. Öğr. Üyesi Doruk Ayberkin
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
